@@ -1,0 +1,835 @@
+# PHASE 1 — FOUNDATION & PROJECT SETUP
+
+You are working inside the existing project:
+
+`ai_business_ecommerce/`
+
+This is **Phase 1** of the AI E-Commerce Website.
+
+## CRITICAL RULE
+
+Before doing anything:
+
+1. Read the root `AGENTS.md`.
+2. Treat `AGENTS.md` as the project's highest-priority project instructions.
+3. Inspect the existing repository before changing anything.
+4. Work ONLY inside the existing `ai_business_ecommerce/` project.
+5. Do NOT create another project/root folder.
+6. Do NOT prematurely implement later phases.
+
+The objective of this phase is to establish a clean, secure, production-ready foundation for all future phases.
+
+---
+
+# PHASE 1 OBJECTIVE
+
+Build/verify the project's technical foundation so that the remaining phases can be implemented cleanly without major architectural rewrites.
+
+This phase is about:
+
+* project foundation
+* architecture
+* dependencies
+* design tokens
+* Supabase foundation
+* authentication foundation
+* database foundation
+* service-layer foundation
+* security foundation
+* responsive app shell foundation
+* testing foundation
+* production build foundation
+
+Do NOT build the complete storefront yet.
+
+Do NOT build the complete admin panel yet.
+
+Do NOT build AI employees yet.
+
+Do NOT build WhatsApp automation yet.
+
+Do NOT build the full Guardian system yet.
+
+Those belong to later phases.
+
+However, the architecture must be prepared so those systems can be added cleanly later.
+
+---
+
+# STEP 1 — INSPECT BEFORE MODIFYING
+
+Start by inspecting:
+
+* repository structure
+* package.json
+* existing Next.js configuration
+* TypeScript configuration
+* Tailwind configuration
+* existing app directory
+* existing components
+* existing lib/services
+* Supabase configuration
+* existing migrations
+* environment files
+* testing configuration
+* Git status
+* current branch
+* recent commits
+
+Determine what already exists.
+
+Do not recreate working functionality.
+
+Do not replace working architecture without evidence.
+
+If the repository is already partially initialized, preserve valid work and complete only the missing foundation.
+
+---
+
+# STEP 2 — VERIFY TECH STACK
+
+The target stack is:
+
+* Next.js
+* App Router
+* TypeScript
+* React
+* Tailwind CSS
+* Framer Motion
+* Lucide React
+* React Hook Form
+* Zod
+* Supabase
+* OpenAI Agents SDK architecture compatibility
+
+Verify what is already installed.
+
+Only install missing dependencies that are actually required for Phase 1.
+
+Do not install unnecessary packages.
+
+Do not introduce alternative frameworks unless the existing project makes the required stack impossible.
+
+---
+
+# STEP 3 — PROJECT STRUCTURE
+
+Establish a clean scalable structure.
+
+Use the existing structure if it is already valid.
+
+The architecture should be capable of evolving toward:
+
+```text
+ai_business_ecommerce/
+├── AGENTS.md
+├── app/
+├── components/
+├── lib/
+├── services/
+├── agents/
+├── skills/
+├── guardians/
+├── tools/
+├── supabase/
+├── tests/
+├── public/
+├── package.json
+└── ...
+```
+
+Do not create every future module just for the sake of creating empty folders.
+
+Create only what is useful for Phase 1.
+
+Future architecture should remain easy to extend.
+
+---
+
+# STEP 4 — DESIGN SYSTEM FOUNDATION
+
+Establish the base design tokens for the premium Pakistani fashion brand.
+
+The visual direction is:
+
+* premium
+* elegant
+* editorial
+* minimal
+* luxurious
+* clean
+* warm
+* modern
+
+Primary visual palette:
+
+* white
+* warm ivory
+* cream
+* soft neutral backgrounds
+* dark charcoal text
+* dark purple premium accent
+* subtle muted gold only where appropriate
+
+Do NOT use:
+
+* neon colors
+* rainbow gradients
+* excessive glow
+* cheap-looking effects
+* overly futuristic styling
+
+Create reusable design tokens rather than scattering raw colors throughout components.
+
+The design system must support future storefront, admin and chatbot UI.
+
+---
+
+# STEP 5 — TYPOGRAPHY FOUNDATION
+
+Establish a premium typography system.
+
+Use an elegant display/serif style for major brand/editorial headings where appropriate.
+
+Use a clean readable sans-serif for body/UI text.
+
+Typography must be:
+
+* readable
+* premium
+* responsive
+* consistent
+
+Do not randomly use different fonts throughout the application.
+
+Create reusable typography tokens/classes where appropriate.
+
+---
+
+# STEP 6 — RESPONSIVE FOUNDATION
+
+Establish a responsive layout foundation for:
+
+* mobile
+* tablet
+* laptop
+* desktop
+* large desktop
+
+Ensure:
+
+* no horizontal overflow
+* responsive spacing
+* responsive typography
+* accessible touch targets
+* proper container widths
+* usable navigation foundation
+
+Mobile must be treated as a first-class experience.
+
+Do not build a desktop-only architecture.
+
+---
+
+# STEP 7 — APP SHELL FOUNDATION
+
+Create the minimum reusable application shell needed for future development.
+
+This may include:
+
+* root layout
+* global styles
+* theme/design tokens
+* page container
+* responsive container utilities
+* basic loading boundary
+* basic error boundary
+* not-found handling
+* reusable button foundation
+* reusable input foundation
+* reusable card foundation where appropriate
+
+Do not build the complete homepage in this phase.
+
+Do not build all storefront sections.
+
+The purpose is to establish reusable primitives.
+
+---
+
+# STEP 8 — SUPABASE FOUNDATION
+
+Verify or establish the Supabase integration.
+
+Support:
+
+* PostgreSQL
+* Auth
+* Storage
+* RLS
+* migrations
+
+Use environment variables.
+
+Never hard-code Supabase secrets.
+
+Required client/server separation should be respected.
+
+Do not expose service-role credentials to the browser.
+
+If Supabase credentials are not available, establish the correct configuration structure and clearly document what is required rather than inventing credentials.
+
+---
+
+# STEP 9 — AUTHENTICATION FOUNDATION
+
+Establish the authentication architecture for:
+
+## Customers
+
+Support:
+
+* email/password
+* Google OAuth
+
+## Admin
+
+Prepare secure role-based authorization.
+
+Authentication and authorization must remain separate.
+
+A logged-in user must not automatically become an admin.
+
+Use secure session handling appropriate for Next.js App Router and Supabase.
+
+Protect server-side operations.
+
+Do not expose sensitive credentials.
+
+If OAuth credentials are not available, build the architecture without fake credentials.
+
+---
+
+# STEP 10 — DATABASE FOUNDATION
+
+Inspect existing Supabase migrations.
+
+If no schema exists yet, establish only the foundational schema needed for the application.
+
+At minimum prepare the architecture for:
+
+* users/auth relationship
+* business/store ownership if required by the project's architecture
+* roles/permissions where appropriate
+
+Do not prematurely create the entire product/order/customer schema unless required by the existing architecture.
+
+Later phases will add detailed e-commerce tables.
+
+Use:
+
+* UUIDs
+* timestamps
+* foreign keys
+* indexes where justified
+* constraints
+* RLS
+
+Database design must be production-safe.
+
+---
+
+# STEP 11 — RLS FOUNDATION
+
+RLS is a mandatory security boundary.
+
+Establish the foundation for:
+
+* customer ownership
+* admin access
+* protected resources
+
+Never disable RLS to solve permission problems.
+
+Never use service-role credentials as a shortcut for normal user operations.
+
+If service-role access is required for a trusted server operation, isolate it strictly on the server and ensure the operation has its own authorization/Guardian architecture.
+
+---
+
+# STEP 12 — SERVICE LAYER FOUNDATION
+
+Establish a clean service-layer pattern.
+
+Preferred architecture:
+
+```text
+UI
+↓
+Server Action / Route Handler
+↓
+Validation
+↓
+Authorization
+↓
+Service Layer
+↓
+Supabase
+```
+
+Future AI architecture:
+
+```text
+AI Manager
+↓
+AI Employee
+↓
+Skill
+↓
+Guardian
+↓
+Tool
+↓
+Service Layer
+↓
+Supabase
+↓
+Verification
+```
+
+Do not allow React components to become the primary location for business logic.
+
+Do not put business logic directly into AI agents.
+
+---
+
+# STEP 13 — VALIDATION FOUNDATION
+
+Establish Zod validation patterns.
+
+Validation should eventually be usable for:
+
+* forms
+* server actions
+* API inputs
+* AI tool inputs
+* external integrations
+
+Create reusable patterns only where useful.
+
+Do not over-engineer the validation system.
+
+---
+
+# STEP 14 — SECURITY FOUNDATION
+
+Establish basic application security.
+
+At minimum inspect and protect:
+
+* authentication
+* authorization
+* environment variables
+* server/client boundaries
+* Supabase RLS
+* API inputs
+* form inputs
+* sensitive operations
+
+Prepare architecture for future:
+
+* Guardians
+* prompt injection defense
+* tool authorization
+* risk classification
+* action verification
+* audit logs
+
+Do not implement a fake Guardian system just to satisfy this phase.
+
+Only establish the foundation/interfaces needed for later implementation.
+
+---
+
+# STEP 15 — ERROR / LOADING FOUNDATION
+
+Establish consistent handling for:
+
+* loading states
+* errors
+* empty states
+* not-found states
+
+User-facing errors should be understandable.
+
+Do not expose:
+
+* stack traces
+* database internals
+* secrets
+* API credentials
+
+Use proper logging on the server where appropriate.
+
+---
+
+# STEP 16 — TESTING FOUNDATION
+
+Inspect existing testing setup.
+
+If missing, establish a sensible testing foundation for:
+
+* unit tests
+* integration tests
+* E2E tests
+
+Do not create hundreds of meaningless tests.
+
+Create enough foundation/example coverage to prove that the test setup actually works.
+
+At minimum verify important foundation behavior such as:
+
+* basic application rendering
+* validation
+* authentication architecture where testable
+* critical service-layer behavior where available
+
+---
+
+# STEP 17 — PERFORMANCE FOUNDATION
+
+Ensure the architecture supports good performance.
+
+Prefer:
+
+* Server Components where appropriate
+* minimal Client Components
+* optimized images
+* efficient imports
+* reusable components
+* minimal unnecessary JavaScript
+
+Do not add unnecessary client-side state.
+
+Do not turn the entire application into Client Components.
+
+---
+
+# STEP 18 — ACCESSIBILITY FOUNDATION
+
+Establish basic accessibility standards.
+
+Use:
+
+* semantic HTML
+* accessible labels
+* keyboard navigation
+* focus states
+* sufficient contrast
+* accessible buttons
+* accessible forms
+
+Do not rely solely on icons without accessible labels.
+
+---
+
+# STEP 19 — AI COMPATIBILITY
+
+Do NOT build the complete AI system in Phase 1.
+
+However, the architecture must not prevent future integration with:
+
+* OpenAI Agents SDK
+* AI Manager
+* AI Employees
+* Skills
+* Guardians
+* Tools
+* WhatsApp
+* AI customer chatbot
+
+Avoid architecture choices that would require rewriting the application later.
+
+The future AI flow must be compatible with:
+
+```text
+User
+↓
+AI Manager
+↓
+Relevant AI Employee
+↓
+Relevant Skill
+↓
+Guardian
+↓
+Approved Tool
+↓
+Service Layer
+↓
+Database / External System
+↓
+Verification
+↓
+Report
+```
+
+---
+
+# STEP 20 — CHATBOT COMPATIBILITY
+
+The future customer AI chatbot is a required feature.
+
+Phase 1 does NOT need to implement the final chatbot.
+
+But ensure the frontend architecture can later support a floating chat panel.
+
+The final chatbot requirements are:
+
+* floating trigger
+* compact panel
+* does not navigate to a full-screen chat page
+* opens on the current page
+* premium design
+* responsive
+* smooth open/close
+* dark-to-light-to-white gradient direction
+* actual AI backend later
+
+Do not implement the final chatbot now unless a minimal shell is necessary for architecture.
+
+---
+
+# STEP 21 — ENVIRONMENT CONFIGURATION
+
+Create or update `.env.example` if appropriate.
+
+Document required environment variables without exposing secrets.
+
+Potential future categories include:
+
+* Supabase
+* AI provider
+* OAuth
+* WhatsApp
+* payments
+* email
+* monitoring
+
+Only include variables relevant to the current architecture.
+
+Never add fake production secrets.
+
+Never commit `.env.local` secrets.
+
+---
+
+# STEP 22 — DOCUMENTATION
+
+Update documentation only where useful.
+
+Document:
+
+* how to install
+* how to run development server
+* how to run tests
+* required environment variables
+* basic architecture
+* Supabase setup requirements
+
+Do not create unnecessary documentation files.
+
+`AGENTS.md` remains the master project instruction file.
+
+---
+
+# STEP 23 — DO NOT IMPLEMENT LATER PHASES
+
+Do NOT implement complete:
+
+* product management
+* product detail system
+* cart
+* wishlist
+* checkout
+* payment integration
+* complete order system
+* complete customer system
+* complete admin panel
+* AI Manager
+* AI Employees
+* skills
+* full Guardians
+* WhatsApp automation
+* proactive AI
+* full analytics
+* marketing automation
+
+Those belong to later phases.
+
+Only establish the foundation required for them.
+
+---
+
+# STEP 24 — VERIFY EVERYTHING
+
+After implementation:
+
+1. Run lint.
+2. Run type checking.
+3. Run relevant tests.
+4. Run production build.
+5. Inspect generated errors/warnings.
+6. Inspect git diff.
+7. Inspect changed files.
+8. Verify no secrets were added.
+9. Verify no unrelated functionality was broken.
+10. Verify responsive foundation where applicable.
+
+Do not stop merely because the code compiles.
+
+---
+
+# STEP 25 — ROOT-CAUSE FIXING
+
+If you encounter an existing issue while performing Phase 1:
+
+1. reproduce it
+2. identify the actual root cause
+3. fix it only if necessary for Phase 1
+4. verify the fix
+
+Do not perform unrelated refactoring.
+
+---
+
+# STEP 26 — GIT
+
+Before committing:
+
+* check `git status`
+* inspect `git diff`
+* ensure no secrets
+* ensure only intended files changed
+
+Then create a clear commit.
+
+Suggested commit style:
+
+```text
+feat: establish ecommerce project foundation
+```
+
+Push the final commit to:
+
+`main`
+
+---
+
+# STEP 27 — VERCEL PRODUCTION
+
+The user tests the project on Vercel.
+
+Therefore local success is not sufficient.
+
+After Phase 1 is verified:
+
+1. commit changes
+2. push to GitHub `main`
+3. deploy to Vercel production
+4. verify the production deployment
+5. verify the production build actually loads
+6. report the result truthfully
+
+If Vercel deployment fails:
+
+* inspect the actual error
+* fix the relevant issue
+* rerun verification
+* redeploy
+* verify again
+
+Do not claim production deployment succeeded without evidence.
+
+---
+
+# PHASE 1 SUCCESS CRITERIA
+
+Phase 1 is complete only if:
+
+* [ ] Existing project was inspected first
+* [ ] `AGENTS.md` was followed
+* [ ] No new project/root folder was created
+* [ ] Target stack is correctly configured
+* [ ] Project structure is scalable
+* [ ] Design token foundation exists
+* [ ] Responsive foundation exists
+* [ ] App shell foundation exists
+* [ ] Supabase foundation is correct
+* [ ] Auth foundation is correct
+* [ ] RLS/security foundation is correct
+* [ ] Service layer foundation exists
+* [ ] Validation foundation exists
+* [ ] Error/loading foundation exists
+* [ ] Testing foundation works
+* [ ] Production build passes
+* [ ] No secrets were committed
+* [ ] No unrelated functionality was broken
+* [ ] Git commit created
+* [ ] Changes pushed to `main`
+* [ ] Vercel production deployed
+* [ ] Production deployment verified
+
+---
+
+# FINAL RESPONSE
+
+When finished, report only what actually happened.
+
+Use this structure:
+
+## Phase 1 Completed
+
+* list the actual implementation
+
+## Verification
+
+* lint:
+* typecheck:
+* tests:
+* production build:
+* security checks:
+
+## Git
+
+* commit:
+* pushed to `main`:
+
+## Vercel
+
+* production deployment:
+* production verification:
+
+## Remaining Issues
+
+List only real unresolved issues.
+
+Do not claim anything that was not actually verified.
+
+---
+
+# FINAL RULE
+
+Do not rush.
+
+Do not build later phases.
+
+Do not rewrite working code unnecessarily.
+
+Inspect first.
+
+Implement the correct foundation.
+
+Verify everything.
+
+Then commit, push to `main`, deploy to Vercel, and verify production.
