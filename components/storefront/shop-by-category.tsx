@@ -17,7 +17,7 @@ export function ShopByCategory({ categories }: ShopByCategoryProps) {
   return (
     <section
       aria-labelledby="shop-by-category-heading"
-      className="relative z-10 -mt-16 bg-gradient-to-b from-cream via-ivory to-white pb-4 pt-10 sm:-mt-20 sm:pt-14"
+      className="relative z-10 -mt-24 rounded-t-3xl bg-gradient-to-b from-cream via-ivory to-white pb-4 pt-10 sm:-mt-28 sm:rounded-t-[2rem] sm:pt-14"
     >
       <Container size="lg">
         <Reveal>

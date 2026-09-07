@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { StorefrontState } from "@/components/storefront/storefront-provider";
 
 import { SearchPanel } from "@/components/storefront/search-panel";
 import { AddToBagButton } from "@/components/storefront/add-to-bag-button";
@@ -9,13 +10,38 @@ import {
   getAllActiveProducts,
 } from "@/lib/storefront/data";
 
+const mocks = vi.hoisted(() => ({
+  addToCart: vi.fn<() => Promise<string | null>>(async () => null),
+}));
+
+vi.mock("@/components/storefront/storefront-provider", () => ({
+  StorefrontProvider: ({ children }: { children: React.ReactNode }) => children,
+  useStorefront: () =>
+    ({
+      cartCount: 0,
+      wishlistCount: 0,
+      subtotal: 0,
+      ready: true,
+      addToCart: mocks.addToCart,
+      updateCartItem: async () => null,
+      removeCartItem: async () => null,
+      clearCart: async () => null,
+      toggleWishlist: async () => ({ saved: false, error: null }),
+      refreshWishlist: async () => {},
+    }) satisfies StorefrontState,
+}));
+
 describe("SearchPanel", () => {
   it("filters the mock catalog by name", async () => {
     const user = userEvent.setup();
+    const [products, categories] = await Promise.all([
+      getAllActiveProducts(),
+      getActiveCategories(),
+    ]);
     render(
       <SearchPanel
-        products={getAllActiveProducts()}
-        categories={getActiveCategories()}
+        products={products}
+        categories={categories}
         onNavigate={() => {}}
       />,
     );
@@ -32,10 +58,14 @@ describe("SearchPanel", () => {
 
   it("shows an honest empty state when nothing matches", async () => {
     const user = userEvent.setup();
+    const [products, categories] = await Promise.all([
+      getAllActiveProducts(),
+      getActiveCategories(),
+    ]);
     render(
       <SearchPanel
-        products={getAllActiveProducts()}
-        categories={getActiveCategories()}
+        products={products}
+        categories={categories}
         onNavigate={() => {}}
       />,
     );
@@ -50,20 +80,38 @@ describe("SearchPanel", () => {
 });
 
 describe("AddToBagButton", () => {
-  it("shows an honest placeholder and never claims persistence", async () => {
+  beforeEach(() => {
+    mocks.addToCart.mockReset();
+    mocks.addToCart.mockResolvedValue(null);
+  });
+
+  it("shows a functional Add to Bag control", () => {
+    render(<AddToBagButton productId="00000000-0000-4000-8000-000000000000" />);
+    expect(
+      screen.getByRole("button", { name: "ADD TO BAG" }),
+    ).toBeInTheDocument();
+  });
+
+  it("adds the product to the bag on click", async () => {
     const user = userEvent.setup();
-    render(<AddToBagButton productName="Sitara Cut-Dana" />);
+    render(<AddToBagButton productId="00000000-0000-4000-8000-000000000000" />);
 
-    expect(
-      screen.getByRole("button", { name: "Add Sitara Cut-Dana to Bag" }),
-    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "ADD TO BAG" }));
 
-    await user.click(
-      screen.getByRole("button", { name: "Add Sitara Cut-Dana to Bag" }),
+    expect(mocks.addToCart).toHaveBeenCalledWith(
+      "00000000-0000-4000-8000-000000000000",
+      1,
     );
+    expect(await screen.findByText("Added to your bag")).toBeInTheDocument();
+  });
 
-    expect(
-      screen.getByRole("button", { name: /Cart arriving soon/i }),
-    ).toBeInTheDocument();
+  it("surfaces a sign-in prompt when adding as a guest", async () => {
+    mocks.addToCart.mockResolvedValue("Please sign in to add items to your bag.");
+    const user = userEvent.setup();
+    render(<AddToBagButton productId="00000000-0000-4000-8000-000000000000" />);
+
+    await user.click(screen.getByRole("button", { name: "ADD TO BAG" }));
+
+    expect(await screen.findByText(/please sign in/i)).toBeInTheDocument();
   });
 });

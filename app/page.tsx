@@ -10,15 +10,20 @@ import {
   getActiveProductSections,
 } from "@/lib/storefront/data";
 
-export default function HomePage() {
+export default async function HomePage() {
   const heroSlides = getActiveHeroSlides();
   const hero = heroSlides[0];
+
+  const [categories, sections] = await Promise.all([
+    getActiveCategories(),
+    getActiveProductSections(),
+  ]);
 
   return (
     <main>
       {hero ? <Hero slide={hero} /> : null}
-      <ShopByCategory categories={getActiveCategories()} />
-      {getActiveProductSections().map((section) => (
+      <ShopByCategory categories={categories} />
+      {sections.map((section) => (
         <ProductSectionView key={section.id} section={section} />
       ))}
       <BrandStory />

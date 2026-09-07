@@ -56,6 +56,10 @@ export type Product = {
   color?: string;
   /** Small editorial label such as "New", when appropriate. */
   label?: string;
+  /** Current available quantity (0 means out of stock). */
+  stockQuantity: number;
+  /** Quantity below which the product should be highlighted as low stock. */
+  lowStockThreshold: number;
   active: boolean;
 };
 

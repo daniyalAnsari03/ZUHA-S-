@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { categoryHref, formatPrice } from "@/lib/storefront/format";
+import { formatPrice } from "@/lib/storefront/format";
 import type { Category, Product } from "@/lib/storefront/types";
 
 type SearchPanelProps = {
@@ -72,7 +72,7 @@ export function SearchPanel({ products, categories, onNavigate }: SearchPanelPro
           {results.items.slice(0, 8).map((product) => (
             <li key={product.id}>
               <Link
-                href={categoryHref(product.categorySlug)}
+                href={`/product/${encodeURIComponent(product.slug)}`}
                 onClick={onNavigate}
                 className="group flex items-center gap-4 py-3"
               >

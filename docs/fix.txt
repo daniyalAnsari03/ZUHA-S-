@@ -1,0 +1,62 @@
+Read `AGENTS.md` first.
+
+Task: Replace ONLY the existing navbar center brand text/logo with the provided DINS by Daniyal image.
+
+The logo already exists at:
+
+`public/images/brand/dins-by-daniyal-logo.png`
+
+### Requirements
+
+* In the navbar center, replace the existing text-based `dINS by Daniyal` brand with the image logo.
+* Use the existing image file exactly:
+  `/images/brand/dins-by-daniyal-logo.png`
+* Do NOT recreate the logo with text.
+* Do NOT edit, recolor, crop, or modify the image file.
+* Preserve the navbar's existing height, spacing, positioning, and overall layout.
+* The logo must remain centered in exactly the same center-brand area.
+* Make the image responsive so it looks correct on both desktop and mobile.
+* Do NOT make the navbar taller.
+* Do NOT change Search, Login, Bag, hamburger, or any other navbar functionality.
+* Keep the existing mobile navbar structure unchanged except replacing the center text with the logo.
+* Use proper `alt` text such as `dINS by Daniyal`.
+* If the project uses Next.js Image, use the existing project convention and `next/image` appropriately.
+
+### Important
+
+Do NOT modify:
+
+* Hero
+* Shop By Category
+* Product cards
+* Products
+* Colors
+* Typography elsewhere
+* Footer
+* Database
+* Supabase
+* AI functionality
+* Any unrelated component
+
+Only make the navbar logo replacement.
+
+### Verification
+
+Run:
+
+* `npm run lint`
+* `npm run typecheck`
+* `npm run build`
+
+Verify:
+
+* Logo loads correctly.
+* Desktop navbar remains the same height.
+* Mobile navbar remains the same height.
+* Logo is centered.
+* No layout shift or broken image.
+* No unrelated files changed.
+
+Database/Migration: **Not required — frontend-only navbar asset change.**
+
+Do NOT commit, push to GitHub, or deploy to Vercel.

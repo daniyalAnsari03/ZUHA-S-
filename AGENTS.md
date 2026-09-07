@@ -613,12 +613,18 @@ The storefront must follow this visual direction:
 * cream
 * soft neutral backgrounds
 * dark charcoal text
-* dark purple premium accent
+* deep mehroon-purple / warm wine-plum premium accent
 * subtle muted gold only where appropriate
 
 Avoid excessive colors.
 
-Dark purple is the main premium action/accent color.
+The primary brand/action accent color is a deep mehroon-purple / warm wine-plum shade (implemented as the `plum` token family in `app/globals.css`):
+
+* `--color-plum`: `#4a2040` — deep mehroon-purple / warm wine-plum (primary)
+* `--color-plum-dark`: `#3a1833` — darker wine-plum (hover/darker variant)
+* `--color-plum-light`: `#7a3570` — lighter muted wine-plum (lighter variant)
+
+The color family is muted, premium, and luxurious. It must read as a deep warm wine-plum — NOT pink, NOT magenta, NOT bright/neon. It should work beautifully against the ivory/cream/white backgrounds and dark charcoal text.
 
 ---
 
@@ -634,7 +640,7 @@ Product cards should be:
 * high-quality product image
 * product name
 * price
-* dark purple Add to Cart button
+* deep mehroon-purple Add to Cart button
 * white button text
 
 Do not make cards visually crowded.

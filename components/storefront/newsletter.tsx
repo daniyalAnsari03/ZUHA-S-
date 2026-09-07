@@ -93,7 +93,7 @@ export function Newsletter() {
             variant="gold"
             size="md"
             disabled={isSubmitting}
-            className="shrink-0 rounded-full"
+            className="shrink-0"
           >
             <Send className="h-4 w-4" aria-hidden="true" />
             Subscribe

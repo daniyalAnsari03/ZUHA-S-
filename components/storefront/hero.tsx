@@ -16,7 +16,7 @@ type HeroProps = {
  */
 export function Hero({ slide }: HeroProps) {
   return (
-    <section className="relative z-0 overflow-hidden bg-plum-dark">
+    <section className="relative z-0 -mt-32 overflow-hidden bg-plum-dark sm:-mt-40">
       <div className="absolute inset-0">
         <Image
           src={slide.image}

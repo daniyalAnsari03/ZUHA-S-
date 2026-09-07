@@ -3,11 +3,12 @@ import { ArrowRight } from "lucide-react";
 
 import { Reveal } from "@/components/motion/reveal";
 import { Container } from "@/components/ui/container";
-import { resolveProducts } from "@/lib/storefront/data";
+import { getNewArrivals, getProductsByCategory } from "@/lib/storefront/data";
 import { categoryHref } from "@/lib/storefront/format";
 import type { ProductSection } from "@/lib/storefront/types";
 
 import { ProductCard } from "./product-card";
+import { ProductCarousel } from "./product-carousel";
 
 type ProductSectionProps = {
   section: ProductSection;
@@ -18,8 +19,11 @@ type ProductSectionProps = {
  * section configuration (title, category, products) comes from the storefront
  * data layer and is admin-controllable in a later phase.
  */
-export function ProductSectionView({ section }: ProductSectionProps) {
-  const products = resolveProducts(section.productIds, 4);
+export async function ProductSectionView({ section }: ProductSectionProps) {
+  const source = section.categorySlug
+    ? await getProductsByCategory(section.categorySlug)
+    : await getNewArrivals();
+  const products = source.slice(0, 4);
   const viewAllHref = section.categorySlug
     ? categoryHref(section.categorySlug)
     : "/shop";
@@ -54,7 +58,9 @@ export function ProductSectionView({ section }: ProductSectionProps) {
           </div>
         </Reveal>
 
-        <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
+        <ProductCarousel products={products} />
+
+        <div className="mt-8 hidden grid-cols-2 gap-x-4 gap-y-10 sm:grid sm:gap-x-6 lg:grid-cols-4">
           {products.map((product, index) => (
             <Reveal key={product.id} delay={index * 0.05}>
               <ProductCard product={product} />

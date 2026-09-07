@@ -26,11 +26,11 @@ type ShopPageProps = {
 export default async function ShopPage({ searchParams }: ShopPageProps) {
   const { category } = await searchParams;
   const raw = Array.isArray(category) ? category[0] : category;
-  const activeCategory = raw ? getCategoryBySlug(raw) : null;
+  const activeCategory = raw ? await getCategoryBySlug(raw) : null;
 
   const products = activeCategory
-    ? getProductsByCategory(activeCategory.slug)
-    : getAllActiveProducts();
+    ? await getProductsByCategory(activeCategory.slug)
+    : await getAllActiveProducts();
 
   return (
     <main className="flex-1 bg-white">
@@ -49,7 +49,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           ) : null}
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-1 gap-x-4 gap-y-10 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-4">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

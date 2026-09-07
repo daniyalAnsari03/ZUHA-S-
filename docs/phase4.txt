@@ -1,0 +1,721 @@
+Read `AGENTS.md` completely before starting. Follow it as the master specification.
+
+We are now implementing **PHASE 4 — CART, WISHLIST & CHECKOUT** of the AI E-Commerce Website.
+
+IMPORTANT:
+
+* Work ONLY inside the existing project folder: `D:\ai_business_ecommerce`
+* Do NOT create a new project or root folder.
+* Phase 1, Phase 2 and Phase 3 are complete.
+* Phase 3 is already connected to the live Supabase project with real categories/products, RLS, services, validation, storage and product detail pages.
+* Inspect the existing implementation first and reuse it.
+* Do NOT rebuild existing product/category architecture.
+* Do NOT start Phase 5 Customers & Orders.
+* Do NOT start AI Chatbot, AI Employees, WhatsApp, marketing automation, or unrelated features.
+* Keep this phase focused ONLY on Cart, Wishlist and Checkout foundation.
+
+## PHASE 4 GOAL
+
+Build a complete, secure, database-backed shopping flow:
+
+`Product → Add to Cart → Cart → Wishlist → Checkout → Order Intent/Checkout Submission`
+
+The architecture must be ready for Phase 5 Orders, but **do not build the Phase 5 order-management system yet**.
+
+---
+
+# 1. INSPECT EXISTING ARCHITECTURE FIRST
+
+Before modifying anything:
+
+* Inspect `AGENTS.md`
+* Inspect Phase 3 product/category schema
+* Inspect product service layer
+* Inspect product detail page
+* Inspect existing auth/session architecture
+* Inspect existing UI components
+* Inspect existing storefront data boundary
+* Inspect existing RLS/security architecture
+* Inspect any existing cart/wishlist placeholders
+
+Reuse existing patterns.
+
+Do not duplicate services/components unnecessarily.
+
+---
+
+# 2. DATABASE — CARTS
+
+Create the required Supabase migration.
+
+Create a secure cart system supporting authenticated customers.
+
+Recommended structure:
+
+### carts
+
+* `id` UUID primary key
+* `user_id` UUID NOT NULL
+* `status` appropriate cart status
+* `created_at`
+* `updated_at`
+
+Requirements:
+
+* One active cart per user.
+* Appropriate unique constraint/index.
+* Proper foreign key to authenticated user/profile according to existing architecture.
+* RLS mandatory.
+
+---
+
+# 3. DATABASE — CART ITEMS
+
+Create:
+
+### cart_items
+
+* `id` UUID primary key
+* `cart_id` UUID NOT NULL
+* `product_id` UUID NOT NULL
+* `quantity` integer NOT NULL
+* `created_at`
+* `updated_at`
+
+Requirements:
+
+* quantity must be greater than 0.
+* Appropriate unique constraint for one product per cart.
+* Foreign keys.
+* Appropriate indexes.
+* Prevent invalid product references.
+* RLS mandatory.
+
+Do NOT trust client-provided prices.
+
+Prices must always come from the trusted product data/service layer.
+
+---
+
+# 4. DATABASE — WISHLIST
+
+Create a proper wishlist foundation.
+
+Recommended:
+
+### wishlists
+
+* `id` UUID primary key
+* `user_id` UUID NOT NULL
+* `created_at`
+* `updated_at`
+
+### wishlist_items
+
+* `id` UUID primary key
+* `wishlist_id` UUID NOT NULL
+* `product_id` UUID NOT NULL
+* `created_at`
+
+Requirements:
+
+* One wishlist per user.
+* A product cannot appear twice in the same wishlist.
+* Proper foreign keys/indexes.
+* RLS mandatory.
+* Users can access only their own wishlist.
+
+If the existing architecture supports a simpler user-to-product wishlist relation safely, reuse that approach instead of creating unnecessary tables.
+
+---
+
+# 5. RLS / SECURITY
+
+Security is mandatory.
+
+Customers must only be able to:
+
+* read their own cart
+* modify their own cart
+* read their own wishlist
+* modify their own wishlist
+
+Users must NOT be able to:
+
+* access another user's cart
+* access another user's wishlist
+* change another user's cart items
+* change another user's wishlist
+* submit arbitrary prices
+* manipulate product ownership
+* bypass stock validation
+* bypass authentication
+
+Public users may browse products but must not modify customer cart/wishlist records.
+
+Never expose:
+
+* service-role key
+* private credentials
+* database secrets
+
+Do not disable RLS.
+
+---
+
+# 6. CART SERVICE LAYER
+
+Create/reuse a typed service layer.
+
+Required operations:
+
+* get active cart
+* add product to cart
+* update quantity
+* remove item
+* clear cart
+* calculate subtotal
+* validate cart
+* check stock
+* refresh/revalidate cart against current product data
+
+Important:
+
+When adding a product:
+
+* verify product exists
+* verify product is active
+* verify current price from DB
+* verify stock
+* reject invalid quantity
+
+When increasing quantity:
+
+* re-check available stock.
+
+Do not trust stale client state.
+
+---
+
+# 7. WISHLIST SERVICE LAYER
+
+Required operations:
+
+* get wishlist
+* add product
+* remove product
+* toggle product
+* check whether product is wishlisted
+
+Validate that the product exists and is active where appropriate.
+
+---
+
+# 8. PRODUCT DETAIL — ADD TO CART
+
+Update the existing product detail page.
+
+The existing design must remain premium and consistent.
+
+Add functional:
+
+`ADD TO CART`
+
+Behavior:
+
+* validates product
+* validates stock
+* adds item to authenticated user's cart
+* updates cart state
+* gives clear success feedback
+* handles errors gracefully
+
+Do NOT redesign the entire product page.
+
+If a guest attempts to add to cart, use the existing auth flow appropriately.
+
+---
+
+# 9. STOREFRONT CART UI
+
+Make the existing cart/bag navigation functional.
+
+Build a premium cart experience.
+
+Cart must show:
+
+* product image
+* product name
+* product detail/fabric
+* unit price
+* quantity controls
+* remove action
+* subtotal
+* total item count
+* checkout CTA
+
+Quantity controls:
+
+* increment
+* decrement
+* direct safe update if supported
+* prevent quantity below 1
+* prevent quantity above available stock
+
+Show a clear empty-cart state.
+
+Keep the luxury visual language.
+
+Buttons must preserve the current project style:
+
+* rectangular
+* subtle corner rounding
+* NOT pill-shaped
+
+---
+
+# 10. MOBILE CART
+
+Mobile cart must be properly responsive.
+
+Do not introduce horizontal overflow.
+
+Ensure:
+
+* product image remains visible
+* quantity controls remain usable
+* prices remain readable
+* remove action is accessible
+* checkout CTA is easy to reach
+* layout works on narrow screens
+
+Do not break the existing mobile product layouts.
+
+---
+
+# 11. WISHLIST UI
+
+Make the existing wishlist functionality real.
+
+Users should be able to:
+
+* add/remove products
+* see wishlist state
+* open wishlist
+* move/add wishlist product to cart
+* remove wishlist item
+
+Guest behavior should use the existing authentication approach.
+
+Do not create unnecessary duplicate product-card designs.
+
+Reuse existing ProductCard where appropriate.
+
+---
+
+# 12. CHECKOUT FOUNDATION
+
+Build the checkout UI and validation foundation.
+
+Checkout must collect the minimum information required for the Pakistan-focused store architecture, such as:
+
+* customer name
+* phone number
+* email where available
+* shipping address
+* city
+* postal/area information where appropriate
+* order notes where appropriate
+
+Use React Hook Form + Zod if already established.
+
+Validate all input.
+
+Do not trust client input.
+
+---
+
+# 13. PAYMENT ARCHITECTURE
+
+Phase 4 must establish the checkout payment architecture without locking the project to an unsafe implementation.
+
+The system should support a payment-provider abstraction suitable for Pakistan.
+
+Do NOT hard-code a single payment provider if the existing architecture is designed for multiple providers.
+
+Payment amount must always be calculated server-side from trusted product/cart data.
+
+Never accept a client-submitted total as authoritative.
+
+Do NOT expose payment secrets.
+
+Do NOT implement fake payment success.
+
+If a payment provider is not yet configured, create a clean provider interface and a safe unavailable/configuration state rather than pretending payment succeeded.
+
+---
+
+# 14. CHECKOUT VALIDATION
+
+Before checkout submission, server-side validation MUST verify:
+
+1. User is authenticated.
+2. Cart exists.
+3. Cart belongs to current user.
+4. Cart is not empty.
+5. Every product still exists.
+6. Every product is active.
+7. Current prices are retrieved from trusted DB data.
+8. Stock is still sufficient.
+9. Quantities are valid.
+10. Final subtotal/total is calculated server-side.
+11. Customer/shipping information passes validation.
+
+Never use stale client prices.
+
+---
+
+# 15. CHECKOUT → PHASE 5 BOUNDARY
+
+IMPORTANT:
+
+Phase 5 will implement the full Customers & Orders system.
+
+For Phase 4:
+
+* Build checkout UI.
+* Build secure checkout validation/service boundary.
+* Build payment-provider abstraction.
+* Build the minimum transaction/checkout handoff required by the architecture.
+
+Do NOT build:
+
+* full admin order management
+* customer order history
+* order fulfillment workflow
+* shipping management
+* refund management
+* order analytics
+* AI order employee
+
+Those belong to Phase 5 or later.
+
+If an order record is absolutely required for a secure checkout handoff, keep it minimal and clearly document the boundary for Phase 5.
+
+Do not duplicate the future order-management system.
+
+---
+
+# 16. STOCK / CONCURRENCY SAFETY
+
+Cart operations must account for concurrent stock changes.
+
+Do not assume:
+
+`current stock → client quantity → checkout`
+
+is safe.
+
+At checkout, revalidate stock from the trusted database.
+
+Where appropriate, use an atomic database operation/transaction/RPC for inventory-sensitive operations.
+
+Do not allow negative stock.
+
+Do not silently oversell.
+
+If stock becomes unavailable, show a clear error and prevent checkout.
+
+---
+
+# 17. CART PERSISTENCE
+
+Authenticated user's cart must persist across:
+
+* page refresh
+* navigation
+* browser session
+
+If guest cart support is implemented, it must be isolated safely and merged into the authenticated cart only through validated server-side logic.
+
+Do not make guest cart support overly complex if it is not necessary for the current architecture.
+
+---
+
+# 18. HEADER / BAG COUNT
+
+Make the navbar Bag/Cart indicator functional.
+
+It should:
+
+* show current cart item count
+* update after add/remove/quantity changes
+* remain responsive
+* not cause unnecessary full-page reloads
+
+Do not change navbar height or overall layout.
+
+---
+
+# 19. SEO / ACCESSIBILITY
+
+Maintain existing SEO implementation.
+
+Checkout/cart/wishlist should have appropriate metadata/indexing behavior.
+
+Do not expose private customer/cart information to search engines.
+
+Use:
+
+* accessible labels
+* keyboard-accessible controls
+* proper buttons
+* meaningful form errors
+* focus handling where appropriate
+
+---
+
+# 20. TESTING
+
+Add/update tests for:
+
+### Cart
+
+* create/get active cart
+* add product
+* add same product again increases quantity correctly
+* update quantity
+* remove item
+* clear cart
+* subtotal calculation
+* inactive product rejection
+* invalid quantity rejection
+* insufficient stock rejection
+* ownership/RLS boundaries
+
+### Wishlist
+
+* add
+* remove
+* toggle
+* duplicate prevention
+* ownership/RLS boundaries
+
+### Checkout
+
+* unauthenticated rejection
+* empty cart rejection
+* invalid customer data rejection
+* stale/inactive product rejection
+* insufficient stock rejection
+* server-side price calculation
+* successful validation path
+
+### UI
+
+* Add to Cart works
+* cart count updates
+* cart renders correctly
+* empty cart state
+* wishlist state
+* checkout validation
+* mobile responsive cart
+
+Run:
+
+`npm run lint`
+
+`npm run typecheck`
+
+`npm run test`
+
+`npm run build`
+
+Fix all failures before completion.
+
+---
+
+# 21. DATABASE / MIGRATION — MANDATORY
+
+This phase changes the database.
+
+Therefore:
+
+**Database/Migration: REQUIRED.**
+
+Create proper migration file(s) under:
+
+`supabase/migrations/`
+
+The migration must include whatever is actually required for:
+
+* carts
+* cart_items
+* wishlists
+* wishlist_items
+* relationships
+* constraints
+* indexes
+* RLS
+* policies
+* required triggers/functions/RPCs
+
+Do NOT create an empty/fake migration.
+
+Before creating duplicate tables, inspect the existing database/migrations.
+
+Apply the migration to the linked Supabase project.
+
+Verify the remote database after applying it.
+
+Do not claim migration completion without evidence.
+
+---
+
+# 22. SECURITY / GUARDIAN BOUNDARY
+
+All cart/wishlist/checkout mutations must pass through the appropriate validation, authorization and service boundaries.
+
+Follow the Guardian architecture in `AGENTS.md`.
+
+AI must NOT receive unrestricted access to:
+
+* cart tables
+* customer data
+* payment systems
+* arbitrary SQL
+
+No arbitrary SQL execution from user input.
+
+No bypassing RLS.
+
+No secrets exposed to browser/client code.
+
+---
+
+# 23. DO NOT TOUCH UNRELATED FEATURES
+
+Do NOT unnecessarily modify:
+
+* Hero
+* Shop By Category
+* Announcement Bar
+* Navbar design/height
+* Product card design
+* Product colors
+* Typography
+* Product/category database architecture from Phase 3
+* Admin product/category foundation
+* AI Manager
+* AI Employees
+* WhatsApp
+* Marketing automation
+* SEO unrelated to this phase
+
+The existing mobile product behavior MUST remain intact:
+
+### Homepage mobile
+
+* Shop By Category unchanged
+* 1 product visible at a time
+* horizontal swipe/drag carousel
+* compact mobile product card
+
+### Shop mobile
+
+* 1 product per row
+* vertical list
+
+Do not regress these layouts.
+
+---
+
+# 24. EVIDENCE-FIRST COMPLETION
+
+Before declaring Phase 4 complete, verify and report:
+
+1. Files changed
+2. Migration file(s)
+3. Migration applied to remote Supabase
+4. Remote DB verification
+5. RLS/policies verified
+6. Cart service
+7. Wishlist service
+8. Checkout validation
+9. Payment abstraction
+10. Product detail Add to Cart
+11. Cart UI
+12. Wishlist UI
+13. Bag count
+14. Tests
+15. Lint
+16. Typecheck
+17. Production build
+18. Mobile responsiveness
+
+Run:
+
+`git status --short`
+
+and inspect:
+
+`git diff`
+
+Do not claim verification that was not actually performed.
+
+---
+
+## FINAL REPORT FORMAT
+
+Return a concise report:
+
+**Phase 4: COMPLETE / BLOCKED**
+
+**Implemented**
+
+* ...
+
+**Database/Migration**
+
+* Required: YES
+* Migration: `...`
+* Applied: YES/NO
+* Remote verification: PASS/FAIL
+
+**Cart**
+
+* ...
+
+**Wishlist**
+
+* ...
+
+**Checkout**
+
+* ...
+
+**Security/RLS**
+
+* ...
+
+**Verification**
+
+* Lint: PASS/FAIL
+* Typecheck: PASS/FAIL
+* Tests: PASS/FAIL
+* Build: PASS/FAIL
+
+**Responsive**
+
+* Homepage mobile carousel preserved: PASS/FAIL
+* Shop mobile 1-column preserved: PASS/FAIL
+* Cart mobile: PASS/FAIL
+
+**Files changed**
+
+* ...
+
+**GitHub:** Not pushed
+**Vercel:** Not deployed
+
+Do NOT commit, push to GitHub, or deploy to Vercel.

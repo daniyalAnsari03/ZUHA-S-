@@ -4,6 +4,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import { AnnouncementBar } from "@/components/storefront/announcement-bar";
 import { Footer } from "@/components/storefront/footer";
 import { Navbar } from "@/components/storefront/navbar";
+import { StorefrontProvider } from "@/components/storefront/storefront-provider";
 import {
   getActiveAnnouncements,
   getActiveCategories,
@@ -64,24 +65,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [categories, products] = await Promise.all([
+    getActiveCategories(),
+    getAllActiveProducts(),
+  ]);
+
   return (
     <html
       lang="en"
       className={`${inter.variable} ${playfair.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-ivory font-sans text-charcoal">
-        <AnnouncementBar announcements={getActiveAnnouncements()} />
-        <Navbar
-          categories={getActiveCategories()}
-          products={getAllActiveProducts()}
-        />
-        <div className="flex flex-1 flex-col">{children}</div>
-        <Footer categories={getActiveCategories()} />
+        <StorefrontProvider>
+          <AnnouncementBar announcements={getActiveAnnouncements()} />
+          <Navbar categories={categories} products={products} />
+          <div className="flex flex-1 flex-col">{children}</div>
+          <Footer categories={categories} />
+        </StorefrontProvider>
       </body>
     </html>
   );
