@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Lawn placeholder artwork">
+  <defs>
+  <linearGradient id="cl" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fbf8f3"/><stop offset="1" stop-color="#f1ece3"/>
+  </linearGradient>
+</defs>
+<rect width="800" height="1000" fill="url(#cl)"/>
+<g fill="none" stroke="#b89b63" stroke-width="1.8" opacity="0.35">
+  <ellipse cx="400" cy="360" rx="180" ry="60" transform="rotate(-8 400 360)"/>
+  <ellipse cx="400" cy="520" rx="180" ry="60" transform="rotate(6 400 520)"/>
+  <ellipse cx="400" cy="680" rx="180" ry="60" transform="rotate(-5 400 680)"/>
+</g>
+<g fill="#3b2a4d" opacity="0.8">
+  <path d="M400 300 c -10 16 10 16 0 32 c -10 -16 10 -16 0 -32 Z"/>
+  <path d="M400 430 c -10 16 10 16 0 32 c -10 -16 10 -16 0 -32 Z"/>
+  <path d="M400 560 c -10 16 10 16 0 32 c -10 -16 10 -16 0 -32 Z"/>
+  <path d="M400 690 c -10 16 10 16 0 32 c -10 -16 10 -16 0 -32 Z"/>
+</g>
+</svg>

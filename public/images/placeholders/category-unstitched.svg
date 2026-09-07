@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Unstitched placeholder artwork">
+  <defs>
+  <linearGradient id="cu" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#faf7f2"/><stop offset="1" stop-color="#efe7da"/>
+  </linearGradient>
+</defs>
+<rect width="800" height="1000" fill="url(#cu)"/>
+<g>
+  <rect x="200" y="250" width="400" height="560" rx="8" fill="#ffffff"/>
+  <rect x="210" y="260" width="380" height="540" fill="#f5efe6"/>
+  <line x1="400" y1="250" x2="400" y2="810" stroke="#efe7da" stroke-width="2" opacity="0.8"/>
+  <g stroke="#dcc9a0" stroke-width="1.6" opacity="0.8">
+    <path d="M228 300 h 40 M228 326 h 28 M228 352 h 34" />
+    <path d="M572 660 h -40 M572 686 h -28 M572 712 h -34"/>
+  </g>
+  <g stroke="#b89b63" stroke-width="1" opacity="0.5">
+    <path d="M230 560 h 340 M230 576 h 340 M230 592 h 340"/>
+  </g>
+</g>
+</svg>

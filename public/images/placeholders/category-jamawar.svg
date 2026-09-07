@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Jamawar placeholder artwork">
+  <defs>
+  <linearGradient id="cj" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#2c1f3b"/><stop offset="1" stop-color="#3b2a4d"/>
+  </linearGradient>
+  <pattern id="wv" width="80" height="80" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+    <g fill="none" stroke="#d6c39a" stroke-width="1.4" opacity="0.35">
+      <path d="M20 20 q8 -14 16 0 q8 14 16 0"/>
+      <path d="M20 60 q8 -14 16 0 q8 14 16 0"/>
+      <path d="M60 20 q8 -14 16 0 q8 14 16 0"/>
+      <path d="M60 60 q8 -14 16 0 q8 14 16 0"/>
+    </g>
+  </pattern>
+  <radialGradient id="cjl" cx="0.5" cy="0.32" r="0.65">
+    <stop offset="0" stop-color="#4a3a5c" stop-opacity="0.9"/><stop offset="1" stop-color="#2c1f3b" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="800" height="1000" fill="url(#cj)"/>
+<rect width="800" height="1000" fill="url(#wv)"/>
+<rect width="800" height="1000" fill="url(#cjl)"/>
+<g fill="none" stroke="#d6c39a" opacity="0.6">
+  <path d="M400 330 C 360 300 340 330 400 360 C 460 390 440 420 400 390" stroke-width="3"/>
+  <path d="M300 420 C 268 398 254 420 300 442 C 346 464 336 486 300 464" stroke-width="2"/>
+  <path d="M500 420 C 532 398 546 420 500 442 C 454 464 464 486 500 464" stroke-width="2"/>
+</g>
+</svg>

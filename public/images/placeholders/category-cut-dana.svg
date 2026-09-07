@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Cut-Dana placeholder artwork">
+  <defs>
+  <linearGradient id="cd" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#efe7da"/><stop offset="1" stop-color="#f7f1e8"/>
+  </linearGradient>
+</defs>
+<rect width="800" height="1000" fill="url(#cd)"/>
+<g fill="#b89b63" opacity="0.55">
+  <rect x="320" y="300" width="12" height="12" transform="rotate(45 326 306)"/>
+  <rect x="388" y="270" width="12" height="12" transform="rotate(45 394 276)"/>
+  <rect x="456" y="300" width="12" height="12" transform="rotate(45 462 306)"/>
+  <rect x="282" y="380" width="12" height="12" transform="rotate(45 288 386)"/>
+  <rect x="350" y="362" width="10" height="10" transform="rotate(45 355 367)"/>
+  <rect x="418" y="360" width="10" height="10" transform="rotate(45 423 365)"/>
+  <rect x="486" y="378" width="12" height="12" transform="rotate(45 492 384)"/>
+  <rect x="320" y="452" width="10" height="10" transform="rotate(45 325 457)"/>
+  <rect x="388" y="446" width="10" height="10" transform="rotate(45 393 451)"/>
+  <rect x="456" y="452" width="10" height="10" transform="rotate(45 461 457)"/>
+</g>
+<g fill="#3b2a4d" opacity="0.85">
+  <rect x="340" y="330" width="9" height="9" transform="rotate(45 344.5 334.5)"/>
+  <rect x="424" y="328" width="9" height="9" transform="rotate(45 428.5 332.5)"/>
+  <path d="M400 326 v 40 M372 384 h 56" stroke="#3b2a4d" stroke-width="2.4" opacity="0.7"/>
+</g>
+</svg>

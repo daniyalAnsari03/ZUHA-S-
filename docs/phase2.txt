@@ -1,0 +1,692 @@
+# PHASE 2 — PREMIUM STOREFRONT UI/UX
+
+You are working inside the existing project:
+
+`D:\ai_business_ecommerce`
+
+You MUST work only inside this existing project. Do not create a new project, root folder, or duplicate application.
+
+Before doing anything:
+
+1. Read `AGENTS.md` completely.
+2. Inspect the current repository and understand what Phase 1 already implemented.
+3. Preserve all working Phase 1 code.
+4. Do not undo or replace existing architecture unnecessarily.
+5. Follow the project's locked design/architecture requirements from `AGENTS.md`.
+
+## Phase Goal
+
+Implement **Phase 2 — Premium Storefront UI/UX**.
+
+The goal is to turn the Phase 1 foundation into a polished, premium Pakistani luxury-fashion storefront.
+
+This phase is primarily frontend/storefront UX.
+
+Do NOT prematurely implement:
+
+* full product management
+* cart
+* wishlist backend
+* checkout
+* payment integration
+* customer order system
+* admin workplace
+* AI Manager
+* AI Employees
+* Guardians implementation beyond existing foundation
+* WhatsApp automation
+* full chatbot backend
+
+Only create compatibility/foundation where genuinely required for this phase.
+
+---
+
+# 1. INSPECT FIRST
+
+Before coding, inspect:
+
+* existing app structure
+* `AGENTS.md`
+* current layout
+* global CSS/design tokens
+* fonts
+* UI primitives
+* Supabase foundation
+* existing routes
+* existing tests
+* package.json
+* current git state
+
+Reuse existing components/tokens where appropriate.
+
+Do not blindly recreate existing components.
+
+---
+
+# 2. STOREFRONT DESIGN LANGUAGE
+
+The storefront must feel like a **premium Pakistani luxury fashion brand**.
+
+Design direction:
+
+* elegant
+* editorial
+* minimal
+* luxurious
+* modern
+* trustworthy
+* fast
+* spacious
+* refined
+
+Locked palette:
+
+* white / warm ivory / cream backgrounds
+* dark charcoal text
+* dark purple / plum as primary action color
+* muted gold only as a subtle secondary accent
+
+Avoid:
+
+* neon
+* rainbow gradients
+* excessive glow
+* cheap futuristic UI
+* excessive glassmorphism
+* excessive animations
+* clutter
+* huge unnecessary empty spaces
+* generic SaaS-looking storefront
+
+The website must look like a serious premium fashion/e-commerce brand.
+
+---
+
+# 3. GLOBAL STOREFRONT STRUCTURE
+
+Build the storefront around:
+
+Announcement Bar
+→ Navbar
+→ Luxury Hero
+→ overlapping Shop By Category
+→ New Arrivals
+→ category product sections
+→ Brand Story
+→ Instagram/Social Gallery
+→ Newsletter
+→ Footer
+
+The homepage must be responsive across:
+
+* desktop
+* tablet
+* mobile
+
+---
+
+# 4. NAVBAR
+
+Implement the premium storefront navbar.
+
+Locked structure:
+
+### Left
+
+Hamburger menu
+
+### Center
+
+Brand wordmark:
+
+**dINS by Daniyal**
+
+Use the existing project typography/design system where possible.
+
+### Right
+
+* Search
+* Wishlist
+* Cart
+
+For mobile:
+
+* hamburger
+* centered logo
+* compact action icons
+
+Requirements:
+
+* clean
+* premium
+* sticky/fixed behavior only if it improves UX
+* responsive
+* accessible
+* keyboard usable
+* proper aria labels
+* smooth but subtle interaction
+
+---
+
+# 5. HAMBURGER MENU
+
+Create a premium navigation drawer/menu.
+
+Categories:
+
+* Jamawar
+* Embroidery
+* Cut-Dana Embroidery
+* Plain
+* Unstitched
+* Lawn
+* New Arrivals
+
+Allow room for future categories.
+
+The menu should:
+
+* open smoothly
+* close smoothly
+* support Escape
+* support backdrop click
+* be keyboard accessible
+* work properly on mobile and desktop
+
+Do not create product/category backend in this phase.
+
+Use route placeholders/links only where appropriate.
+
+---
+
+# 6. ANNOUNCEMENT BAR
+
+Create an announcement bar.
+
+Only ONE message should be visible at a time.
+
+It should support smooth changing/sliding between messages.
+
+Architect it so future admin functionality can control:
+
+* message
+* active/inactive
+* display order
+* timing
+* scheduling
+
+For this phase, use safe local/static mock configuration if needed.
+
+Do NOT build the admin panel yet.
+
+---
+
+# 7. LUXURY HERO
+
+Create a large premium hero section.
+
+Requirements:
+
+* full-width/high-impact fashion image area
+* image must dominate the visual experience
+* text layered over the image
+* heading
+* paragraph
+* Shop Now / Shop Collection CTA
+* premium contrast/readability
+* responsive image treatment
+* mobile-safe text positioning
+* subtle animation only
+
+Architect the hero so future admin functionality can control:
+
+* image
+* heading
+* paragraph
+* CTA text
+* CTA destination
+* active/inactive
+* display order
+
+Do not build the admin panel yet.
+
+If a real brand image is not available, use a clean project-safe placeholder approach rather than introducing random low-quality assets.
+
+---
+
+# 8. SHOP BY CATEGORY — IMPORTANT
+
+Implement Shop By Category **overlapping the hero image**.
+
+There must NOT be a large empty gap between hero and category cards.
+
+The category cards should visually sit/overlap on the hero transition.
+
+Background transition:
+
+* slightly darker cream near the upper transition
+* gradually lighter toward white
+
+Create premium category cards for:
+
+* Jamawar
+* Embroidery
+* Cut-Dana Embroidery
+* Plain
+* Unstitched
+* Lawn
+
+Cards should be:
+
+* clickable
+* elegant
+* image-led where appropriate
+* responsive
+* subtle hover interaction
+* premium spacing
+
+Architect category configuration so future admin functionality can control it.
+
+---
+
+# 9. PRODUCT SECTION FOUNDATION
+
+Create reusable storefront product-section components.
+
+Homepage sections:
+
+1. New Arrivals
+2. Jamawar
+3. Embroidery
+4. Cut-Dana Embroidery
+5. Plain
+6. Unstitched
+7. Lawn
+
+Each section should initially display:
+
+* 4 products
+* premium product cards
+* View All Products CTA
+
+Because full product management belongs to a later phase, use a clearly isolated mock/static data layer for now.
+
+Do NOT hard-code product data throughout JSX.
+
+Create a clean data/config boundary that can later be replaced with Supabase services.
+
+---
+
+# 10. PRODUCT CARD
+
+Create a premium reusable product card.
+
+Required visual structure:
+
+* product image
+* product name
+* price
+* dark-purple Add to Cart button
+* white button text
+* subtle rounded corners
+* subtle shadow
+* premium spacing
+* responsive layout
+
+Add tasteful hover/focus states.
+
+Do not implement the actual cart backend yet.
+
+The Add to Cart action can be a controlled placeholder interaction for this phase, but must not falsely claim that an order/cart was persisted.
+
+---
+
+# 11. BRAND STORY
+
+Create a premium Brand Story section.
+
+It should visually communicate:
+
+* Pakistani craftsmanship
+* elegance
+* quality
+* heritage + modern fashion
+* premium positioning
+
+Keep copy concise and editorial.
+
+Do not invent fake claims such as years of experience, awards, certifications, celebrity endorsements, etc.
+
+Use placeholder-safe copy where real brand facts are unavailable.
+
+---
+
+# 12. SOCIAL / INSTAGRAM GALLERY
+
+Create a premium social/gallery section.
+
+Requirements:
+
+* responsive image grid
+* elegant spacing
+* subtle hover interactions
+* future-ready structure for real social media content
+
+Do not integrate Instagram API in Phase 2.
+
+Use safe local placeholder/mock content if actual brand assets are unavailable.
+
+---
+
+# 13. NEWSLETTER
+
+Create a premium newsletter section.
+
+Requirements:
+
+* heading
+* short supporting text
+* email input
+* CTA
+* validation-ready UI
+* responsive layout
+
+Do not build email backend/subscription persistence yet.
+
+Use React Hook Form + Zod where appropriate.
+
+Do not claim subscription success without an actual backend.
+
+---
+
+# 14. FOOTER
+
+Create a premium footer containing appropriate groups such as:
+
+* Shop
+* Customer Care
+* About
+* Contact
+* Social links
+* policies/placeholders where appropriate
+
+Keep it clean and luxury-oriented.
+
+Ensure mobile layout is excellent.
+
+---
+
+# 15. SEARCH / WISHLIST / CART ENTRY POINTS
+
+Create polished UI entry points for:
+
+* Search
+* Wishlist
+* Cart
+
+Backend functionality belongs to later phases.
+
+Do not create fake persistence.
+
+Use appropriate placeholder states or disabled/coming-soon behavior where needed.
+
+The UI should still feel complete.
+
+---
+
+# 16. RESPONSIVE DESIGN
+
+Test all major sections at:
+
+* mobile
+* tablet
+* desktop
+* wide desktop
+
+Pay special attention to:
+
+* navbar
+* hero text
+* hero image crop
+* category overlap
+* product grids
+* footer
+* typography
+* spacing
+* buttons
+* touch targets
+
+No horizontal overflow.
+
+---
+
+# 17. ANIMATION
+
+Use Framer Motion only where it improves the premium experience.
+
+Preferred:
+
+* subtle fade
+* slide
+* hover
+* drawer transitions
+* section reveal
+
+Avoid:
+
+* excessive motion
+* slow page transitions
+* distracting animations
+
+Respect `prefers-reduced-motion`.
+
+---
+
+# 18. ACCESSIBILITY
+
+Ensure:
+
+* semantic HTML
+* keyboard navigation
+* visible focus states
+* aria labels for icon buttons
+* accessible menu/drawer
+* sufficient contrast
+* proper form labels
+* alt text for images
+* reduced-motion support
+
+---
+
+# 19. PERFORMANCE
+
+The storefront must remain fast.
+
+Use:
+
+* Next.js image optimization where appropriate
+* responsive image sizing
+* lazy loading where appropriate
+* minimal client components
+* server components by default
+* no unnecessary dependencies
+* no huge image assets
+* no unnecessary JS
+
+Do not sacrifice performance for visual effects.
+
+---
+
+# 20. SEO FOUNDATION
+
+For the storefront homepage:
+
+* proper title
+* description
+* Open Graph metadata foundation
+* semantic heading hierarchy
+* canonical-friendly structure
+* favicon/branding where appropriate
+
+Do not implement the complete SEO/product-schema system yet if it belongs to later phases.
+
+---
+
+# 21. DATA / ARCHITECTURE
+
+Keep presentation separate from data.
+
+Use clean reusable structures such as:
+
+* storefront components
+* product-card component
+* product-section component
+* category-card component
+* announcement configuration
+* hero configuration
+* mock storefront data
+
+Do not scatter mock data across components.
+
+Prepare clear boundaries for future Supabase integration.
+
+---
+
+# 22. DATABASE / MIGRATIONS — IMPORTANT
+
+Phase 2 must NOT create unnecessary database tables just for frontend visuals.
+
+However, if implementation requires ANY database/schema/RLS/policy/config change:
+
+1. Create a proper Supabase migration under:
+   `supabase/migrations/`
+2. Never manually modify production schema without a migration.
+3. Apply the migration to the intended Supabase environment when available.
+4. Verify the migration actually succeeded.
+5. Verify resulting tables, columns, indexes, RLS, and policies as applicable.
+6. Include migration status explicitly in the final report.
+
+**Implementation must NOT be reported as fully complete if a required migration was created but not properly applied/verified.**
+
+If no database change is genuinely required for Phase 2, explicitly report:
+
+`Database migration: Not required for this phase.`
+
+Do not create fake/empty migrations merely to satisfy this requirement.
+
+---
+
+# 23. TESTING
+
+Add/update tests for meaningful behavior introduced in this phase.
+
+At minimum verify:
+
+* navigation/menu behavior
+* important UI components
+* newsletter validation
+* responsive-safe rendering where testable
+* accessibility-sensitive interactions
+* existing Phase 1 tests remain passing
+
+Run:
+
+* lint
+* typecheck
+* tests
+* production build
+
+Fix actual failures.
+
+Do not claim success without evidence.
+
+---
+
+# 24. VISUAL / RUNTIME QA
+
+After implementation:
+
+1. Run the app.
+2. Verify homepage actually renders.
+3. Check desktop layout.
+4. Check mobile layout.
+5. Check navbar/menu.
+6. Check hero.
+7. Check category overlap.
+8. Check product sections.
+9. Check newsletter.
+10. Check footer.
+11. Check for console/runtime errors.
+12. Check for horizontal overflow.
+13. Check image/layout issues.
+14. Verify navigation interactions.
+
+Do not stop at successful compilation.
+
+---
+
+# 25. SCOPE CONTROL
+
+Do NOT silently expand Phase 2 into:
+
+* full product CRUD
+* inventory system
+* cart persistence
+* checkout
+* payments
+* orders
+* customer management
+* admin dashboard
+* AI Manager
+* AI Employees
+* WhatsApp
+* production AI chatbot backend
+
+If a future-phase dependency is needed, build only the minimum clean foundation required.
+
+---
+
+# 26. FINAL COMPLETION CHECK
+
+Before declaring Phase 2 complete, verify:
+
+* [ ] Phase 1 functionality preserved
+* [ ] premium homepage implemented
+* [ ] navbar implemented
+* [ ] hamburger menu implemented
+* [ ] announcement bar implemented
+* [ ] hero implemented
+* [ ] Shop By Category overlaps hero correctly
+* [ ] product section foundation implemented
+* [ ] product cards implemented
+* [ ] Brand Story implemented
+* [ ] social gallery implemented
+* [ ] newsletter UI implemented
+* [ ] footer implemented
+* [ ] responsive behavior verified
+* [ ] accessibility checked
+* [ ] performance checked
+* [ ] SEO foundation checked
+* [ ] required migrations created/applied/verified OR explicitly confirmed not required
+* [ ] lint passes
+* [ ] typecheck passes
+* [ ] tests pass
+* [ ] production build passes
+* [ ] runtime verified
+* [ ] no secrets exposed
+* [ ] no fake success claims
+* [ ] no unnecessary scope expansion
+
+Only after these checks may you report:
+
+**Phase 2 Completed**
+
+The final report must clearly separate:
+
+1. Implemented
+2. Database/Migrations
+3. Verification/Test Results
+4. Known Issues / Deferred Work
+5. Current Git state
+
+Do NOT push to GitHub or deploy to Vercel in this phase unless I explicitly ask you to do so.

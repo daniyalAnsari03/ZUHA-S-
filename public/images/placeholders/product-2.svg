@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Placeholder product artwork">
+  <defs>
+    <linearGradient id="bg_2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b2a4d"/>
+      <stop offset="1" stop-color="#2c1f3b"/>
+    </linearGradient>
+    <linearGradient id="fab_2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7f1e8"/>
+      <stop offset="1" stop-color="#efe7da"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#bg_2)"/>
+  <g stroke="#3b2a4d" stroke-width="2" opacity="0.5">
+    <line x1="0" y1="104" x2="800" y2="88"/>
+    <line x1="0" y1="212" x2="800" y2="194"/>
+    <line x1="0" y1="326" x2="800" y2="308"/>
+  </g>
+  <ellipse cx="400" cy="912" rx="218" ry="20" fill="rgba(43,38,34,0.12)"/>
+  <path d="M400 190
+    C 372 190 352 214 344 248
+    C 338 282 300 306 276 332
+    C 240 372 226 428 226 486
+    L 226 560 C 226 590 258 604 292 598
+    C 314 560 328 520 336 470
+    C 342 520 336 604 344 668
+    C 336 720 308 788 310 860
+    C 311 892 489 892 490 860
+    C 492 788 464 720 456 668
+    C 464 604 458 520 464 470
+    C 472 520 486 560 508 598
+    C 542 604 574 590 574 560
+    L 574 486 C 574 428 560 372 524 332
+    C 500 306 462 282 456 248
+    C 448 214 428 190 400 190 Z"
+    fill="url(#fab_2)"/>
+  <path d="M400 190 C 372 190 352 214 344 248 L 456 248 C 448 214 428 190 400 190 Z" fill="#2c1f3b" opacity="0.55"/>
+  <path d="M400 190 L400 320" stroke="#2c1f3b" stroke-width="3" opacity="0.6"/>
+  <path d="M374 288 C 396 266 404 266 426 288" stroke="#2c1f3b" stroke-width="1.6" fill="none" opacity="0.5"/>
+  <path d="M310 860 C 336 838 360 836 386 844 C 412 852 430 848 452 830" stroke="#3b2a4d" stroke-width="2" fill="none" opacity="0.6"/>
+  <path d="M336 670 C 350 652 372 650 392 656 C 414 662 434 658 460 640" stroke="#3b2a4d" stroke-width="1.4" fill="none" opacity="0.45"/>
+  
+      <g fill="#b89b63" opacity="0.9">
+        <rect x="356" y="252" width="7" height="7" transform="rotate(45 359.5 255.5)"/>
+        <rect x="437" y="252" width="7" height="7" transform="rotate(45 440.5 255.5)"/>
+        <rect x="396" y="246" width="7" height="7" transform="rotate(45 399.5 249.5)"/>
+        <rect x="378" y="288" width="7" height="7" transform="rotate(45 381.5 291.5)"/>
+        <rect x="417" y="288" width="7" height="7" transform="rotate(45 420.5 291.5)"/>
+      </g>
+</svg>

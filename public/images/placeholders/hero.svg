@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Hero backdrop placeholder">
+  <defs>
+    <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2c1f3b"/>
+      <stop offset="0.55" stop-color="#3b2a4d"/>
+      <stop offset="1" stop-color="#5c4370"/>
+    </linearGradient>
+    <radialGradient id="hl" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#6b5280" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#2c1f3b" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hd" cx="0.05" cy="0.96" r="0.9">
+      <stop offset="0" stop-color="#faf7f2" stop-opacity="0.35"/>
+      <stop offset="0.5" stop-color="#efe7da" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#2c1f3b" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="hwv" width="120" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(24)">
+      <g fill="none" stroke="#d6c39a" stroke-width="1" opacity="0.14">
+        <path d="M20 20 q12 -20 24 0 q12 20 24 0"/>
+        <path d="M20 80 q12 -20 24 0 q12 20 24 0"/>
+        <path d="M80 20 q12 -20 24 0 q12 20 24 0"/>
+        <path d="M80 80 q12 -20 24 0 q12 20 24 0"/>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="1600" height="900" fill="url(#hg)"/>
+  <rect width="1600" height="900" fill="url(#hl)"/>
+  <rect width="1600" height="900" fill="url(#hwv)"/>
+  <path d="M0 640 C 260 520 420 700 720 610 C 980 530 1180 620 1600 520 L1600 900 L0 900 Z" fill="url(#hd)"/>
+  <path d="M0 720 C 300 640 520 780 860 700 C 1160 630 1360 700 1600 640 L1600 900 L0 900 Z" fill="#efe7da" opacity="0.10"/>
+  <g fill="none" stroke="#d6c39a" stroke-width="1.4" opacity="0.5">
+    <circle cx="1280" cy="180" r="90"/>
+    <circle cx="1280" cy="180" r="56"/>
+    <circle cx="250" cy="180" r="26"/>
+    <circle cx="250" cy="180" r="10"/>
+  </g>
+</svg>

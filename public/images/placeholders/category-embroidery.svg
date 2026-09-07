@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Embroidery placeholder artwork">
+  <defs>
+  <linearGradient id="ce" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#f5efe6"/><stop offset="1" stop-color="#faf7f2"/>
+  </linearGradient>
+</defs>
+<rect width="800" height="1000" fill="url(#ce)"/>
+<g fill="none" stroke="#3b2a4d" stroke-width="2.4">
+  <path d="M400 280 C 372 212 428 212 400 280"/>
+  <path d="M400 330 C 372 262 428 262 400 330"/>
+  <path d="M400 380 C 372 312 428 312 400 380"/>
+  <path d="M400 280 v -46 M400 330 v -46" stroke-width="1.6"/>
+  <path d="M340 430 h 44 M356 458 h 28" stroke-width="1.6" opacity="0.7"/>
+  <path d="M460 430 h -44 M444 458 h -28" stroke-width="1.6" opacity="0.7"/>
+</g>
+<g stroke="#b89b63" stroke-width="1.8" fill="none" opacity="0.8">
+  <path d="M356 288 q18 -26 20 -90 M444 288 q-18 -26 -20 -90" stroke-linecap="round"/>
+  <circle cx="400" cy="176" r="3.4" fill="#b89b63" stroke="none"/>
+</g>
+</svg>
