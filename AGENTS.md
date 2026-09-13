@@ -747,18 +747,18 @@ The hero must be responsive.
 
 # 20. SHOP BY CATEGORY
 
-Shop By Category must overlap the hero image.
+Shop By Category must sit directly after the hero with a clean, immediate transition.
 
-It must NOT simply begin after a large empty gap.
+It must NOT overlap upward onto the hero image and there must be no white/ivory sliver or gap between the hero and the cream section. The cream gradient section begins flush below the hero and transitions downward into the lighter content area.
 
 The visual transition should feel intentional:
 
 ```text
 Hero
    ↓
-Category cards overlap hero
+cream gradient begins directly below hero (no gap, no overlap, no white sliver)
    ↓
-background gradually transitions
+background gradually transitions downward
    ↓
 lighter/white content area
 ```
@@ -2287,13 +2287,6 @@ After completing a task, report:
 * important checks
 * actual results
 
-## Production
-
-* commit hash
-* GitHub push status
-* Vercel deployment status
-* production verification result
-
 ## Issues
 
 Only report real remaining issues.
@@ -2359,15 +2352,6 @@ Test
 ↓
 Verify
 ↓
-Commit
-↓
-Push main
-↓
-Deploy Vercel
-↓
-Verify production
-↓
-Report truthfully
 ```
 
 Never bypass the project's security, architecture, Guardian, validation, testing, or production rules just to make a task appear complete.

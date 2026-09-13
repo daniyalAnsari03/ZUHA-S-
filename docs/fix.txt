@@ -1,8 +1,42 @@
-When update_product is called to change ONLY the description (or any single
-field), the model sometimes also includes a guessed "slug" value (often
-containing a space, which fails validation) even though the user never asked
-to change it. Fix: make it explicit in productAgent's instructions — only
-include fields the user is actually changing; never guess or include slug
-unless the user explicitly asked to rename/change the product's URL slug.
-Also confirm the tool schema itself doesn't require slug on every update call
-(it should be fully optional, omittable).
+STOREFRONT NAVBAR CHANGES
+
+Current navbar (right side): search icon, notification/bell icon,
+wishlist/heart icon, bag/cart icon.
+
+1. Remove the notification/bell icon from the navbar entirely.
+2. Remove the wishlist/heart icon from the navbar entirely.
+3. Add a Login/Account icon in the navbar, in the slot where the wishlist icon
+   was (right side, before the bag icon). Use a simple person/account-style
+   icon consistent with the site's existing icon set — do NOT reuse the bell
+   icon's visual style for this.
+4. Remove the "Login" menu item from the hamburger sidebar menu — since login
+   now lives in the navbar itself, it must not also appear in the sidebar.
+5. Final navbar right-side icon order: Search → Login/Account → Bag.
+
+CHAT WIDGET NOTIFICATION INDICATOR
+
+6. Move the notification affordance from the navbar to the floating chat
+   widget button (bottom-right corner of the screen). Add a small notification
+   indicator (badge/dot or a distinct small icon) positioned on/above that
+   chat button to show unread notification state. Use a different icon/visual
+   treatment than the bell icon being removed from the navbar — do not reuse
+   that exact design, the owner specifically dislikes it.
+
+HERO / SECTION-BELOW-HERO OVERLAP FIX
+
+7. Below the hero section ("NEW ARRIVALS" banner), there is a cream/beige
+   rounded section that currently overlaps upward onto the bottom of the hero
+   image (a "lifted card" effect), with a visible white color layer between
+   the hero and that rounded cream section (visible near the rounded
+   corners/edge).
+   Fix: remove that white layer/gap entirely, and stop the cream section from
+   overlapping upward onto the hero — it should sit in its normal position
+   directly after the hero, without wrapping up over it. Inspect the actual
+   homepage hero component and the section immediately below it (likely a
+   negative margin-top, border-radius, and/or z-index layering trick causing
+   this) and fix the CSS so there is a clean, direct transition from the hero
+   into the cream section with no white sliver or overlap.
+
+Keep the overall premium/elegant visual style consistent with the rest of the
+site. Send me a preview screenshot or link when done, before considering this
+complete.

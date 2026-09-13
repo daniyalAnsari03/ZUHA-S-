@@ -15,6 +15,10 @@ import {
 
 import { Spinner } from "@/components/ui/spinner";
 import { useAiChat, type ChatMessage } from "@/components/chat/use-ai-chat";
+import {
+  ChatNotificationBadge,
+  type ChatNotificationBadgeHandle,
+} from "@/components/notifications/chat-notification-badge";
 import { resolveImageUrl } from "@/lib/images";
 
 const AGENT_LABELS: Record<string, string> = {
@@ -329,6 +333,7 @@ export function AiChat(props: AiChatProps) {
 
 function FloatingChat(props: AiChatProps) {
   const [open, setOpen] = useState(false);
+  const notifRef = useRef<ChatNotificationBadgeHandle>(null);
 
   return (
     <>
@@ -356,21 +361,32 @@ function FloatingChat(props: AiChatProps) {
         )}
       </AnimatePresence>
 
-      <motion.button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="fixed bottom-5 right-5 z-[60] flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-plum-dark via-plum to-plum-light text-white shadow-xl shadow-plum/30 ring-1 ring-white/40 transition hover:scale-105"
-        aria-label={open ? "Close AI Salesman" : "Open AI Salesman"}
-      >
-        {open ? (
-          <X className="h-6 w-6" aria-hidden="true" />
-        ) : (
-          <MessageCircle className="h-6 w-6" aria-hidden="true" />
-        )}
-      </motion.button>
+      <div className="fixed bottom-5 right-5 z-[60]">
+        <ChatNotificationBadge
+          ref={notifRef}
+          onOpenChange={(isOpen) => {
+            if (isOpen) setOpen(false);
+          }}
+        />
+        <motion.button
+          type="button"
+          onClick={() => {
+            notifRef.current?.close();
+            setOpen((value) => !value);
+          }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-plum-dark via-plum to-plum-light text-white shadow-xl shadow-plum/30 ring-1 ring-white/40 transition hover:scale-105"
+          aria-label={open ? "Close AI Salesman" : "Open AI Salesman"}
+        >
+          {open ? (
+            <X className="h-6 w-6" aria-hidden="true" />
+          ) : (
+            <MessageCircle className="h-6 w-6" aria-hidden="true" />
+          )}
+        </motion.button>
+      </div>
     </>
   );
 }

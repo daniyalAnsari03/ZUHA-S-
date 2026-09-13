@@ -10,10 +10,9 @@ type ShopByCategoryProps = {
 };
 
 /**
- * "Shop By Category" section that overlaps the hero bottom edge. The
- * background transitions from a slightly darker cream near the hero to white,
- * so cards sit intentionally on the hero transition rather than after a gap.
- * Reads heading from CMS when available.
+ * "Shop By Category" section positioned directly after the hero with a clean
+ * direct transition (no overlap, no white sliver, no gap). Reads heading
+ * from CMS when available.
  */
 export async function ShopByCategory({ categories }: ShopByCategoryProps) {
   let eyebrow = "Curated for you";
@@ -32,7 +31,7 @@ export async function ShopByCategory({ categories }: ShopByCategoryProps) {
   return (
     <section
       aria-labelledby="shop-by-category-heading"
-      className="relative z-10 mt-8 rounded-t-3xl bg-gradient-to-b from-cream via-ivory to-ivory pb-4 pt-10 sm:mt-12 sm:rounded-t-[2rem] sm:pt-14"
+      className="relative z-10 bg-gradient-to-b from-cream via-ivory to-ivory pb-4 pt-10 sm:pt-14"
     >
       <Container size="lg">
         <Reveal>

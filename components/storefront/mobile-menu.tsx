@@ -185,24 +185,6 @@ export function MobileMenu({ onNavigate, categories }: MobileMenuProps) {
             </form>
           </nav>
         </section>
-      ) : account === "signedOut" ? (
-        <section
-          aria-label="Account"
-          className="border-t border-charcoal/10 pt-6"
-        >
-          <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.14em] text-charcoal-muted">
-            <User className="h-3.5 w-3.5 text-plum" aria-hidden="true" />
-            Account
-          </p>
-          <Link
-            href="/login"
-            onClick={onNavigate}
-            className="mt-2 flex items-center justify-between border-b border-charcoal/10 pb-3.5 font-serif text-base text-charcoal transition-colors hover:text-plum"
-          >
-            Login / My Account
-            <span aria-hidden="true" className="text-plum">→</span>
-          </Link>
-        </section>
       ) : null}
 
       <div className="text-xs leading-relaxed text-charcoal-muted">

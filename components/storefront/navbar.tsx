@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Heart, Menu, Search, ShoppingBag } from "lucide-react";
+import { Menu, Search, ShoppingBag, User } from "lucide-react";
 import { useState } from "react";
 
 import type { Category, Product } from "@/lib/storefront/types";
@@ -12,8 +12,6 @@ import { MobileMenu } from "./mobile-menu";
 import { SearchPanel } from "./search-panel";
 import { SlideOver } from "./slide-over";
 import { CartPanel } from "./cart-panel";
-import { WishlistPanel } from "./wishlist-panel";
-import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useStorefront } from "./storefront-provider";
 
 type NavbarProps = {
@@ -21,18 +19,18 @@ type NavbarProps = {
   products: Product[];
 };
 
-type PanelId = "menu" | "search" | "wishlist" | "cart" | null;
+type PanelId = "menu" | "search" | "cart" | null;
 
 /**
  * Premium storefront navbar. Locked layout: hamburger (left), brand wordmark
- * (center), search / wishlist / cart entry points (right). Cart and wishlist
- * counts are live and drive the badge indicators.
+ * (center), search / login-account / bag entry points (right). Cart and login
+ * entries live in the navbar; wishlist and notifications live elsewhere.
  */
 export function Navbar({ categories, products }: NavbarProps) {
   const [panel, setPanel] = useState<PanelId>(null);
   const close = () => setPanel(null);
   const isHome = usePathname() === "/";
-  const { cartCount, wishlistCount } = useStorefront();
+  const { cartCount } = useStorefront();
   const iconButtonClass = isHome
     ? "inline-flex h-10 w-10 items-center justify-center rounded-full text-white transition-colors hover:bg-white/10 focus-visible:outline-white"
     : "inline-flex h-10 w-10 items-center justify-center rounded-full text-charcoal transition-colors hover:bg-plum/5 focus-visible:outline-plum";
@@ -79,20 +77,13 @@ export function Navbar({ categories, products }: NavbarProps) {
           >
             <Search className="h-4 w-4" aria-hidden="true" />
           </button>
-          <NotificationBell iconButtonClass={iconButtonClass} />
-          <button
-            type="button"
-            onClick={() => setPanel("wishlist")}
-            aria-label={`Wishlist${wishlistCount > 0 ? `, ${wishlistCount} saved` : ""}`}
+          <Link
+            href="/account"
+            aria-label="Login / My Account"
             className={`relative ${iconButtonClass}`}
           >
-            <Heart className="h-4 w-4" aria-hidden="true" />
-            {wishlistCount > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-plum px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">
-                {wishlistCount > 99 ? "99+" : wishlistCount}
-              </span>
-            ) : null}
-          </button>
+            <User className="h-4 w-4" aria-hidden="true" />
+          </Link>
           <button
             type="button"
             onClick={() => setPanel("cart")}
@@ -130,15 +121,6 @@ export function Navbar({ categories, products }: NavbarProps) {
           categories={categories}
           onNavigate={close}
         />
-      </SlideOver>
-
-      <SlideOver
-        open={panel === "wishlist"}
-        onClose={close}
-        title="Wishlist"
-        side="right"
-      >
-        <WishlistPanel />
       </SlideOver>
 
       <SlideOver
