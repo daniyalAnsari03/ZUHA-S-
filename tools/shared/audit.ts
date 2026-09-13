@@ -43,6 +43,7 @@ export async function auditToolResult(
     entityId: options.entityId,
     detail: {
       requestId: options.context.requestId,
+      conversationId: options.context.conversationId ?? null,
       summary: options.summary,
     },
   });
@@ -52,14 +53,27 @@ export async function auditToolResult(
  * Runs a tool execution, records the audit line for the turn, and returns the
  * structured result unchanged. Errors raised by the executor are mapped to a
  * generic failure (audit still records them) so exceptions never leak.
+ *
+ * `mergeEntity` is optional. When provided and the run succeeds, it is called
+ * with the tool's data so the audit line can be stamped with the resolved
+ * entityType/entityId — needed by tools whose target entity is only known
+ * after the lookup (e.g. get_product, single-result searches). This feeds the
+ * conversation focus tracker without adding duplicate audit rows.
  */
 export async function withToolAudit<T>(
   options: AuditToolOptions,
   run: () => Promise<ToolResult<T>>,
+  mergeEntity?: (
+    data: T,
+  ) => {
+    entityType?: string;
+    entityId?: string;
+  } | null,
 ): Promise<ToolResult<T>> {
   try {
     const result = await run();
-    await auditToolResult(options, result);
+    const merged = result.ok && mergeEntity ? (mergeEntity(result.data) ?? {}) : {};
+    await auditToolResult({ ...options, ...merged }, result);
     return result;
   } catch (error) {
     console.error("[ai-tool] execution failed:", error);

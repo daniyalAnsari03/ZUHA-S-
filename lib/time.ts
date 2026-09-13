@@ -51,3 +51,17 @@ export function daysAgoKeyPKT(days: number): string {
   d.setDate(d.getDate() - days);
   return toDateKey(d);
 }
+
+/**
+ * Human-readable PKT date for the AI context (e.g. "Saturday, 12 September
+ * 2026"). Built from the same PKT wall-clock the rest of the business uses so
+ * the AI never has to guess "today".
+ */
+export function formatPKTDate(): string {
+  return nowInPKT().toLocaleDateString("en-GB", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}

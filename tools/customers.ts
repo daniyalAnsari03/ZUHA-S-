@@ -48,6 +48,14 @@ export const listCustomersTool = tool({
         summary: normalizedSearch ? `Search customers "${normalizedSearch}"` : "List customers",
       },
       async () => asResult(() => listCustomers(actor, { search: normalizedSearch, limit, offset })),
+      (data) => {
+        // A single unambiguous customer match becomes the conversation focus.
+        const customers = (data as { customers?: { id: string }[] }).customers;
+        if (customers && customers.length === 1 && customers[0]?.id) {
+          return { entityType: "customer", entityId: customers[0].id };
+        }
+        return null;
+      },
     );
     if (!result.ok) return result;
     return { ok: true, data: result.data };

@@ -26,6 +26,7 @@ import {
   getOrderDetailTool,
   listAllOrdersTool,
   updateOrderStatusTool,
+  advanceOrderStatusTool,
 } from "@/tools/orders";
 import { getCustomerDetailTool, listCustomersTool } from "@/tools/customers";
 import { getSalesOverview } from "@/tools/analytics";
@@ -59,6 +60,12 @@ EMPLOYEE RULES:
 - NEVER expose another customer's private data.
 - If a tool returns 'forbidden', it means the caller lacks permission for that action — do not retry with changed arguments to bypass it. If the request is outside your responsibility, hand it back via transfer_to_manager instead.
 - Be concise, factual and helpful. Use simple business language. Prices are in PKR.
+
+TRACKED FOCUS FOR AMBIGUOUS REFERENCES:
+- A "Current focus" line may sit at the top of the incoming context. It records the specific product/order/customer most recently named or acted on in this conversation by the owner.
+- When the current request is an ambiguous follow-up ("khudhi karo", "iska", "is product ka", "is order ko", "ismein", "ye wala"), resolve the TARGET against that tracked focus entity — not the model's own memory of the raw conversation.
+- Verify the resolved target with a read tool (get_product / get_order_detail / search) before mutating it. Never apply a change to a different entity because it "looked similar".
+- When no focus is present, or the tracked focus looks stale for the current request, ask ONE short clarifying question instead of guessing.
 
 RESPONSE FORMAT (MANDATORY — THE ADMIN CHAT RENDERS PLAIN TEXT ONLY):
 - The chat window shows your replies as plain text. It does NOT render Markdown, HTML or tables.
@@ -99,7 +106,11 @@ IMAGE HANDLING (MANDATORY):
 - If the product already has an image and the owner did not attach a new one, keep the existing value — do not change imageUrl to a guessed value.
 - If no image was attached, leave imageUrl empty (empty string) rather than guessing a path.
 
-Ask the owner for any missing required field rather than inventing values.`,
+Ask the owner for any missing required field rather than inventing values.
+
+RESOLVING AMBIGUOUS FOLLOW-UPS:
+- When the owner says "ismein description change karo", "ismein price update karo", "khudhi kar do" or anything like it after naming a product, the "Current focus" line names the exact product the conversation is working on. Resolve the target to THAT product, verify it with get_product or search_products_admin first, then apply the change.
+- Never update a different, similar-sounding product instead of the focused one (e.g. Mistaking Khirke Jamawar for Mehrab Jamawar). Verify the id of the product you are about to change before mutating.`,
 
   model: AI_MODEL,
   modelSettings: { toolChoice: "required" },
@@ -168,6 +179,7 @@ You can:
 - List orders by status, search, or recency (list_all_orders).
 - Read full order details (get_order_detail).
 - Update order status with valid transitions (update_order_status).
+- Advance an order through several valid steps in one call (advance_order_status) for combined requests.
 - Answer questions about delivery details using store policies (get_cms_content).
 
 HANDLING ORDER QUERIES — RECOGNIZE THESE PHRASES:
@@ -181,8 +193,12 @@ HANDLING ORDER QUERIES — RECOGNIZE THESE PHRASES:
 Rules:
 - Execute immediately when the request is clear. Do NOT say "Main pending orders nikal raha hoon" and then fail — call the tool directly.
 - Order status changes must follow valid transitions (pending → confirmed → processing → shipped → delivered). Never skip to a state that is not allowed.
+- COMBINED CONFIRM + PROCESSING (mandatory): when the owner asks to move a PENDING order directly to "processing" (e.g. "is order ko processing kar do"), the direct transition pending → processing is NOT valid — it must pass through "confirmed". Do NOT flatly refuse. Instead offer ONE combined option in the same reply, in the owner's language: "Order abhi pending hai — pehle confirm karna zaroori hai. Dono ek sath kar doon (confirm + processing)?"
+  - If the owner confirms the combined option (yes / "dono kar do" / "han dono kar do"), call advance_order_status with steps ["confirmed", "processing"] and report both applied steps plus the verified final status.
+  - If the owner instead asks to ONLY confirm, use update_order_status with newStatus "confirmed".
+  - Never execute the combined flow without the owner agreeing to it; never mark a combined request as just "processing" without the confirmed step existing in history.
 - When the request targets a single, clearly identified order → update it immediately, no confirmation needed.
-- Bulk/mass status changes (e.g. "saare pending orders confirm karo") → execute directly, no confirmation, unless the command would affect MORE THAN 10 orders in one shot — then ask ONE final confirmation naming what will change, then update each order and verify each after.
+- Bulk/mass status changes (e.g. "saare pending orders confirm karo") → execute directly, no confirmation, unless the command would affect MORE THAN 10 orders in one shot — then ask ONE final confirmation naming what will change, then update each order and verify each after. For a bulk "pending → processing" request, move each order through valid steps (advance_order_status per order with steps ["confirmed", "processing"]) — never report success for an order whose confirmed history step is missing.
 - Payment is handled elsewhere; never mark an order paid yourself.
 - Do not fabricate order numbers, totals or delivery dates.
 - Return useful information: order number, customer name, amount, status, created time.`,
@@ -192,6 +208,7 @@ Rules:
     listAllOrdersTool,
     getOrderDetailTool,
     updateOrderStatusTool,
+    advanceOrderStatusTool,
     getCms,
   ],
 });

@@ -1,44 +1,61 @@
-Check how the Admin AI's chat responses get rendered in the admin dashboard UI:
-1. Does the admin chat frontend component render Markdown (bold **, bullet
-   lists, etc.), or does it display raw text as-is?
-2. If it does NOT render Markdown, update the Admin AI's instructions (in
-   agents/manager.ts and agents/employees.ts) to stop using Markdown syntax
-   entirely (no **, no #, no markdown bullets) and instead use plain text with
-   clear line breaks and simple "- " lists, so replies look clean.
-3. If it DOES render Markdown, then this is a rendering bug in the UI, not a
-   prompt issue — find and fix why raw ** isn't converting to bold.
-Report which case it is and what you changed.
+URGENT — verify data integrity first:
+1. Query the actual DB status right now for: DIN-20260911-1156, DIN-20260911-0786,
+   DIN-20260911-4499, DIN-20260911-6751, DIN-20260911-4855, DIN-20260911-9727.
+   Admin chat claimed a bulk command moved all 6 from "pending" directly to
+   "processing" — but a single-order attempt on DIN-20260911-1156 was correctly
+   REFUSED minutes earlier (pending→processing isn't a valid direct transition
+   per VALID_TRANSITIONS in order-service.ts; must pass through "confirmed").
+   Find out: did the bulk path bypass the transition validation (real
+   data-integrity bug), or write nothing and fabricate a false "success"
+   response (truthfulness bug)? Check order_status_history for these orders.
+   Fix so the bulk/multi-order path runs the SAME validation as the single-order
+   path per order, and never reports success without a verified DB write.
 
+CRITICAL — reference resolution needs real state-tracking, not just prompt wording:
+2. Repro: owner said "mehrab jamawar ki description change kar do", AI asked
+   what the new text should be, owner replied "khudhi kar do update desc" — AI
+   updated KHIRKE JAMAWAR's description instead of Mehrab Jamawar's. A real
+   wrong-target mutation, not just an irrelevant mention.
+   FIX: implement explicit structured state — track a "current focus entity"
+   (last product/order/customer id+name referenced) per conversation, updated
+   whenever a specific entity is named or acted on, and pass it explicitly into
+   the agent's context for the next turn (e.g. "Current focus: product Mehrab
+   Jamawar (id: ...)"). Ambiguous follow-ups ("khudhi karo", "iska", "is order
+   ko", "ismein") must resolve against this explicit tracked state, not the
+   model's own attention over raw conversation history. If focus is unclear or
+   stale, ask a one-line clarification instead of guessing.
 
+3. Order-status workflow: when the owner asks to move a PENDING order directly
+   to "processing", instead of a flat refusal, have the AI offer one combined
+   option in the same reply: "Order abhi pending hai — pehle confirm karna
+   zaroori hai. Dono ek sath kar doon (confirm + processing)?" and execute both
+   steps in sequence on a yes. Keep the underlying two-status state machine
+   itself intact — this is a business-logic safeguard, not the admin-approval
+   confirmation step that was already removed.
 
-The owner tested the Admin AI after the last QA/fix pass and reports wrong or
-mixed responses and missed tool calls. Before I send the exact failing
-transcript:
-1. Confirm nothing in the last fix pass (tools/orders.ts, tools/cart.ts,
-   services/orders/order-service.ts, agents/salesman.ts, agents/employees.ts)
-   accidentally broke tool registration or toolChoice settings for any agent.
-2. Re-run admin-ai-qa.mjs and customer-ai-qa.mjs against current code — report
-   pass/fail. Anything that now fails but passed before is the regression.
-3. Check today's ai_audit_logs for any 'denied' or 'error' status rows and
-   report them.
+4. Fix "aaj ki date": AI answered "7 September 2026" when the real current date
+   in-context is clearly 12/13 September 2026. Find where "today's date" comes
+   from for the AI and make sure it's always the actual server clock (correct
+   timezone) — never a guess.
 
+5. get_product should also return the linked category name — it currently
+   shows "Category: Not specified" for products that DO have a valid
+   category_id (proven since category-filtered listings correctly include
+   them). Add the category join to get_product's query.
 
+6. General/meta questions like "dashboard mein kaun kaun se options hain?"
+   currently get deflected with "Manager aapko guide karega" with no real
+   answer or handoff. Make the Manager directly answer such overview questions
+   itself instead of deflecting.
 
-Add an image-upload capability to the ADMIN chat only (never the customer/
-salesman chat).
+7. Streaming: owner wants responses to render smoothly, word-by-word, like
+   claude.ai — not the full block appearing at once. Check whether
+   lib/ai/stream.ts's SSE output is actually consumed and rendered
+   incrementally by the frontend (components/chat/ai-chat.tsx /
+   use-ai-chat.ts), or whether the frontend waits for the full response before
+   displaying it. Fix so text renders progressively as tokens arrive.
 
-1. Reuse the existing image upload logic from
-   app/admin/components/product-form.tsx (Supabase Storage) instead of building
-   a new upload path.
-2. Add an image attachment button/file-picker to the admin chat input component
-   only. On selecting an image, upload it immediately to Storage and get back a
-   URL.
-3. Pass the resulting image URL into the conversation so the AI knows an image
-   is attached, and make sure create_product / update_product accept an
-   imageUrl parameter saved to the product's image_url field.
-4. Update productAgent's instructions: when the owner attaches an image while
-   creating/editing a product, use the provided URL directly — never invent or
-   guess an image path.
-5. Confirm the customer/salesman chat has NO image-upload option at all.
-
-Report what changed and how to test it end-to-end.
+Report back on all 7, especially #1 (data-integrity result) and #2 (what
+state-tracking mechanism was implemented). Re-run phase-7 QA plus a fresh
+long-conversation test repeating the exact Mehrab/Khirke description mixup to
+confirm it's fixed.

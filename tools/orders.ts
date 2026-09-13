@@ -9,6 +9,7 @@ import {
   CUSTOMER_ROLE,
 } from "@/guardians/authorization";
 import {
+  advanceOrderStatus,
   getAdminOrderDetail,
   getAdminOrderIdByNumber,
   getOrderDetail,
@@ -272,6 +273,71 @@ export const updateOrderStatusTool = tool({
     return {
       ok: true,
       data: { orderId: resolved, orderNumber, newStatus, note: note ?? null },
+    };
+  },
+});
+
+export const advanceOrderStatusTool = tool({
+  name: "advance_order_status",
+  description:
+    "Advance an order through one or more VALID status steps in sequence (admin). Provide the orderId or orderNumber and the steps in order; every step must be a valid single transition from the previous one (pending → confirmed → processing → shipped → delivered). Useful for combined requests such as moving a pending order into processing (steps [\"confirmed\", \"processing\"]). Executes the whole chain, records each history step, and verifies the final status before returning.",
+  parameters: z.object({
+    orderId: z.string().uuid().optional(),
+    orderNumber: z.string().trim().max(40).optional(),
+    steps: z
+      .array(z.enum(ORDER_STATUSES as [string, ...string[]]))
+      .min(1)
+      .max(4),
+    note: z.string().max(500).optional(),
+  }),
+  strict: true,
+  inputGuardrails: [toolRoleGuardrail("advance_order_status", [ADMIN_ROLE])],
+  async execute(
+    { orderId, orderNumber, steps, note }: {
+      orderId?: string;
+      orderNumber?: string;
+      steps: string[];
+      note?: string;
+    },
+    runContext?: RunContext<AgentContext>,
+  ) {
+    const ctx = runContext?.context;
+    if (!ctx) return { ok: false, reason: "error", message: "Missing execution context." } as const;
+    const actor = adminActor(ctx);
+    const resolved = await resolveAdminOrderId(ctx, { orderId, orderNumber });
+    if (!resolved) return invalid("Provide exactly one of orderId or orderNumber.");
+    const result = await withToolAudit(
+      {
+        context: ctx,
+        agentName: ctx.agentName ?? "ai",
+        toolName: "advance_order_status",
+        actionType: "order.status.advance",
+        risk: "medium",
+        entityType: "order",
+        entityId: resolved,
+        summary: `Advance order status via ${steps.join(" → ")}${orderNumber ? ` (${orderNumber})` : ""}`,
+      },
+      async () =>
+        asResult(() =>
+          advanceOrderStatus(
+            actor,
+            resolved,
+            steps as OrderStatus[],
+            note,
+          ),
+        ),
+    );
+    if (!result.ok) return result;
+    return {
+      ok: true,
+      data: {
+        orderId: resolved,
+        orderNumber,
+        fromStatus: result.data.fromStatus,
+        toStatus: result.data.toStatus,
+        stepsApplied: result.data.stepsApplied,
+        note: note ?? null,
+      },
     };
   },
 });

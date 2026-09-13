@@ -17,6 +17,28 @@ export type AiStreamEvent =
   | { type: "done"; output: string }
   | { type: "error"; message: string };
 
+/**
+ * Extract the text delta from a raw Responses API stream event.
+ *
+ * The OpenAI Responses API (openai ^7) emits text tokens as raw events with
+ * `type: "response.output_text.delta"` and the token under `delta`. Older
+ * shapes (`output_text_delta` / `output_text.delta`) are also accepted so the
+ * adapter keeps working across provider versions.
+ */
+export function extractTextDelta(data: unknown): string | undefined {
+  if (!data || typeof data !== "object") return undefined;
+  const candidate = data as { type?: unknown; delta?: unknown };
+  if (typeof candidate.type !== "string") return undefined;
+  if (
+    candidate.type === "response.output_text.delta" ||
+    candidate.type === "output_text_delta" ||
+    candidate.type === "output_text.delta"
+  ) {
+    return typeof candidate.delta === "string" ? candidate.delta : undefined;
+  }
+  return undefined;
+}
+
 function readToolNameFromItem(item: RunItem): string | undefined {
   // RunToolCallItem and RunToolCallOutputItem both expose rawItem with a
   // name field for function and computer tools.  Safe access handles the
@@ -34,7 +56,8 @@ function readHandoffTarget(item: RunItem): string | undefined {
 /**
  * Translates the SDK's streamed run into a small, client-safe event sequence.
  *
- * - text deltas   → raw_model_stream_event where data.type === "output_text_delta"
+ * - text deltas   → raw_model_stream_event where data.type is
+ *                   "response.output_text.delta" (openai ^7 Responses API)
  * - tool activity → run_item_stream_event names "tool_called" / "tool_output"
  * - agent switches → agent_updated_stream_event
  * - final text     → emitted once in the trailing "done" event
@@ -49,10 +72,10 @@ export async function* streamRunToEvents(
   try {
     for await (const event of result as AsyncIterable<RunStreamEvent>) {
       if (event.type === "raw_model_stream_event") {
-        const data = event.data as { type?: string; delta?: unknown };
-        if (data?.type === "output_text_delta" && typeof data.delta === "string") {
-          text += data.delta;
-          yield { type: "text", delta: data.delta };
+        const delta = extractTextDelta(event.data);
+        if (typeof delta === "string" && delta) {
+          text += delta;
+          yield { type: "text", delta };
         }
       } else if (event.type === "run_item_stream_event") {
         if (event.name === "tool_called") {

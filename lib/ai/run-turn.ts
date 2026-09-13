@@ -22,6 +22,7 @@ import {
   touchConversation,
   type ChatMessageRow,
 } from "@/services/ai/chat-service";
+import { resolveAiFocusEntity } from "@/services/ai/focus-service";
 
 export type ChatUser =
   | { id: string; email: string | null; role: "admin" | "customer" }
@@ -227,15 +228,34 @@ export async function runChatTurn(
   }
 
   const requestId = globalThis.crypto.randomUUID();
+
+  // Resolve the conversation's current focus entity (last named/acted-on
+  // product/order/customer) so the next turn can resolve ambiguous references
+  // against explicit tracked state. Best-effort: null focus is fine.
+  let focusEntity = null;
+  if (isAuthenticated) {
+    try {
+      focusEntity = await resolveAiFocusEntity(
+        user!.id,
+        conversation ?? undefined,
+      );
+    } catch (error) {
+      console.error("[ai] focus resolution failed:", error);
+    }
+  }
+
   const context: AgentContext = {
     userId: isAuthenticated ? user!.id : null,
     role: isAuthenticated ? user!.role : null,
     channel,
     requestId,
     conversationId: conversation ?? undefined,
+    focusEntity,
   };
 
-  const inputItems: AgentInputItem[] = buildInputItems(historyRows, message);
+  const inputItems: AgentInputItem[] = buildInputItems(historyRows, message, {
+    focusEntity,
+  });
   const entryAgent: Agent<AgentContext> = getEntryAgent(channel);
 
   let streamed: StreamedRunResult<AgentContext, Agent<AgentContext, any>>;

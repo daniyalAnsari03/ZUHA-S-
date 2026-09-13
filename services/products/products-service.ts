@@ -227,7 +227,7 @@ export async function listPagedProducts(
 export async function createProduct(
   actor: AdminActor,
   input: ProductInput,
-): Promise<ProductRow> {
+): Promise<ProductWithCategory> {
   assertRole(actor.role, ["admin"]);
   const parsed = productInputSchema.parse(input);
 
@@ -261,14 +261,14 @@ export async function createProduct(
     throw new ServiceError("PRODUCT_CREATE_FAILED", "Failed to create product.");
   }
 
-  return data;
+  return withCategory(data);
 }
 
 export async function updateProduct(
   actor: AdminActor,
   id: string,
   input: ProductInput,
-): Promise<ProductRow> {
+): Promise<ProductWithCategory> {
   assertRole(actor.role, ["admin"]);
   const parsed = productInputSchema.parse(input);
 
@@ -303,14 +303,14 @@ export async function updateProduct(
     throw new ServiceError("PRODUCT_UPDATE_FAILED", "Failed to update product.");
   }
 
-  return data;
+  return withCategory(data);
 }
 
 export async function updateStock(
   actor: AdminActor,
   id: string,
   input: StockUpdateInput,
-): Promise<ProductRow> {
+): Promise<ProductWithCategory> {
   assertRole(actor.role, ["admin"]);
   const parsed = stockUpdateSchema.parse(input);
 
@@ -330,14 +330,14 @@ export async function updateStock(
     throw new ServiceError("PRODUCT_UPDATE_FAILED", "Failed to update stock.");
   }
 
-  return data;
+  return withCategory(data);
 }
 
 export async function setProductActive(
   actor: AdminActor,
   id: string,
   isActive: boolean,
-): Promise<ProductRow> {
+): Promise<ProductWithCategory> {
   assertRole(actor.role, ["admin"]);
 
   const supabase = await createSupabaseClient();
@@ -353,7 +353,16 @@ export async function setProductActive(
     throw new ServiceError("PRODUCT_UPDATE_FAILED", "Failed to update product.");
   }
 
-  return data;
+  return withCategory(data);
+}
+
+/**
+ * Attach the linked category (slug + name) onto a product row so every
+ * mutation result reports the human-readable category — never "Not specified".
+ */
+async function withCategory(product: ProductRow): Promise<ProductWithCategory> {
+  const joined = await getProductById(product.id);
+  return joined ?? { ...product, category: null };
 }
 
 /** Hard-delete a product. High-risk; requires an authorized admin and explicit intent. */

@@ -285,6 +285,143 @@ export async function updateOrderStatus(
   }
 }
 
+/**
+ * Advance an order through a chain of status steps in one call.
+ *
+ * The whole chain is validated up-front against VALID_TRANSITIONS BEFORE any
+ * write happens, then each step is applied sequentially (each update guarded
+ * by its expected previous status so concurrent changes cannot corrupt the
+ * chain). If any step cannot be applied, the call fails with a clear message
+ * and the final status is verified with a fresh read before returning.
+ *
+ * This is the single path used for combined/admin-bulk requests (e.g. moving
+ * a pending order into processing via pending → confirmed → processing). It
+ * deliberately reuses the same single-step validation, so it can never
+ * bypass the two-status business rule.
+ */
+export async function advanceOrderStatus(
+  actor: { id: string; role: string },
+  orderId: string,
+  steps: OrderStatus[],
+  note?: string,
+): Promise<{
+  fromStatus: OrderStatus;
+  toStatus: OrderStatus;
+  stepsApplied: OrderStatus[];
+}> {
+  assertRole(actor.role as "admin" | "customer", ["admin"]);
+
+  const supabase = await createSupabaseClient();
+
+  if (steps.length === 0) {
+    throw new ServiceError(
+      "INVALID_STATUS_TRANSITION",
+      "No status steps were provided.",
+    );
+  }
+
+  // Read current status
+  const { data: order, error: fetchError } = await supabase
+    .from("orders")
+    .select("status")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw new ServiceError("ORDER_READ_FAILED", "Failed to load order.", fetchError);
+  }
+
+  if (!order) {
+    throw new ServiceError("ORDER_NOT_FOUND", "Order not found.");
+  }
+
+  const startingStatus = order.status as OrderStatus;
+
+  // Pre-validate the entire chain before touching the database.
+  let cursor = startingStatus;
+  for (const step of steps) {
+    const allowed = VALID_TRANSITIONS[cursor];
+    if (!allowed || !allowed.includes(step)) {
+      const next = allowed?.length
+        ? ` Valid next step(s): ${allowed.join(", ")}.`
+        : "";
+      throw new ServiceError(
+        "INVALID_STATUS_TRANSITION",
+        `Cannot advance order status from "${cursor}" to "${step}".${next}`,
+      );
+    }
+    cursor = step;
+  }
+
+  // Apply each step sequentially, guarding every update with its expected
+  // previous status so a concurrent change fails the chain instead of
+  // corrupting it.
+  const stepsApplied: OrderStatus[] = [];
+  let current = startingStatus;
+  for (const step of steps) {
+    const { data: updated, error: updateError } = await supabase
+      .from("orders")
+      .update({ status: step })
+      .eq("id", orderId)
+      .eq("status", current)
+      .select("status")
+      .maybeSingle();
+
+    if (updateError) {
+      throw new ServiceError("ORDER_UPDATE_FAILED", "Failed to update order status.", updateError);
+    }
+
+    if (!updated) {
+      throw new ServiceError(
+        "INVALID_STATUS_TRANSITION",
+        `Order status changed underneath the requested sequence (expected "${current}"). No further steps were applied.`,
+      );
+    }
+
+    const { error: historyError } = await supabase
+      .from("order_status_history")
+      .insert({
+        order_id: orderId,
+        previous_status: current,
+        new_status: step,
+        note:
+          steps.length > 1
+            ? `Advance request (${stepsApplied.length + 1}/${steps.length}): ${
+                note ?? "Advance via valid transitions."
+              }`
+            : note ?? null,
+        created_by: actor.id,
+      });
+
+    if (historyError) {
+      throw new ServiceError("ORDER_HISTORY_WRITE_FAILED", "Failed to record status history.", historyError);
+    }
+
+    stepsApplied.push(step);
+    current = step;
+  }
+
+  // Verify the final state with an independent read before reporting success.
+  const { data: verify, error: verifyError } = await supabase
+    .from("orders")
+    .select("status")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (verifyError || !verify || verify.status !== steps[steps.length - 1]) {
+    throw new ServiceError(
+      "ORDER_VERIFY_FAILED",
+      "Order status update could not be verified.",
+    );
+  }
+
+  return {
+    fromStatus: startingStatus,
+    toStatus: steps[steps.length - 1],
+    stepsApplied,
+  };
+}
+
 /* ---------------------------------------------------------------------------
  * Order creation (called by checkout service)
  * --------------------------------------------------------------------- */

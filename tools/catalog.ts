@@ -10,7 +10,8 @@ import {
   type ProductWithCategory,
 } from "@/services/products/products-service";
 import { createPublicClient } from "@/lib/supabase/server";
-import { asResult } from "@/tools/shared/result";
+import { asResult, fail, ok } from "@/tools/shared/result";
+import { withToolAudit } from "@/tools/shared/audit";
 
 /** Consistent PKR price formatting used across all store-facing tools. */
 export function formatPrice(value: number | null): string {
@@ -128,8 +129,9 @@ export const getProduct = tool({
   strict: true,
   async execute(
     { slug }: { slug: string },
-    _runContext?: RunContext<AgentContext>,
+    runContext?: RunContext<AgentContext>,
   ) {
+    const ctx = runContext?.context;
     const normalizedSlug = slug.trim().toLowerCase();
     if (!normalizedSlug) {
       return {
@@ -139,19 +141,41 @@ export const getProduct = tool({
           "Please provide a product name, slug, or category to look up a product.",
       };
     }
-    const result = await asResult(() => getProductBySlug(normalizedSlug));
-    if (!result.ok) return result;
-    if (!result.data) {
-      return {
-        ok: false,
-        reason: "not_found",
-        message: `No product found with slug "${normalizedSlug}". Try searching by name or category.`,
-      };
-    }
-    return {
-      ok: true,
-      data: toCatalogLine(result.data, { includeDescription: true }),
+
+    const run = async () => {
+      const result = await asResult(() => getProductBySlug(normalizedSlug));
+      if (!result.ok) return result;
+      if (!result.data) {
+        return fail(
+          "not_found",
+          `No product found with slug "${normalizedSlug}". Try searching by name or category.`,
+        );
+      }
+      return ok(toCatalogLine(result.data, { includeDescription: true }));
     };
+
+    if (!ctx) return run();
+
+    // The resolved product id stamps the audit line, which feeds the
+    // conversation focus tracker: a successfully named product is now the
+    // "current focus entity" for the next turn.
+    return withToolAudit(
+      {
+        context: ctx,
+        agentName: ctx.agentName ?? "ai",
+        toolName: "get_product",
+        actionType: "products.detail",
+        risk: "low",
+        summary: `Read product "${normalizedSlug}"`,
+      },
+      run,
+      (data) => {
+        const id = (data as { id?: unknown }).id;
+        return typeof id === "string"
+          ? { entityType: "product", entityId: id }
+          : null;
+      },
+    );
   },
 });
 
@@ -163,8 +187,9 @@ export const checkAvailability = tool({
   strict: true,
   async execute(
     { productId }: { productId: string },
-    _runContext?: RunContext<AgentContext>,
+    runContext?: RunContext<AgentContext>,
   ) {
+    const ctx = runContext?.context;
     const normalizedId = productId.trim();
     if (!normalizedId) {
       return {
@@ -174,33 +199,47 @@ export const checkAvailability = tool({
           "Please provide a valid product ID to check availability.",
       };
     }
-    const supabase = createPublicClient();
-    const { data, error } = await supabase
-      .from("products")
-      .select("id, name, stock_quantity, low_stock_threshold")
-      .eq("id", normalizedId)
-      .eq("is_active", true)
-      .maybeSingle();
 
-    if (error || !data) {
-      return {
-        ok: false,
-        reason: "not_found",
-        message:
+    const run = async () => {
+      const supabase = createPublicClient();
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, stock_quantity, low_stock_threshold")
+        .eq("id", normalizedId)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (error || !data) {
+        return fail(
+          "not_found",
           "Product not found. Please check the product ID and try again.",
-      };
-    }
+        );
+      }
 
-    return {
-      ok: true,
-      data: {
+      return ok({
         name: data.name,
         availability: formatStock({
           stock_quantity: data.stock_quantity,
           low_stock_threshold: data.low_stock_threshold,
         }),
-      },
+      });
     };
+
+    if (!ctx) return run();
+
+    return withToolAudit(
+      {
+        context: ctx,
+        agentName: ctx.agentName ?? "ai",
+        toolName: "check_availability",
+        actionType: "products.availability",
+        risk: "low",
+        entityType: "product",
+        entityId: normalizedId,
+        summary: "Check product availability",
+      },
+      run,
+    );
   },
 });
 

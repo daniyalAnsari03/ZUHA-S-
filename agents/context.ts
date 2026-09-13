@@ -1,4 +1,5 @@
 import type { AuditActorRole } from "@/services/ai/audit-service";
+import type { FocusEntity } from "@/services/ai/focus-service";
 
 /**
  * Shared execution context threaded through every AI run.
@@ -18,6 +19,12 @@ export type AgentContext = {
   requestId: string;
   /** The persisted conversation id for this thread, if one exists. */
   conversationId?: string;
+  /**
+   * The conversation's current focus entity (last product/order/customer
+   * named or acted on), resolved before the run from the tool audit trail so
+   * ambiguous follow-ups resolve against explicit tracked state.
+   */
+  focusEntity?: FocusEntity | null;
   /**
    * Stamped by the tool role guardrail before a guarded tool executes.
    * Tools use this for audit attribution when per-tool execution context

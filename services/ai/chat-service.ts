@@ -1,7 +1,14 @@
-import { assistant, user, type AgentInputItem } from "@openai/agents";
+import {
+  assistant,
+  system,
+  user,
+  type AgentInputItem,
+} from "@openai/agents";
 
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import { formatPKTDate } from "@/lib/time";
 import { ServiceError } from "@/services/base";
+import type { FocusEntity } from "@/services/ai/focus-service";
 
 export type AiChannel = "admin" | "salesman";
 export type AiMessageRole = "user" | "assistant";
@@ -146,14 +153,46 @@ export async function touchConversation(
 }
 
 /**
+ * Build the conversation context line every agent sees at the start of a run.
+ *
+ * - Always injects the real server date in PKT so the AI never guesses today.
+ * - When a tracked focus entity exists, states it explicitly so ambiguous
+ *   follow-ups ("khudhi karo", "iska", "is order ko") resolve against the last
+ *   named/actioned entity instead of the model's own attention.
+ */
+export function buildContextItems(options: {
+  focusEntity?: FocusEntity | null;
+}): AgentInputItem[] {
+  const { focusEntity } = options;
+  const lines: string[] = [
+    `Today's date (Asia/Karachi): ${formatPKTDate()}. Use this date for any business date question.`,
+  ];
+
+  if (focusEntity) {
+    lines.push(
+      `Current focus: ${focusEntity.type} "${focusEntity.name}" (id: ${focusEntity.id}). ` +
+        "This is the specific product/order/customer most recently named or acted on in " +
+        "this conversation. Resolve ambiguous references like \"khudhi karo\", \"iska\", " +
+        "\"is product ko\", \"is order ko\" against this entity. If the current request " +
+        "clearly refers to a different entity, ignore this line. If this focus seems stale " +
+        "for the current request, ask one short clarifying question instead of guessing.",
+    );
+  }
+
+  return [system(lines.join("\n"))];
+}
+
+/**
  * Convert persisted messages (plus the current user message) into Agents SDK
- * input items so each turn continues the conversation with real history.
+ * input items so each turn continues the conversation with real history. A
+ * system context line (real PKT date + tracked focus entity) is prepended.
  */
 export function buildInputItems(
   history: ChatMessageRow[],
   currentMessage: string,
+  options?: { focusEntity?: FocusEntity | null },
 ): AgentInputItem[] {
-  const items: AgentInputItem[] = [];
+  const items: AgentInputItem[] = buildContextItems(options ?? {});
 
   for (const message of history) {
     if (!message.content.trim()) continue;

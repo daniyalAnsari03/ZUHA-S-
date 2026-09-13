@@ -105,6 +105,15 @@ export const searchProductsAdminTool = tool({
           totalMatches: matches.length,
         };
       },
+      (data) => {
+        // A single unambiguous match becomes the conversation focus so later
+        // "iska stock" / "ismein" follow-ups resolve to the right product.
+        const rows = data as unknown as { id: string }[];
+        if (rows.length === 1 && rows[0]?.id) {
+          return { entityType: "product", entityId: rows[0].id };
+        }
+        return null;
+      },
     );
     return result;
   },
