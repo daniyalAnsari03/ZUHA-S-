@@ -12,6 +12,13 @@ export type AuthUser = {
 /**
  * Returns the currently authenticated user with their role, or null if not
  * authenticated. Cached per-request for Server Components.
+ *
+ * Uses a two-step approach:
+ * 1. Query profiles table via RLS (preferred path).
+ * 2. Fall back to the `is_admin()` SECURITY DEFINER RPC if the RLS query
+ *    does not return a row — this handles edge cases where the session
+ *    cookie is valid but `auth.uid()` does not resolve correctly in the
+ *    server component context (e.g. proxy cookie propagation issue).
  */
 export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
   const supabase = await createSupabaseClient();
@@ -27,6 +34,7 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
 
   let role: Role = "customer";
 
+  // Primary path: query profiles via RLS.
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
@@ -37,6 +45,21 @@ export const getAuthUser = cache(async (): Promise<AuthUser | null> => {
 
   if (row?.role === "admin") {
     role = "admin";
+  }
+
+  // Fallback: if the RLS query returned no row for an authenticated user,
+  // use the SECURITY DEFINER is_admin() RPC which bypasses RLS. This
+  // covers cases where auth.uid() doesn't resolve correctly in the server
+  // component context (RLS returns null with no error when auth.uid()
+  // is NULL).
+  if (!row) {
+    const { data: adminCheck } = await supabase.rpc("is_admin", {
+      uid: user.id,
+    });
+
+    if (adminCheck === true) {
+      role = "admin";
+    }
   }
 
   return {

@@ -13,6 +13,7 @@ import { SearchPanel } from "./search-panel";
 import { SlideOver } from "./slide-over";
 import { CartPanel } from "./cart-panel";
 import { WishlistPanel } from "./wishlist-panel";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useStorefront } from "./storefront-provider";
 
 type NavbarProps = {
@@ -78,6 +79,7 @@ export function Navbar({ categories, products }: NavbarProps) {
           >
             <Search className="h-4 w-4" aria-hidden="true" />
           </button>
+          <NotificationBell iconButtonClass={iconButtonClass} />
           <button
             type="button"
             onClick={() => setPanel("wishlist")}

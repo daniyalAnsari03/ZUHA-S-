@@ -1,0 +1,341 @@
+Read `AGENTS.md` first and follow it.
+
+## Task
+
+Create the missing customer-facing `/signup` page.
+
+The existing `/login` page has already been redesigned with the approved premium authentication layout.
+
+The new `/signup` page must use the **same exact visual design, spacing, background, logo treatment, typography and responsive behavior as `/login`**.
+
+IMPORTANT:
+This task is ONLY to create the Signup page.
+
+Do NOT redesign `/login`.
+
+Do NOT rebuild authentication.
+
+Use the existing Supabase authentication implementation already present in the project.
+
+---
+
+## Signup Page Layout
+
+Create:
+
+`app/signup/page.tsx`
+
+The page should visually match `/login`.
+
+Desktop:
+
+```text
+[ DINS LOGO ]       [ SIGN UP / AUTH AREA ]
+```
+
+The logo is on the LEFT.
+
+The signup authentication area is on the RIGHT.
+
+The logo must NOT be above or below the signup form on desktop.
+
+Mobile:
+
+The layout may stack vertically when required by the screen width:
+
+```text
+[ DINS LOGO ]
+
+[ SIGN UP / AUTH AREA ]
+```
+
+---
+
+## Background
+
+Use the **exact same background as the existing `/login` page**.
+
+The `/login` page currently reuses the existing Footer background token:
+
+`bg-ivory`
+
+which resolves to the existing project token:
+
+`--color-ivory: #faf7f2`
+
+IMPORTANT:
+
+* Reuse the same existing token.
+* Do NOT introduce a new color.
+* Do NOT use a dark background.
+* Do NOT use a gradient.
+
+The entire signup page should use this same ivory background.
+
+---
+
+## Storefront Chrome
+
+The Signup page must NOT show:
+
+* Announcement Bar
+* Full Storefront Navbar
+* Storefront Footer
+
+It should use the same chrome-free authentication-page architecture already used by `/login`.
+
+Do NOT modify the global AnnouncementBar, Navbar or Footer components.
+
+---
+
+## Logo
+
+Use the exact same existing Navbar logo asset:
+
+`/images/brand/dins-by-daniyal-logo.png`
+
+Requirements:
+
+* Use the exact same image as `/login`.
+* Do NOT recreate the logo using text.
+* Do NOT create another logo.
+* Do NOT modify the logo image.
+* Use the same sizing/alignment approach as `/login`.
+* Place it on the LEFT of the signup area on desktop.
+* Keep it vertically balanced with the signup content.
+
+The Signup page should look like the Login page's matching authentication screen.
+
+---
+
+## Authentication UI
+
+Create a signup form using the project's existing Supabase Auth implementation.
+
+Provide:
+
+### Google
+
+Primary option:
+
+**Continue with Google**
+
+Use the existing Supabase Google OAuth implementation.
+
+Do NOT create a second Google authentication system.
+
+Reuse the existing OAuth callback/session architecture.
+
+### Email Signup
+
+Provide:
+
+* Email
+* Password
+* Confirm Password
+* **Create Account** button
+
+Use the project's existing validation conventions where available.
+
+Validate that:
+
+* Email is valid.
+* Password meets the existing authentication requirements.
+* Confirm Password matches Password.
+
+Do NOT invent unnecessarily strict password requirements if the existing authentication implementation already defines them.
+
+---
+
+## Existing Account Link
+
+At the bottom of the signup area show:
+
+**Already have an account? Sign in**
+
+`Sign in` must navigate to:
+
+`/login`
+
+Do NOT create another login route.
+
+---
+
+## Authentication Behavior
+
+Use the existing Supabase Auth implementation.
+
+Do NOT change:
+
+* Supabase client architecture
+* Auth callbacks
+* Session/cookie architecture
+* Google OAuth configuration
+* Existing login implementation
+* Existing auth provider
+* Existing middleware/auth protection
+
+After successful signup:
+
+* Follow the existing Supabase signup behavior.
+* If email confirmation is enabled, show an appropriate confirmation message.
+* If the existing project redirects immediately after signup, preserve that behavior.
+* Do not invent a new authentication flow.
+
+---
+
+## Error / Loading States
+
+Handle:
+
+* Invalid email
+* Password validation errors
+* Password mismatch
+* Existing Supabase signup errors
+* Google OAuth errors
+* Loading state
+* Duplicate-submit prevention
+
+Messages should be user-friendly.
+
+Do not expose unnecessary raw technical errors.
+
+---
+
+## Visual Design
+
+The Signup page must match the existing `/login` page exactly in visual language.
+
+Use:
+
+* existing ivory background
+* existing deep plum accent
+* existing typography
+* existing spacing system
+* subtle borders
+* premium editorial layout
+* generous whitespace
+* rectangular buttons
+* subtle corner radius
+
+Do NOT use:
+
+* authentication card
+* white panel
+* dark panel
+* shadowed card
+* glassmorphism
+* pill-shaped buttons
+* gradients
+* generic SaaS styling
+
+The signup content must sit directly on the ivory page background.
+
+---
+
+## Match Login Page
+
+Before implementing, inspect the existing:
+
+`app/login/page.tsx`
+
+and:
+
+`app/login/login-form.tsx`
+
+Reuse the same layout patterns and styling wherever appropriate.
+
+The Signup page should look like the **same authentication system**, not a separate design.
+
+Do not duplicate unnecessary architecture if reusable components can safely be reused.
+
+However, do NOT refactor unrelated login code just for the sake of abstraction.
+
+Keep the change focused.
+
+---
+
+## IMPORTANT — DO NOT TOUCH
+
+Do NOT modify:
+
+* Homepage
+* Storefront Navbar
+* Navbar logo
+* Announcement Bar
+* Footer
+* Product pages
+* Shop
+* Cart
+* Wishlist
+* Checkout
+* Admin
+* AI functionality
+* Product database
+* Cart database
+* Wishlist database
+* Supabase database schema
+* RLS policies
+* Google Cloud configuration
+* Existing `/login` authentication behavior
+
+Only create the missing `/signup` page and the minimum signup-specific UI/logic required.
+
+---
+
+## Database / Migration
+
+Database/Migration: **Not required.**
+
+Do NOT create or modify any Supabase migration.
+
+Signup should use the existing Supabase Auth system.
+
+---
+
+## Verification
+
+Run:
+
+`npm run lint`
+
+`npm run typecheck`
+
+`npm run test`
+
+`npm run build`
+
+Then manually verify:
+
+1. `/signup` opens without 404.
+2. Signup page uses the exact same ivory background as `/login`.
+3. No Announcement Bar.
+4. No Navbar.
+5. No Footer.
+6. Exact existing DINS logo is displayed.
+7. Logo is LEFT of signup content on desktop.
+8. Logo is NOT above/below the form on desktop.
+9. Signup content has NO card/background container.
+10. Continue with Google is visible.
+11. Email signup works through existing Supabase Auth.
+12. Password confirmation validation works.
+13. Loading state works.
+14. Signup errors are displayed cleanly.
+15. Successful signup follows the existing Supabase flow.
+16. "Already have an account? Sign in" opens `/login`.
+17. Mobile layout is clean and matches the Login page.
+18. Existing `/login` remains unchanged.
+19. Existing storefront pages remain unchanged.
+20. No database migration was created.
+
+At the end, report:
+
+* files changed
+* signup flow implemented
+* Google OAuth status
+* email signup status
+* redirect/confirmation behavior
+* verification results
+* confirmation that `/login` was not redesigned
+
+Do NOT commit, push to GitHub, or deploy to Vercel.

@@ -62,7 +62,15 @@ export type CheckoutActionResult =
   | { ok: false; error: string };
 
 function errorText(error: unknown): string {
-  if (error instanceof ServiceError) return error.message;
+  if (error instanceof ServiceError) {
+    const base = error.message;
+    if (process.env.NODE_ENV === "development" && error.cause) {
+      const cause = error.cause as { message?: string; code?: string; details?: string; hint?: string };
+      const details = [cause.message, cause.code, cause.details, cause.hint].filter(Boolean).join(" | ");
+      return details ? `${base} (${details})` : base;
+    }
+    return base;
+  }
   if (error instanceof ZodError) {
     return error.issues.map((issue) => issue.message).join(" ");
   }
@@ -81,8 +89,8 @@ export async function getStorefrontInitialStateAction(): Promise<StorefrontIniti
   }
 
   const [cart, wishlist] = await Promise.all([
-    getCartSummaryIfExists(user.id),
-    getWishlistSummaryIfExists(user.id),
+    getCartSummaryIfExists(user.id).catch(() => null),
+    getWishlistSummaryIfExists(user.id).catch(() => null),
   ]);
 
   return {
@@ -166,7 +174,7 @@ export async function addToCartAction(
 
   try {
     const summary = await addToCart(user.id, { productId, quantity });
-    revalidatePaths(revalidate);
+    revalidatePaths(["/cart", "/checkout", ...(revalidate ?? [])]);
     return { ok: true, itemCount: summary.itemCount, subtotal: summary.subtotal };
   } catch (error) {
     return { ok: false, error: errorText(error) };
@@ -433,8 +441,224 @@ export async function initiateCheckoutAction(
   }
 }
 
+/* ---------------------------------------------------------------------------
+ * Orders (customer)
+ * --------------------------------------------------------------------- */
+
+export type OrderListResult =
+  | { ok: true; orders: Awaited<ReturnType<typeof import("@/services/orders/order-service").listCustomerOrders>> }
+  | { ok: false; error: string };
+
+export async function getCustomerOrdersAction(): Promise<OrderListResult> {
+  const user = await getAuthUser();
+  if (!user) return { ok: false, error: "Please sign in to view your orders." };
+
+  try {
+    const { listCustomerOrders } = await import("@/services/orders/order-service");
+    const orders = await listCustomerOrders(user.id);
+    return { ok: true, orders };
+  } catch (error) {
+    return { ok: false, error: errorText(error) };
+  }
+}
+
+export type OrderDetailResult =
+  | { ok: true; order: Awaited<ReturnType<typeof import("@/services/orders/order-service").getOrderDetail>> }
+  | { ok: false; error: string };
+
+export async function getOrderDetailAction(orderId: string): Promise<OrderDetailResult> {
+  const user = await getAuthUser();
+  if (!user) return { ok: false, error: "Please sign in to view this order." };
+
+  try {
+    const { getOrderDetail } = await import("@/services/orders/order-service");
+    const order = await getOrderDetail(user.id, orderId);
+    return { ok: true, order };
+  } catch (error) {
+    return { ok: false, error: errorText(error) };
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Profile
+ * --------------------------------------------------------------------- */
+
+export type ProfileActionResult =
+  | { ok: true; message: string }
+  | { ok: false; error: string };
+
+export async function updateProfileAction(input: {
+  full_name?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+}): Promise<ProfileActionResult> {
+  const user = await getAuthUser();
+  if (!user) return { ok: false, error: "Please sign in." };
+
+  try {
+    const { updateOwnProfile } = await import("@/services/profiles/update-profile");
+    await updateOwnProfile(user.id, input);
+    revalidatePath("/account");
+    return { ok: true, message: "Profile updated." };
+  } catch (error) {
+    return { ok: false, error: errorText(error) };
+  }
+}
+
+export async function getOwnProfileAction() {
+  const user = await getAuthUser();
+  if (!user) return null;
+
+  try {
+    const { getOwnProfile } = await import("@/services/profiles/get-own-profile");
+    return await getOwnProfile(user.id);
+  } catch {
+    return null;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Notifications
+ * --------------------------------------------------------------------- */
+
+export type NotificationListResult =
+  | { ok: true; notifications: Awaited<ReturnType<typeof import("@/services/notifications/notification-service").listNotifications>>; unreadCount: number }
+  | { ok: false; error: string };
+
+export async function getNotificationsAction(
+  options?: { unreadOnly?: boolean; limit?: number },
+): Promise<NotificationListResult> {
+  const user = await getAuthUser();
+  if (!user) return { ok: false, error: "Please sign in." };
+
+  try {
+    const ns = await import("@/services/notifications/notification-service");
+    const [notifications, unreadCount] = await Promise.all([
+      ns.listNotifications(user.id, options),
+      ns.getUnreadCount(user.id),
+    ]);
+    return { ok: true, notifications, unreadCount };
+  } catch (error) {
+    return { ok: false, error: errorText(error) };
+  }
+}
+
+export async function getNotificationCountAction(): Promise<number> {
+  const user = await getAuthUser();
+  if (!user) return 0;
+
+  try {
+    const { getUnreadCount } = await import("@/services/notifications/notification-service");
+    return await getUnreadCount(user.id);
+  } catch {
+    return 0;
+  }
+}
+
+export async function markNotificationReadAction(notificationId: string): Promise<ProfileActionResult> {
+  const user = await getAuthUser();
+  if (!user) return { ok: false, error: "Please sign in." };
+
+  try {
+    const { markAsRead } = await import("@/services/notifications/notification-service");
+    await markAsRead(user.id, notificationId);
+    return { ok: true, message: "Marked as read." };
+  } catch (error) {
+    return { ok: false, error: errorText(error) };
+  }
+}
+
+export async function markAllNotificationsReadAction(): Promise<ProfileActionResult> {
+  const user = await getAuthUser();
+  if (!user) return { ok: false, error: "Please sign in." };
+
+  try {
+    const { markAllAsRead } = await import("@/services/notifications/notification-service");
+    await markAllAsRead(user.id);
+    revalidatePath("/account");
+    return { ok: true, message: "All notifications marked as read." };
+  } catch (error) {
+    return { ok: false, error: errorText(error) };
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Admin order actions
+ * --------------------------------------------------------------------- */
+
+export type AdminOrderListResult =
+  | { ok: true; orders: Awaited<ReturnType<typeof import("@/services/orders/order-service").listAllOrders>>["orders"]; total: number }
+  | { ok: false; error: string };
+
+export async function getAdminOrdersAction(options?: {
+  status?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<AdminOrderListResult> {
+  const user = await getAuthUser();
+  if (!user || user.role !== "admin") return { ok: false, error: "Admin access required." };
+
+  try {
+    const { listAllOrders } = await import("@/services/orders/order-service");
+    const result = await listAllOrders(
+      { id: user.id, role: user.role },
+      options as Parameters<typeof listAllOrders>[1],
+    );
+    return { ok: true, orders: result.orders, total: result.total };
+  } catch (error) {
+    return { ok: false, error: errorText(error) };
+  }
+}
+
+export async function getAdminOrderDetailAction(orderId: string) {
+  const user = await getAuthUser();
+  if (!user || user.role !== "admin") return { ok: false as const, error: "Admin access required." };
+
+  try {
+    const { getAdminOrderDetail } = await import("@/services/orders/order-service");
+    const order = await getAdminOrderDetail({ id: user.id, role: user.role }, orderId);
+    return { ok: true as const, order };
+  } catch (error) {
+    return { ok: false as const, error: errorText(error) };
+  }
+}
+
+export async function updateOrderStatusAction(
+  orderId: string,
+  newStatus: string,
+  note?: string,
+): Promise<ProfileActionResult> {
+  const user = await getAuthUser();
+  if (!user || user.role !== "admin") return { ok: false, error: "Admin access required." };
+
+  try {
+    const { updateOrderStatus } = await import("@/services/orders/order-service");
+    await updateOrderStatus(
+      { id: user.id, role: user.role },
+      orderId,
+      newStatus as import("@/lib/supabase/types").OrderStatus,
+      note,
+    );
+    revalidatePath("/admin/orders");
+    revalidatePath(`/admin/orders/${orderId}`);
+    revalidatePath("/orders");
+    return { ok: true, message: `Order status updated to "${newStatus}".` };
+  } catch (error) {
+    return { ok: false, error: errorText(error) };
+  }
+}
+
 function revalidatePaths(paths: string[] = []): void {
   for (const path of paths) {
     revalidatePath(path);
   }
+}
+
+export async function signOutAction(): Promise<void> {
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  await supabase.auth.signOut();
 }

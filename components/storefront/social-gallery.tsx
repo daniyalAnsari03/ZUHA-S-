@@ -3,19 +3,44 @@ import Image from "next/image";
 import { Reveal } from "@/components/motion/reveal";
 import { Container } from "@/components/ui/container";
 import { InstagramIcon } from "@/components/ui/social-icons";
+import { resolveImageUrl } from "@/lib/images";
+import { getHomepageContent } from "@/services/cms/cms-service";
 
-const handle = "@dinsbydaniyal";
-
-const tiles = Array.from({ length: 6 }, (_, index) => ({
+const FALLBACK_HANDLE = "@dinsbydaniyal";
+const FALLBACK_TILES = Array.from({ length: 6 }, (_, index) => ({
   src: `/images/placeholders/social-${index + 1}.svg`,
-  alt: `${handle} — post placeholder ${index + 1}`,
+  alt: `${FALLBACK_HANDLE} — post placeholder ${index + 1}`,
 }));
 
 /**
- * Social / Instagram-style gallery. Phase 2 shows premium local placeholder
- * tiles; live platform integration arrives in a later phase.
+ * Social / Instagram-style gallery. Reads from CMS when available.
  */
-export function SocialGallery() {
+export async function SocialGallery() {
+  let handle = FALLBACK_HANDLE;
+  let heading = `Follow ${FALLBACK_HANDLE}`;
+  let eyebrow = "On Instagram";
+  let description = "A closer look at the studio, the craft and the collection.";
+  let tiles = FALLBACK_TILES;
+
+  try {
+    const content = await getHomepageContent();
+    if (content.socialHandle) handle = content.socialHandle;
+    if (content.socialHeading) heading = content.socialHeading;
+    if (content.socialEyebrow) eyebrow = content.socialEyebrow;
+    if (content.socialDescription) description = content.socialDescription;
+    if (content.socialImages && content.socialImages.length > 0) {
+      tiles = content.socialImages
+        .map((src) => resolveImageUrl(src))
+        .filter((src): src is string => src !== null)
+        .map((src, index) => ({
+          src,
+          alt: `${handle} — post ${index + 1}`,
+        }));
+    }
+  } catch {
+    // Use defaults
+  }
+
   return (
     <section
       aria-labelledby="social-gallery-heading"
@@ -25,16 +50,16 @@ export function SocialGallery() {
         <Reveal>
           <div className="mb-8 text-center">
             <p className="text-[11px] uppercase tracking-[0.32em] text-gold-muted">
-              On Instagram
+              {eyebrow}
             </p>
             <h2
               id="social-gallery-heading"
               className="mt-2 font-serif text-2xl text-charcoal sm:text-3xl"
             >
-              Follow {handle}
+              {heading}
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-charcoal-muted">
-              A closer look at the studio, the craft and the collection.
+              {description}
             </p>
           </div>
         </Reveal>

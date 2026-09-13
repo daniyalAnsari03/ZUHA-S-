@@ -6,6 +6,7 @@ import { Heart, ShoppingBag, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { resolveImageUrl } from "@/lib/images";
 import { formatPrice } from "@/lib/storefront/format";
 import {
   getWishlistDetailsAction,
@@ -128,9 +129,9 @@ export function WishlistPanel() {
               href={`/product/${encodeURIComponent(item.slug)}`}
               className="block h-24 w-20 shrink-0 overflow-hidden rounded-lg border border-charcoal/10 bg-cream"
             >
-              {item.image ? (
+              {resolveImageUrl(item.image) ? (
                 <Image
-                  src={item.image}
+                  src={resolveImageUrl(item.image)!}
                   alt={item.name}
                   width={160}
                   height={200}

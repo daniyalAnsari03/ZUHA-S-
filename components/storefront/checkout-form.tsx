@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
@@ -10,6 +11,7 @@ import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { resolveImageUrl } from "@/lib/images";
 import { formatPrice } from "@/lib/storefront/format";
 import { initiateCheckoutAction } from "@/app/storefront/actions";
 
@@ -61,19 +63,8 @@ type CheckoutFormProps = {
   items: CheckoutItem[];
 };
 
-type HandoffState = {
-  tone: "ok" | "error" | "info";
-  message: string;
-  reference?: string;
-  totals?: { itemCount: number; subtotal: number; shipping: number; total: number };
-};
-
-/**
- * Secure checkout foundation (Phase 4). Validation, pricing and the payment
- * handoff state are always resolved server-side; the client never submits a
- * total. No fake payment success is ever displayed.
- */
 export function CheckoutForm({ itemCount, totals: initialTotals, items }: CheckoutFormProps) {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -81,28 +72,39 @@ export function CheckoutForm({ itemCount, totals: initialTotals, items }: Checko
     formState: { errors, isSubmitting },
   } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+      email: "",
+      shippingAddress: "",
+      city: "",
+      postalCode: "",
+      orderNotes: "",
+    },
   });
 
-  const [handoff, setHandoff] = useState<HandoffState | null>(null);
-  const [liveTotals, setLiveTotals] = useState(initialTotals);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [liveTotals] = useState(initialTotals);
 
   const onSubmit = handleSubmit(async (values) => {
-    setHandoff(null);
+    setSubmitError(null);
 
     const result = await initiateCheckoutAction(values);
 
     if (!result.ok) {
-      setHandoff({ tone: "error", message: result.errors.join(" ") });
+      setSubmitError(result.errors.join(" "));
       return;
     }
 
-    setLiveTotals(result.totals);
-    setHandoff({
-      tone: result.state === "unavailable" ? "info" : "ok",
-      message: result.message,
-      reference: result.reference,
-      totals: result.totals,
-    });
+    if (result.state === "unavailable") {
+      setSubmitError(result.message);
+      return;
+    }
+
+    // Order created successfully — redirect to confirmation
+    if (result.reference) {
+      router.push(`/orders/confirmation?ref=${encodeURIComponent(result.reference)}`);
+    }
   });
 
   return (
@@ -319,29 +321,15 @@ export function CheckoutForm({ itemCount, totals: initialTotals, items }: Checko
           disabled={isSubmitting}
           className="w-full lg:w-auto"
         >
-          {isSubmitting ? "Validating…" : "Place Order"}
+          {isSubmitting ? "Placing order…" : "Place Order"}
         </Button>
 
-        {handoff ? (
+        {submitError ? (
           <div
-            role="status"
-            className={`rounded-lg border px-4 py-3.5 text-sm leading-relaxed ${
-              handoff.tone === "error"
-                ? "border-red-200 bg-red-50 text-red-700"
-                : handoff.tone === "info"
-                  ? "border-charcoal/10 bg-cream text-charcoal"
-                  : "border-green-200 bg-green-50 text-green-800"
-            }`}
+            role="alert"
+            className="rounded-lg border border-red-200 bg-red-50 px-4 py-3.5 text-sm leading-relaxed text-red-700"
           >
-            <p className="font-medium">{handoff.message}</p>
-            {handoff.totals ? (
-              <p className="mt-2 text-xs text-charcoal-muted">
-                Server-verified total: {formatPrice(handoff.totals.total)} (
-                {handoff.totals.itemCount}{" "}
-                {handoff.totals.itemCount === 1 ? "item" : "items"}). No order was
-                created in this phase.
-              </p>
-            ) : null}
+            {submitError}
           </div>
         ) : null}
       </form>
@@ -376,9 +364,9 @@ function OrderSummary({
               href={`/product/${encodeURIComponent(item.slug)}`}
               className="block h-16 w-14 shrink-0 overflow-hidden rounded-md border border-charcoal/10 bg-cream"
             >
-              {item.image ? (
+              {resolveImageUrl(item.image) ? (
                 <Image
-                  src={item.image}
+                  src={resolveImageUrl(item.image)!}
                   alt={item.name}
                   width={112}
                   height={128}

@@ -49,6 +49,8 @@ export type Product = {
   name: string;
   description: string;
   price: number;
+  /** Original/compare-at price for discount presentation, when set by admin. */
+  compareAtPrice?: number;
   image: string;
   categorySlug: string;
   fabric?: string;

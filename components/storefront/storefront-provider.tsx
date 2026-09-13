@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -51,15 +52,21 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const [subtotal, setSubtotal] = useState(0);
   const [ready, setReady] = useState(false);
 
+  const initialApplied = useRef(false);
+  const cartActionApplied = useRef(false);
+
   useEffect(() => {
     let active = true;
 
     getStorefrontInitialStateAction().then((state) => {
-      if (!active) return;
-      setCartCount(state.cartCount);
-      setWishlistCount(state.wishlistCount);
-      setSubtotal(0);
+      if (!active || initialApplied.current) return;
+      if (!cartActionApplied.current) {
+        setCartCount(state.cartCount);
+        setWishlistCount(state.wishlistCount);
+        setSubtotal(0);
+      }
       setReady(true);
+      initialApplied.current = true;
     });
 
     return () => {
@@ -71,6 +78,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     async (productId: string, quantity = 1): Promise<string | null> => {
       const result = await addToCartAction(productId, quantity);
       if (!result.ok) return result.error;
+      cartActionApplied.current = true;
       setCartCount(result.itemCount);
       setSubtotal(result.subtotal);
       return null;
@@ -82,6 +90,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     async (itemId: string, quantity: number): Promise<string | null> => {
       const result = await updateCartItemAction(itemId, quantity);
       if (!result.ok) return result.error;
+      cartActionApplied.current = true;
       setCartCount(result.itemCount);
       setSubtotal(result.subtotal);
       return null;
@@ -93,6 +102,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
     async (itemId: string): Promise<string | null> => {
       const result = await removeCartItemAction(itemId);
       if (!result.ok) return result.error;
+      cartActionApplied.current = true;
       setCartCount(result.itemCount);
       setSubtotal(result.subtotal);
       return null;
@@ -103,6 +113,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const clearCart = useCallback(async (): Promise<string | null> => {
     const result = await clearCartAction();
     if (!result.ok) return result.error;
+    cartActionApplied.current = true;
     setCartCount(result.itemCount);
     setSubtotal(result.subtotal);
     return null;

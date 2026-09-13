@@ -6,6 +6,12 @@ import { CheckoutForm } from "@/components/storefront/checkout-form";
 
 const mocks = vi.hoisted(() => ({
   initiateCheckout: vi.fn(),
+  routerPush: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mocks.routerPush }),
+  usePathname: () => "/checkout",
 }));
 
 vi.mock("@/app/storefront/actions", () => ({

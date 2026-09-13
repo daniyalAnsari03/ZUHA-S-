@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { LayoutDashboard, LockKeyhole, Package, Tags } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 
+import { AdminShell } from "@/app/admin/admin-shell";
 import { Container } from "@/components/ui/container";
 import { getAuthUser } from "@/lib/auth/session";
+import { getUnreadCount } from "@/services/notifications/notification-service";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({
   children,
@@ -38,52 +42,11 @@ export default async function AdminLayout({
     );
   }
 
-  const navItems = [
-    { href: "/admin", label: "Overview", icon: LayoutDashboard },
-    { href: "/admin/products", label: "Products", icon: Package },
-    { href: "/admin/categories", label: "Categories", icon: Tags },
-  ];
+  const unreadCount = await getUnreadCount(user.id).catch(() => 0);
 
   return (
-    <div className="min-h-screen bg-ivory">
-      <header className="border-b border-charcoal/10 bg-white">
-        <Container size="lg" className="flex h-16 items-center justify-between">
-          <Link
-            href="/admin"
-            className="font-serif text-lg text-charcoal transition-colors hover:text-plum"
-          >
-            dINS by Daniyal <span className="text-plum">· Admin</span>
-          </Link>
-          <Link
-            href="/"
-            className="text-xs font-medium uppercase tracking-wide text-charcoal-muted transition-colors hover:text-plum"
-          >
-            View storefront
-          </Link>
-        </Container>
-      </header>
-
-      <nav
-        aria-label="Admin"
-        className="border-b border-charcoal/10 bg-white/70 backdrop-blur"
-      >
-        <Container size="lg" className="flex gap-1 overflow-x-auto">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="inline-flex shrink-0 items-center gap-2 border-b-2 border-transparent px-3 py-3 text-sm font-medium text-charcoal-muted transition-colors hover:text-plum"
-            >
-              <item.icon className="h-4 w-4" aria-hidden="true" />
-              {item.label}
-            </Link>
-          ))}
-        </Container>
-      </nav>
-
-      <main className="py-8 sm:py-10">
-        <Container size="lg">{children}</Container>
-      </main>
-    </div>
+    <AdminShell userEmail={user.email} unreadCount={unreadCount}>
+      {children}
+    </AdminShell>
   );
 }

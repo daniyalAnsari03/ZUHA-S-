@@ -20,6 +20,16 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
+
+export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+
 export interface Database {
   public: {
     Tables: {
@@ -27,18 +37,33 @@ export interface Database {
         Row: {
           id: string;
           role: "customer" | "admin";
+          full_name: string | null;
+          phone: string | null;
+          address: string | null;
+          city: string | null;
+          postal_code: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
           role?: "customer" | "admin";
+          full_name?: string | null;
+          phone?: string | null;
+          address?: string | null;
+          city?: string | null;
+          postal_code?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           role?: "customer" | "admin";
+          full_name?: string | null;
+          phone?: string | null;
+          address?: string | null;
+          city?: string | null;
+          postal_code?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -200,6 +225,30 @@ export interface Database {
         };
         Relationships: [];
       };
+      site_content: {
+        Row: {
+          id: string;
+          key: string;
+          value: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          key: string;
+          value?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          key?: string;
+          value?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       wishlists: {
         Row: {
           id: string;
@@ -242,10 +291,277 @@ export interface Database {
         };
         Relationships: [];
       };
+      orders: {
+        Row: {
+          id: string;
+          user_id: string;
+          order_number: string;
+          status: OrderStatus;
+          payment_status: PaymentStatus;
+          payment_method: string | null;
+          customer_name: string;
+          customer_phone: string;
+          customer_email: string;
+          shipping_address: string;
+          city: string;
+          postal_code: string | null;
+          subtotal: number;
+          shipping_fee: number;
+          total: number;
+          order_notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          order_number: string;
+          status?: OrderStatus;
+          payment_status?: PaymentStatus;
+          payment_method?: string | null;
+          customer_name: string;
+          customer_phone: string;
+          customer_email: string;
+          shipping_address: string;
+          city: string;
+          postal_code?: string | null;
+          subtotal: number;
+          shipping_fee?: number;
+          total: number;
+          order_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          order_number?: string;
+          status?: OrderStatus;
+          payment_status?: PaymentStatus;
+          payment_method?: string | null;
+          customer_name?: string;
+          customer_phone?: string;
+          customer_email?: string;
+          shipping_address?: string;
+          city?: string;
+          postal_code?: string | null;
+          subtotal?: number;
+          shipping_fee?: number;
+          total?: number;
+          order_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      order_items: {
+        Row: {
+          id: string;
+          order_id: string;
+          product_id: string | null;
+          product_name: string;
+          product_price: number;
+          product_image: string | null;
+          quantity: number;
+          subtotal: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id: string;
+          product_id?: string | null;
+          product_name: string;
+          product_price: number;
+          product_image?: string | null;
+          quantity: number;
+          subtotal: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          order_id?: string;
+          product_id?: string | null;
+          product_name?: string;
+          product_price?: number;
+          product_image?: string | null;
+          quantity?: number;
+          subtotal?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      order_status_history: {
+        Row: {
+          id: string;
+          order_id: string;
+          previous_status: OrderStatus | null;
+          new_status: OrderStatus;
+          note: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id: string;
+          previous_status?: OrderStatus | null;
+          new_status: OrderStatus;
+          note?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          order_id?: string;
+          previous_status?: OrderStatus | null;
+          new_status?: OrderStatus;
+          note?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          order_id: string | null;
+          type: string;
+          title: string;
+          message: string;
+          is_read: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          order_id?: string | null;
+          type: string;
+          title: string;
+          message: string;
+          is_read?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          order_id?: string | null;
+          type?: string;
+          title?: string;
+          message?: string;
+          is_read?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_audit_logs: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          actor_role: "admin" | "customer" | "guest";
+          agent_name: string;
+          tool_name: string | null;
+          action_type: string;
+          risk: "low" | "medium" | "high";
+          status: "granted" | "denied" | "error";
+          entity_type: string | null;
+          entity_id: string | null;
+          detail: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          actor_role?: "admin" | "customer" | "guest";
+          agent_name: string;
+          tool_name?: string | null;
+          action_type: string;
+          risk: "low" | "medium" | "high";
+          status: "granted" | "denied" | "error";
+          entity_type?: string | null;
+          entity_id?: string | null;
+          detail?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          actor_role?: "admin" | "customer" | "guest";
+          agent_name?: string;
+          tool_name?: string | null;
+          action_type?: string;
+          risk?: "low" | "medium" | "high";
+          status?: "granted" | "denied" | "error";
+          entity_type?: string | null;
+          entity_id?: string | null;
+          detail?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_conversations: {
+        Row: {
+          id: string;
+          user_id: string;
+          channel: "admin" | "salesman";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          channel: "admin" | "salesman";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          channel?: "admin" | "salesman";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          role: "user" | "assistant";
+          content: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          role: "user" | "assistant";
+          content: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          role?: "user" | "assistant";
+          content?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
+    Functions: {
+      is_admin: {
+        Args: { uid: string };
+        Returns: boolean;
+      };
+      generate_order_number: {
+        Args: Record<string, never>;
+        Returns: string;
+      };
+    };
+    Enums: {
+      order_status: OrderStatus;
+      payment_status: PaymentStatus;
+    };
     CompositeTypes: Record<string, never>;
   };
 }

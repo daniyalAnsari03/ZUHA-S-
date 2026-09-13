@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { formatPrice } from "@/lib/storefront/format";
+import { resolveImageUrl } from "@/lib/images";
 import type { Category, Product } from "@/lib/storefront/types";
+
+import { ProductPrice } from "./product-price";
 
 type SearchPanelProps = {
   products: Product[];
@@ -78,7 +80,7 @@ export function SearchPanel({ products, categories, onNavigate }: SearchPanelPro
               >
                 <span className="relative h-16 w-14 shrink-0 overflow-hidden rounded-lg bg-cream">
                   <Image
-                    src={product.image}
+                    src={resolveImageUrl(product.image) || "/images/placeholders/product-placeholder.svg"}
                     alt=""
                     width={112}
                     height={128}
@@ -94,9 +96,11 @@ export function SearchPanel({ products, categories, onNavigate }: SearchPanelPro
                     {categoryName(categories, product.categorySlug)}
                   </span>
                 </span>
-                <span className="shrink-0 text-sm text-charcoal">
-                  {formatPrice(product.price)}
-                </span>
+                <ProductPrice
+                  product={product}
+                  as="span"
+                  className="shrink-0 text-sm text-charcoal"
+                />
               </Link>
             </li>
           ))}

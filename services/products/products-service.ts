@@ -50,7 +50,7 @@ export async function listActiveProducts(
 
   let query = supabase
     .from("products")
-    .select("*, categories(slug, name)")
+    .select(categorySlug ? "*, categories!inner(slug, name)" : "*, categories(slug, name)")
     .eq("is_active", true);
 
   if (categorySlug) {
@@ -79,7 +79,7 @@ export async function listActiveProducts(
     throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load products.");
   }
 
-  return data;
+  return data as unknown as ProductWithCategory[];
 }
 
 export async function getProductBySlug(
@@ -98,7 +98,7 @@ export async function getProductBySlug(
     throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load product.");
   }
 
-  return data;
+  return data as unknown as ProductWithCategory | null;
 }
 
 export async function getProductById(
@@ -116,7 +116,7 @@ export async function getProductById(
     throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load product.");
   }
 
-  return data;
+  return data as unknown as ProductWithCategory | null;
 }
 
 export async function getFeaturedProducts(
@@ -141,7 +141,7 @@ export async function getNewArrivals(
     throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load new arrivals.");
   }
 
-  return data;
+  return data as unknown as ProductWithCategory[];
 }
 
 /**
@@ -165,10 +165,64 @@ export async function listAllProducts(
     throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load products.");
   }
 
-  return data;
+  return data as unknown as ProductWithCategory[];
 }
 
 type AdminActor = { id: string; role: Role };
+
+export type AdminProductListOptions = {
+  search?: string;
+  categoryId?: string;
+  isActive?: boolean;
+  limit?: number;
+  offset?: number;
+};
+
+/**
+ * Admin view of every product with search, optional filters, pagination and an
+ * exact count. Reads rely on RLS admin policies.
+ */
+export async function listPagedProducts(
+  actor: AdminActor,
+  options: AdminProductListOptions = {},
+): Promise<{ products: ProductWithCategory[]; total: number }> {
+  assertRole(actor.role, ["admin"]);
+
+  const supabase = await createSupabaseClient();
+  const limit = options.limit ?? 20;
+  const offset = options.offset ?? 0;
+
+  let query = supabase
+    .from("products")
+    .select("*, categories(slug, name)", { count: "exact" });
+
+  if (options.search?.trim()) {
+    const term = `%${options.search.trim()}%`;
+    query = query.or(`name.ilike.${term},sku.ilike.${term},description.ilike.${term}`);
+  }
+
+  if (options.categoryId) {
+    query = query.eq("category_id", options.categoryId);
+  }
+
+  if (options.isActive !== undefined) {
+    query = query.eq("is_active", options.isActive);
+  }
+
+  const { data, error, count } = await query
+    .order("sort_order", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load products.");
+  }
+
+  return {
+    products: (data ?? []) as unknown as ProductWithCategory[],
+    total: count ?? 0,
+  };
+}
 
 export async function createProduct(
   actor: AdminActor,

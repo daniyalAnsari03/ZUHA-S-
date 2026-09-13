@@ -1,10 +1,13 @@
+import { redirect } from "next/navigation";
+
 import { getAuthUser } from "@/lib/auth/session";
 import { listAllCategories } from "@/services/categories/categories-service";
 import { ProductForm } from "@/app/admin/components/product-form";
 
 export default async function NewProductPage() {
   const user = await getAuthUser();
-  const actor = { id: user!.id, role: user!.role as "admin" };
+  if (!user || user.role !== "admin") redirect("/login");
+  const actor = { id: user.id, role: user.role as "admin" };
 
   const categories = await listAllCategories(actor);
 

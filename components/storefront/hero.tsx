@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { resolveImageUrl } from "@/lib/images";
 import type { HeroSlide } from "@/lib/storefront/types";
 
 type HeroProps = {
@@ -18,14 +19,18 @@ export function Hero({ slide }: HeroProps) {
   return (
     <section className="relative z-0 -mt-32 overflow-hidden bg-plum-dark sm:-mt-40">
       <div className="absolute inset-0">
-        <Image
-          src={slide.image}
-          alt=""
-          fill
-          sizes="100vw"
-          priority
-          className="object-cover object-center"
-        />
+        {resolveImageUrl(slide.image) ? (
+          <Image
+            src={resolveImageUrl(slide.image)!}
+            alt=""
+            fill
+            sizes="100vw"
+            priority
+            className="object-cover object-center"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-plum-dark" />
+        )}
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-gradient-to-b from-charcoal/30 via-transparent to-charcoal/55"

@@ -5,9 +5,11 @@ import { notFound } from "next/navigation";
 
 import { Container } from "@/components/ui/container";
 import { ProductOrderControls } from "@/components/storefront/product-order-controls";
+import { ProductPrice } from "@/components/storefront/product-price";
 import { WishlistButton } from "@/components/storefront/wishlist-button";
 import { getAuthUser } from "@/lib/auth/session";
-import { formatPrice, categoryHref } from "@/lib/storefront/format";
+import { resolveImageUrl } from "@/lib/images";
+import { categoryHref } from "@/lib/storefront/format";
 import { getProductBySlug } from "@/lib/storefront/data";
 import { isProductWishlisted } from "@/services/wishlist/wishlist-service";
 
@@ -26,7 +28,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       title: product.name,
       description: product.description ?? undefined,
-      images: product.image ? [{ url: product.image, alt: product.name }] : [],
+      images: resolveImageUrl(product.image)
+        ? [{ url: resolveImageUrl(product.image)!, alt: product.name }]
+        : [],
     },
   };
 }
@@ -76,7 +80,7 @@ export default async function ProductDetailPage({ params }: Props) {
           <div className="relative overflow-hidden rounded-2xl border border-charcoal/10 bg-cream">
             <div className="relative aspect-[4/5] w-full overflow-hidden">
               <Image
-                src={product.image}
+                src={resolveImageUrl(product.image) || "/images/placeholders/product-placeholder.svg"}
                 alt={product.name}
                 width={1200}
                 height={1500}
@@ -103,9 +107,10 @@ export default async function ProductDetailPage({ params }: Props) {
               </h1>
             </div>
 
-            <p className="text-lg font-medium text-charcoal">
-              {formatPrice(product.price)}
-            </p>
+            <ProductPrice
+              product={product}
+              className="text-lg font-medium text-charcoal"
+            />
 
             {/* Details */}
             <div className="flex flex-col gap-2 text-sm text-charcoal-muted">

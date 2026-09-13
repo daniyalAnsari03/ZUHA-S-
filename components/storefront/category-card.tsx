@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { resolveImageUrl } from "@/lib/images";
 import { categoryHref } from "@/lib/storefront/format";
 import type { Category } from "@/lib/storefront/types";
 
@@ -19,7 +20,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
     >
       <div className="aspect-[4/5] overflow-hidden">
         <Image
-          src={category.image}
+          src={resolveImageUrl(category.image) || "/images/placeholders/category-placeholder.svg"}
           alt={category.name}
           width={800}
           height={1000}

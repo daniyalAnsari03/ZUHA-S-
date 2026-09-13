@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { formatPrice } from "@/lib/storefront/format";
+import { resolveImageUrl } from "@/lib/images";
 import type { Product } from "@/lib/storefront/types";
 
 import { AddToBagButton } from "./add-to-bag-button";
+import { ProductPrice } from "./product-price";
 
 type ProductCardProps = {
   product: Product;
@@ -35,7 +36,7 @@ export function ProductCard({ product, compact = false }: ProductCardProps) {
           aria-label={`View ${product.name}`}
         >
           <Image
-            src={product.image}
+            src={resolveImageUrl(product.image) || "/images/placeholders/product-placeholder.svg"}
             alt={product.name}
             width={800}
             height={1000}
@@ -63,9 +64,10 @@ export function ProductCard({ product, compact = false }: ProductCardProps) {
             {product.fabric}
           </p>
         ) : null}
-        <p className="mt-1 text-sm font-medium text-charcoal max-sm:text-[13px]">
-          {formatPrice(product.price)}
-        </p>
+        <ProductPrice
+          product={product}
+          className="mt-1 text-sm font-medium text-charcoal max-sm:text-[13px]"
+        />
         <AddToBagButton
           productId={product.id}
           className="mt-4 h-10 text-sm max-sm:mt-3 max-sm:h-9 max-sm:text-[13px]"

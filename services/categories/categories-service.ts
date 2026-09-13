@@ -177,8 +177,61 @@ export async function setCategoryActive(
     .single();
 
   if (error) {
-    throw new ServiceError("CATEGORY_UPDATE_FAILED", "Failed to update category.");
+    throw new ServiceError("CATEGORY_UPDATE_FAILED", "Failed to update category.", error);
   }
 
   return data;
+}
+
+/**
+ * Delete a category, but only when it has no products referencing it.
+ *
+ * Deleting a referenced category would silently detach products, which the
+ * business rules explicitly reject ("do not allow category deletion to
+ * silently break existing products"). The admin must first move or remove the
+ * products, then delete the empty category.
+ */
+export async function deleteCategory(
+  actor: AdminActor,
+  id: string,
+): Promise<void> {
+  assertRole(actor.role, ["admin"]);
+
+  const supabase = await createSupabaseClient();
+
+  const { data: products, error: productsError } = await supabase
+    .from("products")
+    .select("id")
+    .eq("category_id", id)
+    .limit(1);
+
+  if (productsError) {
+    throw new ServiceError("CATEGORY_DELETE_FAILED", "Failed to check category usage.", productsError);
+  }
+
+  if ((products ?? []).length > 0) {
+    throw new ServiceError(
+      "CATEGORY_DELETE_BLOCKED",
+      "This category still has products. Reassign or delete them before deleting the category.",
+    );
+  }
+
+  const { error } = await supabase.from("categories").delete().eq("id", id);
+
+  if (error) {
+    throw new ServiceError("CATEGORY_DELETE_FAILED", "Failed to delete category.", error);
+  }
+
+  const { data: gone } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (gone) {
+    throw new ServiceError(
+      "CATEGORY_DELETE_VERIFY_FAILED",
+      "Category deletion could not be verified.",
+    );
+  }
 }

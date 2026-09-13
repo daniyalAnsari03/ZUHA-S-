@@ -1,62 +1,44 @@
-Read `AGENTS.md` first.
+Check how the Admin AI's chat responses get rendered in the admin dashboard UI:
+1. Does the admin chat frontend component render Markdown (bold **, bullet
+   lists, etc.), or does it display raw text as-is?
+2. If it does NOT render Markdown, update the Admin AI's instructions (in
+   agents/manager.ts and agents/employees.ts) to stop using Markdown syntax
+   entirely (no **, no #, no markdown bullets) and instead use plain text with
+   clear line breaks and simple "- " lists, so replies look clean.
+3. If it DOES render Markdown, then this is a rendering bug in the UI, not a
+   prompt issue — find and fix why raw ** isn't converting to bold.
+Report which case it is and what you changed.
 
-Task: Replace ONLY the existing navbar center brand text/logo with the provided DINS by Daniyal image.
 
-The logo already exists at:
 
-`public/images/brand/dins-by-daniyal-logo.png`
+The owner tested the Admin AI after the last QA/fix pass and reports wrong or
+mixed responses and missed tool calls. Before I send the exact failing
+transcript:
+1. Confirm nothing in the last fix pass (tools/orders.ts, tools/cart.ts,
+   services/orders/order-service.ts, agents/salesman.ts, agents/employees.ts)
+   accidentally broke tool registration or toolChoice settings for any agent.
+2. Re-run admin-ai-qa.mjs and customer-ai-qa.mjs against current code — report
+   pass/fail. Anything that now fails but passed before is the regression.
+3. Check today's ai_audit_logs for any 'denied' or 'error' status rows and
+   report them.
 
-### Requirements
 
-* In the navbar center, replace the existing text-based `dINS by Daniyal` brand with the image logo.
-* Use the existing image file exactly:
-  `/images/brand/dins-by-daniyal-logo.png`
-* Do NOT recreate the logo with text.
-* Do NOT edit, recolor, crop, or modify the image file.
-* Preserve the navbar's existing height, spacing, positioning, and overall layout.
-* The logo must remain centered in exactly the same center-brand area.
-* Make the image responsive so it looks correct on both desktop and mobile.
-* Do NOT make the navbar taller.
-* Do NOT change Search, Login, Bag, hamburger, or any other navbar functionality.
-* Keep the existing mobile navbar structure unchanged except replacing the center text with the logo.
-* Use proper `alt` text such as `dINS by Daniyal`.
-* If the project uses Next.js Image, use the existing project convention and `next/image` appropriately.
 
-### Important
+Add an image-upload capability to the ADMIN chat only (never the customer/
+salesman chat).
 
-Do NOT modify:
+1. Reuse the existing image upload logic from
+   app/admin/components/product-form.tsx (Supabase Storage) instead of building
+   a new upload path.
+2. Add an image attachment button/file-picker to the admin chat input component
+   only. On selecting an image, upload it immediately to Storage and get back a
+   URL.
+3. Pass the resulting image URL into the conversation so the AI knows an image
+   is attached, and make sure create_product / update_product accept an
+   imageUrl parameter saved to the product's image_url field.
+4. Update productAgent's instructions: when the owner attaches an image while
+   creating/editing a product, use the provided URL directly — never invent or
+   guess an image path.
+5. Confirm the customer/salesman chat has NO image-upload option at all.
 
-* Hero
-* Shop By Category
-* Product cards
-* Products
-* Colors
-* Typography elsewhere
-* Footer
-* Database
-* Supabase
-* AI functionality
-* Any unrelated component
-
-Only make the navbar logo replacement.
-
-### Verification
-
-Run:
-
-* `npm run lint`
-* `npm run typecheck`
-* `npm run build`
-
-Verify:
-
-* Logo loads correctly.
-* Desktop navbar remains the same height.
-* Mobile navbar remains the same height.
-* Logo is centered.
-* No layout shift or broken image.
-* No unrelated files changed.
-
-Database/Migration: **Not required — frontend-only navbar asset change.**
-
-Do NOT commit, push to GitHub, or deploy to Vercel.
+Report what changed and how to test it end-to-end.

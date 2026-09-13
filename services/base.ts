@@ -2,11 +2,13 @@ import type { Role } from "@/lib/auth/roles";
 
 export class ServiceError extends Error {
   code: string;
+  cause?: unknown;
 
-  constructor(code: string, message: string) {
+  constructor(code: string, message: string, cause?: unknown) {
     super(message);
     this.name = "ServiceError";
     this.code = code;
+    this.cause = cause;
   }
 }
 

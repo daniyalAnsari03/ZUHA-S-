@@ -5,8 +5,8 @@ import { AnnouncementBar } from "@/components/storefront/announcement-bar";
 import { getActiveAnnouncements } from "@/lib/storefront/data";
 
 describe("AnnouncementBar", () => {
-  it("renders exactly one message at a time", () => {
-    const messages = getActiveAnnouncements();
+  it("renders exactly one message at a time", async () => {
+    const messages = await getActiveAnnouncements();
     expect(messages.length).toBeGreaterThan(1);
 
     render(<AnnouncementBar announcements={messages} />);
@@ -17,8 +17,8 @@ describe("AnnouncementBar", () => {
     expect(visible).toHaveLength(1);
   });
 
-  it("renders the first ordered message initially", () => {
-    const messages = getActiveAnnouncements();
+  it("renders the first ordered message initially", async () => {
+    const messages = await getActiveAnnouncements();
     render(<AnnouncementBar announcements={messages} />);
     expect(screen.getByText(messages[0].message)).toBeInTheDocument();
   });

@@ -8,6 +8,7 @@ import {
   updateProductAction,
   type ActionResult,
 } from "@/app/admin/actions";
+import { ImagePicker } from "@/components/admin/image-picker";
 import {
   CheckboxField,
   FormError,
@@ -217,12 +218,12 @@ export function ProductForm({
       <section className="rounded-2xl border border-charcoal/10 bg-white p-6">
         <h2 className="font-serif text-lg text-charcoal">Media & visibility</h2>
         <div className="mt-5 space-y-5">
-          <TextField
-            label="Product image URL"
+          <ImagePicker
             name="imageUrl"
-            defaultValue={values.imageUrl}
-            placeholder="/images/placeholders/product-1.svg"
-            hint="Absolute path or full URL. Storage upload arrives in a later phase."
+            value={values.imageUrl}
+            folder="products"
+            label="Product Image"
+            hint="Select or upload a product image."
           />
           <div className="flex flex-wrap gap-8">
             <CheckboxField

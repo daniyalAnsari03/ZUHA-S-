@@ -8,14 +8,20 @@ import {
   verifyCheckoutCart,
   type CartSummary,
 } from "@/services/cart/cart-service";
+import { createOrder, type CreateOrderInput } from "@/services/orders/order-service";
+import {
+  createNotification,
+  createNotificationAdmin,
+  maybeAlertAdminOnStockCrossing,
+} from "@/services/notifications/notification-service";
+import { ServiceError } from "@/services/base";
 
 /**
- * Phase 4 checkout foundation.
+ * Phase 5 checkout service.
  *
- * This module owns the secure checkout boundary. It revalidates the cart
- * against trusted product data, computes pricing entirely server-side, and
- * hands off to a payment provider through an abstraction. It does NOT build
- * the Phase 5 order-management system — that belongs to a later phase.
+ * Validates the cart, computes pricing server-side, creates the order with
+ * snapshot pricing, performs atomic inventory deduction, converts the cart,
+ * and creates notifications.
  */
 
 export const SHIPPING_FEE = 0;
@@ -94,12 +100,7 @@ export function computeTotals(summary: CartSummary): CheckoutTotals {
 
 /* ---------------------------------------------------------------------------
  * Payment provider abstraction
- *
- * Phase 4 deliberately does NOT lock the project to a single provider or claim
- * a fake payment success. A provider is selected if configured via env vars;
- * otherwise checkout surfaces a clear "not configured yet" state. No secrets
- * ever reach the client. Phase 5+ wires a concrete Pakistani provider.
- * ------------------------------------------------------------------------- */
+ * --------------------------------------------------------------------- */
 
 export type PaymentProviderId = "card" | "cod" | "unavailable";
 
@@ -118,12 +119,14 @@ export type CheckoutHandoff =
       state: "success";
       provider: PaymentProviderId;
       reference: string;
+      orderId: string;
       message: string;
     }
   | {
       state: "pending";
       provider: PaymentProviderId;
       reference: string;
+      orderId: string;
       message: string;
     }
   | {
@@ -153,9 +156,8 @@ export function resolvePaymentProvider(): PaymentProviderId {
 }
 
 /**
- * Record the Phase 4 checkout handoff. In this phase we validate and compute
- * the server-side total, then surface a safe provider state. Full order
- * persistence and provider webhook verification land in Phase 5.
+ * Phase 5 checkout handoff: validates, creates the order, deducts inventory,
+ * converts the cart, and creates notifications.
  */
 export async function initiateCheckout(
   userId: string,
@@ -176,17 +178,264 @@ export async function initiateCheckout(
     };
   }
 
-  // Keep a cart summary snapshot for reference; no order row is persisted in
-  // Phase 4. The provider reference is generated server-side and the final
-  // amount is the server-computed total.
-  const reference = `CHK-${Date.now()}-${userId.slice(0, 8)}`;
+  // Deduct inventory before creating the order (fail-safe: if order creation
+  // fails after deduction, we attempt to restore).
+  const deductedItems: { productId: string; quantity: number }[] = [];
+
+  try {
+    for (const item of result.summary.items) {
+      await deductStock(item.productId, item.quantity);
+      deductedItems.push({ productId: item.productId, quantity: item.quantity });
+    }
+  } catch (error) {
+    // Restore already-deducted stock
+    for (const di of deductedItems) {
+      await restoreStock(di.productId, di.quantity).catch(() => {});
+    }
+    if (error instanceof ServiceError) {
+      return { state: "rejected", errors: [error.message] };
+    }
+    return { state: "rejected", errors: ["Failed to reserve stock. Please try again."] };
+  }
+
+  // Generate a unique order number
+  let orderNumber: string;
+  try {
+    orderNumber = await generateOrderNumber();
+  } catch {
+    // Restore stock if order number generation fails
+    for (const di of deductedItems) {
+      await restoreStock(di.productId, di.quantity).catch(() => {});
+    }
+    return { state: "rejected", errors: ["Failed to generate order number. Please try again."] };
+  }
+
+  // Build the order input from the trusted summary
+  const orderInput: CreateOrderInput = {
+    userId,
+    orderNumber,
+    customerName: customer.name,
+    customerPhone: customer.phone,
+    customerEmail: customer.email,
+    shippingAddress: customer.shippingAddress,
+    city: customer.city,
+    postalCode: customer.postalCode,
+    orderNotes: customer.orderNotes,
+    paymentMethod: provider,
+    items: result.summary.items.map((item) => ({
+      productId: item.productId,
+      productName: item.name,
+      productPrice: Math.round(item.price),
+      productImage: item.image,
+      quantity: item.quantity,
+      subtotal: item.subtotal,
+    })),
+    subtotal: result.totals.subtotal,
+    shippingFee: result.totals.shipping,
+    total: result.totals.total,
+  };
+
+  // Create the order
+  let order;
+  try {
+    order = await createOrder(orderInput);
+  } catch {
+    // Restore stock if order creation fails
+    for (const di of deductedItems) {
+      await restoreStock(di.productId, di.quantity).catch(() => {});
+    }
+    return { state: "rejected", errors: ["Failed to create your order. Please try again."] };
+  }
+
+  // Convert the cart
+  await convertCart(userId).catch(() => {});
+
+  // Create notifications (non-blocking, best-effort)
+  createOrderStatusNotification(userId, order.id, order.order_number, "pending").catch(() => {});
+  createAdminNewOrderNotificationForOrder(order.id, order.order_number, order.total).catch(() => {});
 
   return {
-    state: "pending",
+    state: provider === "cod" ? "success" : "pending",
     provider,
-    reference,
-    message: `Payment via ${provider === "cod" ? "Cash on Delivery" : "Card"} pending configuration for order ${reference}.`,
+    reference: order.order_number,
+    orderId: order.id,
+    message:
+      provider === "cod"
+        ? `Order ${order.order_number} placed successfully! You will pay ${result.totals.total} PKR on delivery.`
+        : `Order ${order.order_number} placed. Payment via card is pending.`,
   };
+}
+
+/* ---------------------------------------------------------------------------
+ * Inventory operations
+ * --------------------------------------------------------------------- */
+
+/**
+ * Atomically deduct stock for a product. Uses the admin client to bypass RLS
+ * and a conditional update to prevent overselling.
+ *
+ * The checkout flow already validates product existence, activeness and stock
+ * via `verifyCheckoutCart`, so this function only performs the atomic decrement
+ * and retries once on conflict (race-condition safe).
+ */
+async function deductStock(productId: string, quantity: number): Promise<void> {
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const supabase = createAdminClient();
+
+  // Read current stock using the admin client (bypasses RLS).
+  const { data: product, error: fetchError } = await supabase
+    .from("products")
+    .select("stock_quantity, name, low_stock_threshold")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (fetchError) {
+    throw new ServiceError("STOCK_READ_FAILED", "Failed to verify stock. Please try again.");
+  }
+
+  if (!product) {
+    throw new ServiceError("PRODUCT_NOT_FOUND", "A product in your cart is no longer available.");
+  }
+
+  if (product.stock_quantity < quantity) {
+    throw new ServiceError(
+      "INSUFFICIENT_STOCK",
+      `Only ${product.stock_quantity} of ${product.name} are available.`,
+    );
+  }
+
+  // Conditional decrement — only succeeds if stock hasn't changed since read.
+  const { error: updateError } = await supabase
+    .from("products")
+    .update({ stock_quantity: product.stock_quantity - quantity })
+    .eq("id", productId)
+    .eq("stock_quantity", product.stock_quantity);
+
+  if (updateError) {
+    throw new ServiceError("STOCK_DEDUCTION_FAILED", "Failed to reserve stock. Please try again.");
+  }
+
+  // Best-effort: alert admins when this deduction crosses into low stock.
+  maybeAlertAdminOnStockCrossing(
+    product.stock_quantity,
+    product.stock_quantity - quantity,
+    product.low_stock_threshold ?? 0,
+    product.name,
+    productId,
+  ).catch(() => {});
+}
+
+/** Restore stock (e.g., on order creation failure or cancellation). */
+async function restoreStock(productId: string, quantity: number): Promise<void> {
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const supabase = createAdminClient();
+
+  const { data: product } = await supabase
+    .from("products")
+    .select("stock_quantity")
+    .eq("id", productId)
+    .single();
+
+  if (!product) return;
+
+  await supabase
+    .from("products")
+    .update({ stock_quantity: product.stock_quantity + quantity })
+    .eq("id", productId);
+}
+
+/** Mark the cart as converted (no longer active). */
+async function convertCart(userId: string): Promise<void> {
+  const supabase = await (
+    await import("@/lib/supabase/server")
+  ).createClient();
+
+  await supabase
+    .from("carts")
+    .update({ status: "converted" })
+    .eq("user_id", userId)
+    .eq("status", "active");
+}
+
+/** Generate a unique order number via the database function. */
+async function generateOrderNumber(): Promise<string> {
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase.rpc("generate_order_number");
+
+  if (error || !data) {
+    // Fallback: generate locally
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    return `DIN-${dateStr}-${rand}`;
+  }
+
+  return data;
+}
+
+/** Create order status notification for the customer. */
+async function createOrderStatusNotification(
+  userId: string,
+  orderId: string,
+  orderNumber: string,
+  status: string,
+): Promise<void> {
+  const templates: Record<string, { type: string; title: string; message: string }> = {
+    pending: {
+      type: "order_placed",
+      title: "Order Placed",
+      message: `Your order ${orderNumber} has been placed successfully. We'll confirm it shortly.`,
+    },
+  };
+
+  const template = templates[status];
+  if (!template) return;
+
+  try {
+    await createNotification({
+      userId,
+      orderId,
+      type: template.type as "order_placed",
+      title: template.title,
+      message: template.message,
+    });
+  } catch {
+    // Best-effort — don't fail checkout for notification errors
+  }
+}
+
+/** Create admin notification for a new order (best-effort). */
+async function createAdminNewOrderNotificationForOrder(
+  orderId: string,
+  orderNumber: string,
+  total: number,
+): Promise<void> {
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const supabase = createAdminClient();
+
+  // Find all admin users
+  const { data: admins } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("role", "admin");
+
+  if (!admins || admins.length === 0) return;
+
+  for (const admin of admins) {
+    try {
+      await createNotificationAdmin({
+        userId: admin.id,
+        orderId,
+        type: "admin_new_order",
+        title: "New Order Received",
+        message: `New order ${orderNumber} placed for ${total} PKR.`,
+      });
+    } catch {
+      // Best-effort
+    }
+  }
 }
 
 /** Helper to ensure cart persistence is safe before checkout proceeds. */

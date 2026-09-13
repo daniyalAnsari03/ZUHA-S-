@@ -1,6 +1,7 @@
 import { Reveal } from "@/components/motion/reveal";
 import { Container } from "@/components/ui/container";
 import type { Category } from "@/lib/storefront/types";
+import { getHomepageContent } from "@/services/cms/cms-service";
 
 import { CategoryCard } from "./category-card";
 
@@ -12,24 +13,38 @@ type ShopByCategoryProps = {
  * "Shop By Category" section that overlaps the hero bottom edge. The
  * background transitions from a slightly darker cream near the hero to white,
  * so cards sit intentionally on the hero transition rather than after a gap.
+ * Reads heading from CMS when available.
  */
-export function ShopByCategory({ categories }: ShopByCategoryProps) {
+export async function ShopByCategory({ categories }: ShopByCategoryProps) {
+  let eyebrow = "Curated for you";
+  let heading = "Shop by Category";
+
+  try {
+    const content = await getHomepageContent();
+    if (content.shopByCategoryEyebrow)
+      eyebrow = content.shopByCategoryEyebrow;
+    if (content.shopByCategoryHeading)
+      heading = content.shopByCategoryHeading;
+  } catch {
+    // Use defaults
+  }
+
   return (
     <section
       aria-labelledby="shop-by-category-heading"
-      className="relative z-10 -mt-24 rounded-t-3xl bg-gradient-to-b from-cream via-ivory to-white pb-4 pt-10 sm:-mt-28 sm:rounded-t-[2rem] sm:pt-14"
+      className="relative z-10 mt-8 rounded-t-3xl bg-gradient-to-b from-cream via-ivory to-ivory pb-4 pt-10 sm:mt-12 sm:rounded-t-[2rem] sm:pt-14"
     >
       <Container size="lg">
         <Reveal>
           <div className="mb-8 text-center sm:mb-10">
             <p className="text-[11px] uppercase tracking-[0.32em] text-gold-muted">
-              Curated for you
+              {eyebrow}
             </p>
             <h2
               id="shop-by-category-heading"
               className="mt-2 font-serif text-2xl text-charcoal sm:text-3xl"
             >
-              Shop by Category
+              {heading}
             </h2>
           </div>
         </Reveal>

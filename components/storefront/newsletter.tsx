@@ -18,11 +18,23 @@ const newsletterSchema = z.object({
 
 type NewsletterFormValues = z.infer<typeof newsletterSchema>;
 
+type NewsletterProps = {
+  eyebrow?: string;
+  heading?: string;
+  description?: string;
+  ctaLabel?: string;
+};
+
 /**
  * Newsletter entry point. Validation is live but subscription persistence is
  * not — this UI never claims that a subscription was saved.
  */
-export function Newsletter() {
+export function Newsletter({
+  eyebrow = "Join the list",
+  heading = "Early access to new collections",
+  description = "Be the first to know about fresh drops, limited pieces and private previews.",
+  ctaLabel = "Subscribe",
+}: NewsletterProps) {
   const {
     register,
     handleSubmit,
@@ -57,17 +69,16 @@ export function Newsletter() {
     >
       <Container size="md" className="py-16 text-center sm:py-20">
         <p className="text-[11px] uppercase tracking-[0.32em] text-gold-soft">
-          Join the list
+          {eyebrow}
         </p>
         <h2
           id="newsletter-heading"
           className="mt-3 font-serif text-2xl text-white sm:text-3xl"
         >
-          Early access to new collections
+          {heading}
         </h2>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-white/70">
-          Be the first to know about fresh drops, limited pieces and private
-          previews.
+          {description}
         </p>
 
         <form
@@ -96,7 +107,7 @@ export function Newsletter() {
             className="shrink-0"
           >
             <Send className="h-4 w-4" aria-hidden="true" />
-            Subscribe
+            {ctaLabel}
           </Button>
         </form>
 

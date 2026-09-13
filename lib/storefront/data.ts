@@ -14,8 +14,8 @@ import type {
  * falls back to the static mock catalog (identical seed data) so the storefront
  * and production build remain available even in degraded state.
  *
- * Announcements and hero slides are admin-controlled config that will be
- * database-backed in a later phase; they stay static here.
+ * Announcements and hero slides are CMS-controlled: read from the
+ * `site_content` table when available, falling back to static defaults.
  *
  * Functions that supply DB data are async — callers in Server Components must
  * `await` them.
@@ -24,10 +24,10 @@ import type {
 const IMG = "/images/placeholders";
 
 /* ---------------------------------------------------------------------------
- * Announcements — static (Phase 4 will migrate to DB)
+ * Announcements — CMS-first with static fallback
  * ------------------------------------------------------------------------- */
 
-export const announcements: Announcement[] = [
+const FALLBACK_ANNOUNCEMENTS: Announcement[] = [
   {
     id: "announcement-1",
     message: "Complimentary shipping on orders over PKR 15,000",
@@ -51,33 +51,51 @@ export const announcements: Announcement[] = [
   },
 ];
 
-export function getActiveAnnouncements(): Announcement[] {
-  return announcements
-    .filter((a) => a.active)
-    .sort((a, b) => a.order - b.order);
+export async function getActiveAnnouncements(): Promise<Announcement[]> {
+  try {
+    const { getAnnouncements } = await import("@/services/cms/cms-service");
+    const items = await getAnnouncements();
+    if (items.length > 0) {
+      return items
+        .filter((a) => a.active)
+        .sort((a, b) => a.order - b.order);
+    }
+  } catch {
+    // CMS not available, use fallback
+  }
+  return FALLBACK_ANNOUNCEMENTS.filter((a) => a.active).sort(
+    (a, b) => a.order - b.order,
+  );
 }
 
 /* ---------------------------------------------------------------------------
- * Hero — static (Phase 4 will migrate to DB)
+ * Hero — CMS-first with static fallback
  * ------------------------------------------------------------------------- */
 
-export const heroSlides: HeroSlide[] = [
-  {
-    id: "hero-1",
-    image: `${IMG}/hero.svg`,
-    eyebrow: "Jamawar · Embroidery · Lawn",
-    heading: "Where Pakistani craftsmanship meets modern elegance.",
-    paragraph:
-      "Hand-finished embroidery, heritage jamawar and feather-light lawn — designed for the way you live.",
-    ctaLabel: "Shop the Collection",
-    ctaHref: "/shop",
-    active: true,
-    order: 1,
-  },
-];
+const FALLBACK_HERO: HeroSlide = {
+  id: "hero-1",
+  image: `${IMG}/hero.svg`,
+  eyebrow: "Jamawar · Embroidery · Lawn",
+  heading: "Where Pakistani craftsmanship meets modern elegance.",
+  paragraph:
+    "Hand-finished embroidery, heritage jamawar and feather-light lawn — designed for the way you live.",
+  ctaLabel: "Shop the Collection",
+  ctaHref: "/shop",
+  active: true,
+  order: 1,
+};
 
-export function getActiveHeroSlides(): HeroSlide[] {
-  return heroSlides.filter((s) => s.active).sort((a, b) => a.order - b.order);
+export async function getActiveHeroSlides(): Promise<HeroSlide[]> {
+  try {
+    const { getHeroSlide } = await import("@/services/cms/cms-service");
+    const slide = await getHeroSlide();
+    if (slide && slide.heading) {
+      return [slide].filter((s) => s.active).sort((a, b) => a.order - b.order);
+    }
+  } catch {
+    // CMS not available, use fallback
+  }
+  return [FALLBACK_HERO];
 }
 
 /* ---------------------------------------------------------------------------
@@ -149,13 +167,14 @@ function dbCategoryToStorefront(row: { id: string; slug: string; name: string; d
   };
 }
 
-function dbProductToStorefront(row: { id: string; slug: string; name: string; description: string | null; price: number; image_url: string | null; fabric: string | null; embroidery: string | null; color: string | null; label: string | null; stock_quantity: number; low_stock_threshold: number; is_active: boolean; category_slug?: string | null }): Product {
+function dbProductToStorefront(row: { id: string; slug: string; name: string; description: string | null; price: number; compare_at_price: number | null; image_url: string | null; fabric: string | null; embroidery: string | null; color: string | null; label: string | null; stock_quantity: number; low_stock_threshold: number; is_active: boolean; category_slug?: string | null }): Product {
   return {
     id: row.id,
     slug: row.slug,
     name: row.name,
     description: row.description ?? "",
     price: row.price,
+    compareAtPrice: row.compare_at_price ?? undefined,
     image: row.image_url ?? "",
     categorySlug: row.category_slug ?? "uncategorized",
     fabric: row.fabric ?? undefined,

@@ -1,0 +1,758 @@
+# PHASE 6 — ADMIN PANEL / AI WORKPLACE
+
+## Complete Implementation — Production-Ready, Nothing Incomplete
+
+You are implementing **Phase 6** of the existing dINS by Daniyal AI E-Commerce application.
+
+PROJECT ROOT:
+`D:\ai_business_ecommerce`
+
+IMPORTANT:
+This is an existing production-oriented application. Do NOT create a second project, duplicate frontend/backend, or new project root.
+
+Before doing anything:
+
+1. Read the root `AGENTS.md` completely.
+2. Treat `AGENTS.md` as the source of truth.
+3. Inspect the existing architecture, database schema, authentication, RLS, UI system, routes, services, components, and Phase 1–5 implementation.
+4. Reuse existing architecture and components wherever appropriate.
+5. Do NOT rewrite working Phase 1–5 functionality unnecessarily.
+
+==================================================
+PHASE 6 OBJECTIVE
+=================
+
+Build and fully integrate the **Admin Panel / AI Workplace**.
+
+The admin area must be a real working business-management system, not placeholder UI.
+
+Every feature must:
+
+* work with real Supabase data
+* respect authentication and authorization
+* respect RLS/security
+* have proper loading/empty/error states
+* work on desktop and mobile
+* integrate with existing Phase 1–5 data
+* have proper validation
+* have no fake/mock production data
+* have no dead buttons
+* have no placeholder functionality presented as complete
+
+Do NOT move Phase 7 AI Manager / AI Employees functionality into Phase 6.
+Phase 6 should provide the admin/business workspace foundation required by Phase 7.
+
+==================================================
+
+1. ADMIN AUTHORIZATION & SECURITY
+   ==================================================
+
+First audit the existing admin authentication/authorization.
+
+Implement/verify:
+
+* authenticated customer cannot access admin routes
+* only authorized admin users can access Admin Panel
+* unauthenticated users are redirected appropriately
+* server-side authorization is enforced
+* client-side hiding alone is NOT considered security
+* admin actions must be protected server-side
+* Supabase RLS must remain enabled
+* never expose service-role secrets to browser/client code
+* never bypass security merely to make UI work
+
+Test:
+
+* logged-out user
+* normal customer
+* admin user
+* direct URL access to admin routes
+* refresh on admin pages
+
+==================================================
+2. ADMIN LAYOUT / NAVIGATION
+============================
+
+Create/complete a polished Admin Panel layout consistent with the existing dINS design system.
+
+Include:
+
+* responsive sidebar
+* mobile navigation
+* admin header
+* page title/breadcrumb area where appropriate
+* user/admin profile access
+* notification access where appropriate
+* logout
+* active navigation state
+* responsive behavior
+* proper loading states
+
+Admin navigation should include the relevant Phase 6 sections:
+
+* Dashboard
+* Orders
+* Products
+* Categories
+* Customers
+* Inventory
+* Analytics / Business Overview
+* Notifications
+* AI Workplace foundation
+
+Do NOT duplicate existing storefront components unnecessarily.
+
+==================================================
+3. ADMIN DASHBOARD
+==================
+
+Implement a real dashboard using live database data.
+
+Dashboard should provide meaningful business overview such as:
+
+* total revenue
+* total orders
+* total customers
+* total products
+* pending orders
+* processing orders
+* shipped orders
+* delivered orders
+* low-stock products
+* recent orders
+* top/important products where supported
+* useful business activity indicators
+
+Requirements:
+
+* real Supabase data
+* correct calculations
+* currency-aware display
+* PKR must work correctly
+* no hardcoded statistics
+* proper empty states
+* proper loading states
+* proper error states
+* avoid unnecessary database requests
+* avoid obvious N+1 queries
+
+If charts are used:
+
+* data must be real
+* labels must be correct
+* empty datasets must be handled gracefully
+* responsive charts
+
+==================================================
+4. PRODUCT MANAGEMENT
+=====================
+
+Admin must be able to manage products using the existing Phase 3 schema.
+
+Implement/verify:
+
+CREATE:
+
+* product name
+* description
+* category
+* price
+* stock quantity
+* image(s) where supported
+* active/availability state
+* required fields
+* validation
+
+READ:
+
+* product list
+* search
+* filtering
+* sorting where appropriate
+* pagination if required by existing architecture
+* product details
+
+UPDATE:
+
+* edit product
+* price
+* description
+* category
+* stock
+* image
+* availability
+
+DELETE:
+
+* safe delete behavior
+* prevent accidental destructive operations
+* respect existing order/history relationships
+* do not break historical order items
+
+Inventory changes must preserve data integrity.
+
+Test:
+
+* create
+* edit
+* invalid values
+* zero stock
+* low stock
+* out-of-stock
+* unavailable product
+* image behavior
+* delete behavior
+* refresh persistence
+
+==================================================
+5. CATEGORY MANAGEMENT
+======================
+
+Implement/verify category management.
+
+Include:
+
+* category list
+* create category
+* edit category
+* delete category where safe
+* validation
+* duplicate handling
+* product/category relationship integrity
+
+Do not allow category deletion to silently break existing products.
+
+Handle categories containing products safely.
+
+==================================================
+6. ORDER MANAGEMENT
+===================
+
+Admin Orders must use the real Phase 5 order system.
+
+Implement/verify:
+
+* all customer orders visible to authorized admin
+* search/filter
+* order details
+* customer information
+* order items
+* quantities
+* pricing
+* totals
+* payment method
+* payment status
+* order status
+* order history/status history
+
+Admin must be able to update order status through the intended lifecycle.
+
+Preserve the existing valid lifecycle:
+
+Order Placed
+→ Order Confirmed
+→ Processing
+→ Shipped
+→ Delivered
+
+Handle invalid transitions safely.
+
+If cancellation/refund behavior exists in the current architecture, preserve and properly integrate it rather than inventing unsupported payment behavior.
+
+Order history must remain accurate.
+
+==================================================
+7. CUSTOMER MANAGEMENT
+======================
+
+Implement a real customer management area.
+
+Include:
+
+* customer list
+* search
+* customer details
+* customer profile information
+* customer order count
+* customer order history
+* customer total spending where data supports it
+* useful customer information
+* proper empty states
+
+Admin must never see authentication secrets/passwords.
+
+Do not expose sensitive authentication data.
+
+Customer data must remain protected from normal customer accounts.
+
+==================================================
+8. INVENTORY MANAGEMENT
+=======================
+
+Implement a dedicated inventory management experience.
+
+Include:
+
+* product inventory list
+* current stock
+* low-stock indication
+* out-of-stock indication
+* stock adjustment where intended
+* inventory status
+* search/filter
+* useful stock overview
+
+Stock modifications must be safe.
+
+Prevent:
+
+* negative stock
+* accidental double deduction
+* incorrect stock updates
+* race-condition-prone blind updates
+
+Reuse the proven atomic stock logic from Phase 5 wherever applicable.
+
+Inventory must remain consistent with checkout/order behavior.
+
+==================================================
+9. LOW-STOCK ALERTS
+===================
+
+Implement useful low-stock handling.
+
+Include:
+
+* low-stock products
+* out-of-stock products
+* useful threshold handling
+* admin visibility
+* notification integration where appropriate
+
+Do not hardcode a misleading universal threshold if the existing schema/application already has a better approach.
+
+==================================================
+10. BUSINESS ANALYTICS / OVERVIEW
+=================================
+
+Implement the Phase 6 business overview using real data.
+
+Include useful metrics such as:
+
+* revenue
+* orders
+* customers
+* products
+* average order value where calculable
+* order status distribution
+* best-performing products where data supports it
+* sales trends where appropriate
+
+Ensure calculations are correct.
+
+Important:
+Do not count cancelled/invalid orders as revenue unless the existing business rules explicitly define that behavior.
+
+Document/implement the chosen calculation rules consistently.
+
+==================================================
+11. ADMIN NOTIFICATIONS
+=======================
+
+Integrate the existing notifications system into the admin workspace.
+
+Support relevant business notifications such as:
+
+* new order
+* low stock
+* important order status events
+* other existing business events
+
+Ensure:
+
+* unread count is correct
+* notification list loads correctly
+* notification state persists
+* opening notifications does not cause React render errors
+* no router/state update happens during render
+* loading/error/empty states work
+
+Previously fixed NotificationBell error must NOT return.
+
+==================================================
+12. AI WORKPLACE FOUNDATION
+===========================
+
+Create the Phase 6 foundation for the future AI Manager.
+
+IMPORTANT:
+Do NOT implement the complete Phase 7 AI Manager / AI Employees here.
+
+Phase 6 should establish:
+
+* Admin AI Workplace entry point
+* clean workspace UI
+* business context area
+* appropriate business metrics/context available to the future AI layer
+* clear separation between admin tools and future AI orchestration
+* architecture that Phase 7 can extend without rewriting Phase 6
+
+Do NOT create fake AI responses or pretend Phase 7 is implemented.
+
+If a feature is intentionally reserved for Phase 7, clearly keep it as a foundation/entry point rather than a fake completed feature.
+
+==================================================
+13. SEARCH / FILTER / UX
+========================
+
+Admin lists should have appropriate:
+
+* search
+* filters
+* sorting where useful
+* loading states
+* empty states
+* error states
+* pagination where necessary
+
+Do not introduce unnecessary complexity.
+
+UX must remain premium and consistent with the existing dINS visual system.
+
+==================================================
+14. RESPONSIVE DESIGN
+=====================
+
+Every Phase 6 screen must work on:
+
+* desktop
+* tablet
+* mobile
+
+Check:
+
+* sidebar
+* tables
+* forms
+* cards
+* charts
+* dialogs
+* dropdowns
+* filters
+* order details
+* inventory controls
+
+No horizontal overflow caused by admin UI.
+
+==================================================
+15. DATABASE / SUPABASE
+=======================
+
+Before changing the database:
+
+* inspect all existing migrations
+* inspect current production schema
+* inspect existing RLS
+* inspect existing grants
+* inspect relationships
+* inspect indexes where relevant
+
+Only create migrations when genuinely required.
+
+Migrations must be:
+
+* safe
+* idempotent where appropriate
+* consistent with existing migration style
+* secure
+* minimal
+
+Do NOT weaken RLS.
+
+Do NOT expose service-role credentials.
+
+If server-side privileged operations are required, keep them strictly server-side.
+
+==================================================
+16. PERFORMANCE
+===============
+
+Avoid:
+
+* N+1 queries
+* fetching unnecessary columns
+* duplicate requests
+* repeated dashboard queries
+* unnecessary client-side database fetching
+* blocking UI unnecessarily
+
+Use the existing architecture/patterns wherever possible.
+
+==================================================
+17. ERROR HANDLING
+==================
+
+Every admin operation must handle failures gracefully.
+
+No raw database errors should unnecessarily leak to customers.
+
+Provide useful user-facing errors.
+
+Server logs may contain diagnostic details when appropriate, but NEVER log:
+
+* passwords
+* access tokens
+* service-role keys
+* secrets
+
+==================================================
+18. TESTING
+===========
+
+Do NOT consider Phase 6 complete merely because the build passes.
+
+Perform real implementation verification.
+
+Test:
+
+AUTH:
+
+* logged out
+* normal customer
+* admin
+
+DASHBOARD:
+
+* metrics
+* empty states
+* real data
+* refresh
+
+PRODUCTS:
+
+* create
+* read
+* update
+* delete
+* validation
+* stock
+* availability
+
+CATEGORIES:
+
+* create
+* update
+* delete
+* product relationships
+
+ORDERS:
+
+* list
+* details
+* search/filter
+* status update
+* history
+
+CUSTOMERS:
+
+* list
+* details
+* orders
+* metrics
+
+INVENTORY:
+
+* stock
+* low stock
+* out of stock
+* adjustment
+* integrity
+
+NOTIFICATIONS:
+
+* unread count
+* open
+* read state
+* refresh
+* no NotificationBell render error
+
+AI WORKPLACE:
+
+* entry point
+* workspace
+* business context
+* no fake Phase 7 functionality
+
+RESPONSIVE:
+
+* desktop
+* mobile
+
+SECURITY:
+
+* direct URL access
+* RLS
+* customer/admin isolation
+
+==================================================
+19. REAL BROWSER QA
+===================
+
+After implementation, use the real application in a browser.
+
+Do not rely only on unit tests.
+
+Actually verify:
+
+Admin login
+→ Admin Dashboard
+→ Products
+→ Categories
+→ Orders
+→ Customers
+→ Inventory
+→ Notifications
+→ AI Workplace
+
+Perform real CRUD operations where applicable.
+
+Refresh pages.
+
+Navigate between sections.
+
+Check browser console.
+
+Check server errors.
+
+Fix every error discovered.
+
+==================================================
+20. AUTOMATED TESTS + BUILD
+===========================
+
+Run the existing test suite.
+
+Run:
+
+`npm test`
+
+or the project's correct test command discovered from package.json.
+
+Then run:
+
+`npm run build`
+
+Fix any NEW failures introduced by Phase 6.
+
+Do not hide failures or weaken tests just to make them pass.
+
+Existing known baseline failures from Phase 5 may remain only if they are genuinely unrelated and already documented.
+
+==================================================
+21. FINAL CODEBASE AUDIT
+========================
+
+Before declaring Phase 6 complete:
+
+Search for:
+
+* TODO
+* FIXME
+* placeholder
+* mock data
+* fake data
+* "coming soon"
+* dead buttons
+* console.log
+* temporary diagnostic logs
+* unimplemented handlers
+
+Review all Phase 6 files.
+
+Ensure no temporary debugging code remains.
+
+Ensure no secrets are committed.
+
+Ensure no accidental unrelated modifications were made.
+
+==================================================
+22. DEFINITION OF DONE
+======================
+
+Phase 6 is NOT DONE unless:
+
+* Admin authentication works
+* Admin authorization is secure
+* Admin dashboard works with real data
+* Product management works
+* Category management works
+* Order management works
+* Customer management works
+* Inventory management works
+* Low-stock handling works
+* Analytics/business overview works
+* Notifications work
+* AI Workplace foundation works
+* Responsive UI works
+* RLS/security remains correct
+* Existing Phase 1–5 functionality still works
+* Checkout still works
+* Stock integrity still works
+* No new console errors
+* No new server errors
+* Automated tests pass except documented unrelated baseline failures
+* Production build passes
+* Real browser QA passes
+* No fake/placeholder implementation remains in Phase 6
+
+==================================================
+23. IMPORTANT FINAL RESTRICTIONS
+================================
+
+Do NOT:
+
+* create a second project
+* change the project root
+* rewrite working Phase 1–5 systems unnecessarily
+* implement Phase 7 prematurely
+* use fake/mock business data
+* bypass RLS
+* expose service-role keys
+* hardcode secrets
+* suppress React errors
+* disable TypeScript checks
+* disable lint/test checks
+* hide errors
+* make unrelated visual redesigns
+* leave dead buttons
+* leave TODO implementations
+
+==================================================
+24. FINAL REPORT
+================
+
+When everything is complete, report:
+
+1. Complete Phase 6 feature list implemented
+2. Routes/pages added or modified
+3. Components/services added or modified
+4. Database migrations added, if any
+5. RLS/security changes, if any
+6. Exact testing performed
+7. Browser QA results
+8. Automated test results
+9. Build result
+10. Any remaining known issue
+11. Confirmation that no secrets were exposed
+12. Confirmation that no commit/push/deploy was performed
+
+IMPORTANT:
+Do NOT commit.
+Do NOT push to GitHub.
+Do NOT deploy to Vercel.
+
+We will do final commit/push/deployment only after the entire application and all phases have been completed and fully QA-tested.
+
+Do not declare Phase 6 complete simply because implementation compiles.
+
+Phase 6 is complete only after the actual browser workflow and final verification pass.

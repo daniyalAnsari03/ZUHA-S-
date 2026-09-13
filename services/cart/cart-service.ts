@@ -67,7 +67,7 @@ export async function getOrCreateActiveCart(userId: string): Promise<CartWithIte
     .maybeSingle();
 
   if (readError) {
-    throw new ServiceError("CART_READ_FAILED", "Failed to load your cart.");
+    throw new ServiceError("CART_READ_FAILED", "Failed to load your cart.", readError);
   }
 
   if (existing) {
@@ -81,7 +81,7 @@ export async function getOrCreateActiveCart(userId: string): Promise<CartWithIte
     .single();
 
   if (insertError) {
-    throw new ServiceError("CART_CREATE_FAILED", "Failed to create your cart.");
+    throw new ServiceError("CART_CREATE_FAILED", "Failed to create your cart.", insertError);
   }
 
   return loadCartWithItems(created);
@@ -94,16 +94,26 @@ async function loadCartWithItems(cart: CartRow): Promise<CartWithItems> {
   const { data, error } = await supabase
     .from("cart_items")
     .select(
-      "*, products(id, name, slug, price, stock_quantity, image_url, fabric, is_active)",
+      "*, product:products(id, name, slug, price, stock_quantity, image_url, fabric, is_active)",
     )
     .eq("cart_id", cart.id)
     .order("created_at", { ascending: true });
 
   if (error) {
-    throw new ServiceError("CART_ITEMS_READ_FAILED", "Failed to load cart items.");
+    // Log the real Supabase/PostgREST error in development so we can diagnose
+    // relationship, RLS, or grant issues without exposing internals to users.
+    if (process.env.NODE_ENV === "development") {
+      console.error("[loadCartWithItems] Supabase error:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
+    }
+    throw new ServiceError("CART_ITEMS_READ_FAILED", "Failed to load cart items.", error);
   }
 
-  return { ...cart, items: data as CartItemWithProduct[] };
+  return { ...cart, items: (data ?? []) as unknown as CartItemWithProduct[] };
 }
 
 /**
@@ -137,7 +147,7 @@ export async function addToCart(
   });
 
   if (error) {
-    throw new ServiceError("CART_ADD_FAILED", "Failed to add item to your cart.");
+    throw new ServiceError("CART_ADD_FAILED", "Failed to add item to your cart.", error);
   }
 
   const refreshed = await getOrCreateActiveCart(userId);
@@ -186,7 +196,7 @@ export async function removeCartItem(
     .eq("cart_id", cart.id);
 
   if (error) {
-    throw new ServiceError("CART_REMOVE_FAILED", "Failed to remove item from your cart.");
+    throw new ServiceError("CART_REMOVE_FAILED", "Failed to remove item from your cart.", error);
   }
 
   const refreshed = await getOrCreateActiveCart(userId);
@@ -201,7 +211,7 @@ export async function clearCart(userId: string): Promise<CartSummary> {
   const { error } = await supabase.from("cart_items").delete().eq("cart_id", cart.id);
 
   if (error) {
-    throw new ServiceError("CART_CLEAR_FAILED", "Failed to clear your cart.");
+    throw new ServiceError("CART_CLEAR_FAILED", "Failed to clear your cart.", error);
   }
 
   const refreshed = await getOrCreateActiveCart(userId);
@@ -217,19 +227,22 @@ export async function getCartSummary(userId: string): Promise<CartSummary> {
 /**
  * Read-only cart summary that never creates a cart row. Used for navbar badge
  * counts and other views where we do not want to write before the user acts.
+ *
+ * Returns null when no cart exists. Throws when a database/read error occurs
+ * so callers can distinguish "no cart" from a failed query.
  */
 export async function getCartSummaryIfExists(userId: string): Promise<CartSummary | null> {
   const supabase = await createSupabaseClient();
 
-  const { data: cart, error } = await supabase
+  const { data: cart, error: cartError } = await supabase
     .from("carts")
     .select("*")
     .eq("user_id", userId)
     .eq("status", "active")
     .maybeSingle();
 
-  if (error) {
-    throw new ServiceError("CART_READ_FAILED", "Failed to load your cart.");
+  if (cartError) {
+    throw new ServiceError("CART_READ_FAILED", "Failed to load your cart.", cartError);
   }
 
   if (!cart) return null;
@@ -267,7 +280,7 @@ export async function validateCart(
         .eq("id", item.id)
         .eq("cart_id", cart.id);
       if (error) {
-        throw new ServiceError("CART_VALIDATE_FAILED", "Failed to reconcile your cart.");
+        throw new ServiceError("CART_VALIDATE_FAILED", "Failed to reconcile your cart.", error);
       }
       changed = true;
       continue;
@@ -280,7 +293,7 @@ export async function validateCart(
         .eq("id", item.id)
         .eq("cart_id", cart.id);
       if (error) {
-        throw new ServiceError("CART_VALIDATE_FAILED", "Failed to reconcile your cart.");
+        throw new ServiceError("CART_VALIDATE_FAILED", "Failed to reconcile your cart.", error);
       }
       changed = true;
       issues.push(
@@ -344,7 +357,7 @@ async function fetchTrustedProduct(productId: string): Promise<ProductRow> {
     .maybeSingle();
 
   if (error) {
-    throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load product.");
+    throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load product.", error);
   }
 
   if (!data) {
@@ -382,7 +395,7 @@ async function updateItemQuantity(
     .eq("cart_id", cartId);
 
   if (error) {
-    throw new ServiceError("CART_UPDATE_FAILED", "Failed to update your cart.");
+    throw new ServiceError("CART_UPDATE_FAILED", "Failed to update your cart.", error);
   }
 
   const cart = await getOrCreateActiveCart(

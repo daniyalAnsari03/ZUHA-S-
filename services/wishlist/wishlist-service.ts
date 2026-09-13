@@ -62,7 +62,7 @@ export async function getOrCreateWishlist(userId: string): Promise<WishlistWithI
     .maybeSingle();
 
   if (readError) {
-    throw new ServiceError("WISHLIST_READ_FAILED", "Failed to load your wishlist.");
+    throw new ServiceError("WISHLIST_READ_FAILED", "Failed to load your wishlist.", readError);
   }
 
   if (existing) {
@@ -76,7 +76,7 @@ export async function getOrCreateWishlist(userId: string): Promise<WishlistWithI
     .single();
 
   if (insertError) {
-    throw new ServiceError("WISHLIST_CREATE_FAILED", "Failed to create your wishlist.");
+    throw new ServiceError("WISHLIST_CREATE_FAILED", "Failed to create your wishlist.", insertError);
   }
 
   return loadWishlistWithItems(created);
@@ -94,10 +94,10 @@ async function loadWishlistWithItems(wishlist: WishlistRow): Promise<WishlistWit
     .order("created_at", { ascending: true });
 
   if (error) {
-    throw new ServiceError("WISHLIST_ITEMS_READ_FAILED", "Failed to load wishlist items.");
+    throw new ServiceError("WISHLIST_ITEMS_READ_FAILED", "Failed to load wishlist items.", error);
   }
 
-  return { ...wishlist, items: data as WishlistItemWithProduct[] };
+  return { ...wishlist, items: data as unknown as WishlistItemWithProduct[] };
 }
 
 /** Add a product to the wishlist. Duplicates are prevented by a DB constraint. */
@@ -122,7 +122,7 @@ export async function addToWishlist(
   });
 
   if (error) {
-    throw new ServiceError("WISHLIST_ADD_FAILED", "Failed to save item to your wishlist.");
+    throw new ServiceError("WISHLIST_ADD_FAILED", "Failed to save item to your wishlist.", error);
   }
 
   const refreshed = await getOrCreateWishlist(userId);
@@ -150,7 +150,7 @@ export async function removeWishlistItem(
     .eq("wishlist_id", wishlist.id);
 
   if (error) {
-    throw new ServiceError("WISHLIST_REMOVE_FAILED", "Failed to remove item from your wishlist.");
+    throw new ServiceError("WISHLIST_REMOVE_FAILED", "Failed to remove item from your wishlist.", error);
   }
 
   const refreshed = await getOrCreateWishlist(userId);
@@ -249,7 +249,7 @@ async function assertActiveProduct(productId: string): Promise<void> {
     .maybeSingle();
 
   if (error) {
-    throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load product.");
+    throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load product.", error);
   }
   if (!data) {
     throw new ServiceError("PRODUCT_NOT_FOUND", "That product no longer exists.");

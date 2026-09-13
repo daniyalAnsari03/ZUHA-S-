@@ -8,6 +8,7 @@ import {
   updateCategoryAction,
   type ActionResult,
 } from "@/app/admin/actions";
+import { ImagePicker } from "@/components/admin/image-picker";
 import {
   CheckboxField,
   FormError,
@@ -75,13 +76,6 @@ export function CategoryForm({
             required
           />
           <TextField
-            label="Image URL"
-            name="imageUrl"
-            defaultValue={values.imageUrl}
-            placeholder="/images/placeholders/category-jamawar.svg"
-            hint="Absolute path or full URL."
-          />
-          <TextField
             label="Sort order"
             name="sortOrder"
             type="number"
@@ -91,6 +85,15 @@ export function CategoryForm({
               values.sortOrder === "" ? undefined : String(values.sortOrder)
             }
             hint="Lower numbers appear first."
+          />
+        </div>
+        <div className="mt-5">
+          <ImagePicker
+            name="imageUrl"
+            value={values.imageUrl}
+            folder="categories"
+            label="Category Image"
+            hint="Select or upload a category image."
           />
         </div>
         <div className="mt-5">

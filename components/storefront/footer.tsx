@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/container";
 import { FacebookIcon, InstagramIcon } from "@/components/ui/social-icons";
 import { categoryHref } from "@/lib/storefront/format";
 import type { Category } from "@/lib/storefront/types";
+import { getHomepageContent } from "@/services/cms/cms-service";
 
 const comingSoon = ["Shipping & Returns", "Size Guide", "Order Tracking", "Privacy Policy", "Terms of Service"];
 
@@ -12,10 +13,23 @@ type FooterProps = {
 };
 
 /**
- * Premium footer. Policies and customer-care pages don't exist yet, so they
- * are shown as clearly upcoming items rather than dead links.
+ * Premium footer. Reads editable content from CMS when available.
  */
-export function Footer({ categories }: FooterProps) {
+export async function Footer({ categories }: FooterProps) {
+  let about =
+    "A Pakistani fashion label for considered craftsmanship — embroidery, jamawar, lawn and unstitched collections.";
+  let copyright = "All rights reserved.";
+  let tagline = "Made with care in Pakistan.";
+
+  try {
+    const content = await getHomepageContent();
+    if (content.footerAbout) about = content.footerAbout;
+    if (content.footerCopyright) copyright = content.footerCopyright;
+    if (content.footerTagline) tagline = content.footerTagline;
+  } catch {
+    // Use defaults
+  }
+
   return (
     <footer className="border-t border-charcoal/10 bg-ivory">
       <Container size="lg" className="py-14 sm:py-16">
@@ -25,8 +39,7 @@ export function Footer({ categories }: FooterProps) {
               dINS by Daniyal
             </p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-charcoal-muted">
-              A Pakistani fashion label for considered craftsmanship —
-              embroidery, jamawar, lawn and unstitched collections.
+              {about}
             </p>
             <div className="mt-5 flex items-center gap-3">
               <span
@@ -117,8 +130,8 @@ export function Footer({ categories }: FooterProps) {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-charcoal/10 pt-6 text-xs text-charcoal-muted sm:flex-row">
-          <p>© {new Date().getFullYear()} dINS by Daniyal. All rights reserved.</p>
-          <p>Made with care in Pakistan.</p>
+          <p>© {new Date().getFullYear()} dINS by Daniyal. {copyright}</p>
+          <p>{tagline}</p>
         </div>
       </Container>
     </footer>

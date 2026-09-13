@@ -1,13 +1,16 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Pencil, Plus } from "lucide-react";
 
+import { deleteCategoryAction, toggleCategoryActiveAction } from "@/app/admin/actions";
+import { ConfirmDelete } from "@/app/admin/components/confirm-delete";
 import { getAuthUser } from "@/lib/auth/session";
 import { listAllCategories } from "@/services/categories/categories-service";
-import { toggleCategoryActiveAction } from "@/app/admin/actions";
 
 export default async function AdminCategoriesPage() {
   const user = await getAuthUser();
-  const actor = { id: user!.id, role: user!.role as "admin" };
+  if (!user || user.role !== "admin") redirect("/login");
+  const actor = { id: user.id, role: user.role as "admin" };
 
   const categories = await listAllCategories(actor);
 
@@ -79,13 +82,24 @@ export default async function AdminCategoriesPage() {
                   </form>
                 </td>
                 <td className="px-5 py-3 text-right">
-                  <Link
-                    href={`/admin/categories/${category.id}/edit`}
-                    aria-label={`Edit ${category.name}`}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full text-charcoal-muted transition-colors hover:bg-plum/10 hover:text-plum"
-                  >
-                    <Pencil className="h-4 w-4" aria-hidden="true" />
-                  </Link>
+                  <div className="flex items-center justify-end gap-1">
+                    <Link
+                      href={`/admin/categories/${category.id}/edit`}
+                      aria-label={`Edit ${category.name}`}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-charcoal-muted transition-colors hover:bg-plum/10 hover:text-plum"
+                    >
+                      <Pencil className="h-4 w-4" aria-hidden="true" />
+                    </Link>
+                    <ConfirmDelete
+                      title="Delete this category?"
+                      description={`"${category.name}" will be removed. Categories that still have products can't be deleted — move those products first.`}
+                      confirmLabel="Delete category"
+                      action={deleteCategoryAction.bind(null, category.id)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full"
+                      iconClassName="h-4 w-4"
+                      showLabel={false}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

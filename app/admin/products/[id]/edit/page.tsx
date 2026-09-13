@@ -1,5 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
+import { deleteProductAction } from "@/app/admin/actions";
+import { ConfirmDelete } from "@/app/admin/components/confirm-delete";
 import { getAuthUser } from "@/lib/auth/session";
 import type { Database } from "@/lib/supabase/types";
 import { listAllCategories } from "@/services/categories/categories-service";
@@ -35,7 +37,8 @@ function rowToValues(
 export default async function EditProductPage({ params }: Props) {
   const { id } = await params;
   const user = await getAuthUser();
-  const actor = { id: user!.id, role: user!.role as "admin" };
+  if (!user || user.role !== "admin") redirect("/login");
+  const actor = { id: user.id, role: user.role as "admin" };
 
   const [product, categories] = await Promise.all([
     getProductById(id),
@@ -56,6 +59,25 @@ export default async function EditProductPage({ params }: Props) {
         defaultValues={rowToValues(product)}
         productId={product.id}
       />
+
+      <section className="mt-10 rounded-2xl border border-red-200 bg-red-50/40 p-6">
+        <h2 className="font-serif text-lg text-red-800">Danger zone</h2>
+        <p className="mt-1 text-sm text-red-700/80">
+          Deleting a product keeps its order history intact (order line items
+          keep the product name and snapshot price) but removes it from the
+          catalog permanently. This cannot be undone.
+        </p>
+        <div className="mt-4">
+          <ConfirmDelete
+            title="Delete this product?"
+            description={`"${product.name}" will be permanently removed from the catalog. Order history is preserved.`}
+            confirmLabel="Delete product"
+            action={deleteProductAction.bind(null, product.id)}
+            redirectTo="/admin/products"
+            className="rounded-lg border border-red-200 bg-white px-4 py-2 text-red-700 hover:border-red-400 hover:bg-red-50"
+          />
+        </div>
+      </section>
     </div>
   );
 }
