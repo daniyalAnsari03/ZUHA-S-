@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import type { AgentInputItem } from "@openai/agents";
+
 import { buildContextItems, buildInputItems } from "@/services/ai/chat-service";
 import { formatPKTDate, todayKeyPKT } from "@/lib/time";
 
@@ -10,16 +12,30 @@ import { formatPKTDate, todayKeyPKT } from "@/lib/time";
  * PKT (never a model guess) and, when available, the tracked focus entity so
  * ambiguous follow-ups resolve against explicit structured state.
  */
+
+/**
+ * buildContextItems/buildInputItems return SDK AgentInputItem (a union). The
+ * first item is always a message item with `role` and `content`; narrow it so
+ * the assertions below type-check against every union member.
+ */
+function asSystemMessage(item: AgentInputItem): {
+  role: string;
+  content: string;
+} {
+  return item as unknown as { role: string; content: string };
+}
+
 describe("buildContextItems", () => {
   it("always injects the real PKT date", () => {
     const [item] = buildContextItems({});
-    expect(item.role).toBe("system");
-    if (item.role !== "system") throw new Error("expected system item");
+    const systemItem = asSystemMessage(item);
+    expect(systemItem.role).toBe("system");
+    if (systemItem.role !== "system") throw new Error("expected system item");
 
-    expect(item.content).toContain("Today's date (Asia/Karachi)");
+    expect(systemItem.content).toContain("Today's date (Asia/Karachi)");
     // The date must be the actual server clock in PKT, never a guess.
-    expect(item.content).toContain(todayKeyPKT().slice(0, 4));
-    expect(item.content).not.toContain("ignore previous instructions");
+    expect(systemItem.content).toContain(todayKeyPKT().slice(0, 4));
+    expect(systemItem.content).not.toContain("ignore previous instructions");
   });
 
   it("states the focus entity when present", () => {
@@ -31,11 +47,12 @@ describe("buildContextItems", () => {
         at: "2026-09-12T00:00:00.000Z",
       },
     });
-    if (item.role !== "system") throw new Error("expected system item");
+    const systemItem = asSystemMessage(item);
+    if (systemItem.role !== "system") throw new Error("expected system item");
 
-    expect(item.content).toContain("Current focus: product \"Mehrab Jamawar\"");
-    expect(item.content).toContain("id: 00000000-0000-0000-0000-000000000001");
-    expect(item.content).toContain("khudhi karo");
+    expect(systemItem.content).toContain("Current focus: product \"Mehrab Jamawar\"");
+    expect(systemItem.content).toContain("id: 00000000-0000-0000-0000-000000000001");
+    expect(systemItem.content).toContain("khudhi karo");
   });
 
   it("prepends the system line to a full input item list", () => {
@@ -46,9 +63,9 @@ describe("buildContextItems", () => {
       "current message",
       { focusEntity: null },
     );
-    expect(items[0].role).toBe("system");
+    expect(asSystemMessage(items[0]).role).toBe("system");
     expect(items.length).toBe(3); // system + history + current user message
-    expect(items[items.length - 1].role).toBe("user");
+    expect(asSystemMessage(items[items.length - 1]).role).toBe("user");
   });
 });
 

@@ -62,12 +62,18 @@ type ProductFieldInput = z.input<typeof productSchema>;
  * empty string on a text field = clear it. Never use optional/default here —
  * defaults silently overwrite real values (e.g. sortOrder defaulting to 0
  * resets catalog order).
+ *
+ * slug is never auto-generated: the model must pass `slug: null` unless the
+ * owner explicitly asks to change the product's URL slug.
  */
 const nullableText = (max: number) =>
   z.union([z.string().trim().max(max), z.literal(""), z.literal(null)]);
 
 const productUpdateFields = {
   name: z.string().min(1).max(160).nullable(),
+  // slug is the product's URL identifier. It must only ever be set when the
+  // owner explicitly asks to rename/change the URL — otherwise the model must
+  // pass null. A guessed slug (e.g. with spaces or title case) fails the regex.
   slug: z
     .string()
     .min(1)
@@ -227,7 +233,7 @@ export const createProductTool = tool({
 export const updateProductTool = tool({
   name: "update_product",
   description:
-    "Update an existing product by id. Partial update: every field must be provided, but pass null for any field you do NOT intend to change (it keeps its current database value, including sort order, publish state and stock). An empty string clears a text field. Returns the updated product summary.",
+    "Update an existing product by id. Partial update: pass null for every field you do NOT intend to change (null keeps the current database value, including sort order, publish state, stock and slug). Only supply actual values for fields the owner explicitly asked to change. slug is the product's URL identifier — never guess or generate it; always pass slug: null unless the owner explicitly asked to rename/change the product's URL slug. An empty string clears a text field. Returns the updated product summary.",
   parameters: z.object({ id: z.string().uuid(), ...productUpdateFields }),
   strict: true,
   inputGuardrails: [toolRoleGuardrail("update_product", [ADMIN_ROLE])],

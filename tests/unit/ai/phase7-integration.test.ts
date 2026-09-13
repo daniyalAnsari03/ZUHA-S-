@@ -739,3 +739,33 @@ describe("20. Manager Routing Instructions Cover All Scenarios", () => {
     expect(managerInstructions).toContain("marketing copy");
   });
 });
+
+// ---------------------------------------------------------------------------
+// 21. PRODUCT PARTIAL UPDATE — description-only edits must never touch slug
+// ---------------------------------------------------------------------------
+
+describe("21. Product Partial Update Guardrails", () => {
+  const productInstructions = (EMPLOYEES.product as any).instructions as string;
+
+  it("product agent instructions say to pass null for unchanged fields", () => {
+    expect(productInstructions).toContain("PARTIAL update");
+    expect(productInstructions).toContain("pass null");
+  });
+
+  it("product agent instructions forbid guessing a slug", () => {
+    expect(productInstructions).toMatch(/NEVER include a slug/);
+    expect(productInstructions).toContain("URL slug");
+  });
+
+  it("product agent instructions say slug must be null unless renamed", () => {
+    expect(productInstructions).toContain("pass slug: null");
+  });
+
+  it("product agent instructions warn that a guessed slug fails validation", () => {
+    expect(productInstructions).toContain("spaces or title case are invalid");
+  });
+
+  it("product agent instructions say renaming the name does not change slug", () => {
+    expect(productInstructions).toContain("does NOT auto-change its slug");
+  });
+});

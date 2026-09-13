@@ -170,17 +170,21 @@ async function t6_createProduct() {
 async function t7_editProduct(p) {
   const t = token;
   const marker = `QA TEMP edited ${t}`;
+  const slugBefore = p.slug;
   const res = await sendAdmin(
     `Product "${p.name}" (sku QAT-${t}) ka description update karo. ` +
-    `Naya description: "${marker}"`,
+    `Naya description: "${marker}" Sirf description change karni hai — slug, name, price waghera mat chhedna.`,
   );
   const toolOk = hasTool(res, ["update_product"]);
   const row = await getFirst("products", `id=eq.${p.id}`);
   const descMatches = !!row && row.description && row.description.includes(marker);
-  results.record("A7", "edit product", toolOk && descMatches, {
-    tools: res.tools, evidence: `dbDescriptionMatch=${descMatches}`,
+  const slugUnchanged = !!row && row.slug === slugBefore;
+  results.record("A7", "edit product (description-only must not change slug)", toolOk && descMatches && slugUnchanged, {
+    tools: res.tools, evidence: `dbDescriptionMatch=${descMatches} slugPreserved=${slugUnchanged} (${slugBefore})`,
     note: `"${res.text.slice(0, 140)}"`,
-    mismatch: !toolOk ? `no update_product; got ${res.tools.join(",") || "none"}` : !descMatches ? "DB description did not match requested value" : null,
+    mismatch: !toolOk ? `no update_product; got ${res.tools.join(",") || "none"}`
+      : !descMatches ? "DB description did not match requested value"
+      : !slugUnchanged ? `slug changed to "${row?.slug}" on a description-only edit` : null,
   });
   return { ...p, description: row?.description ?? p.description };
 }
