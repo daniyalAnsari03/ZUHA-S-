@@ -188,30 +188,27 @@ async function t7_editProduct(p) {
 async function t8_deleteProduct(p) {
   const before = await getFirst("products", `id=eq.${p.id}`);
   const t1 = await sendAdmin(`"${p.name}" product ko delete kar do`);
-  const stillThere = (await getFirst("products", `id=eq.${p.id}`)) !== null;
-  const askedOnce =
-    (t1.text.match(/confirm/gi) ?? []).length <= 2 &&
-    /confirm|pakka|delete|delete karna|remove/i.test(t1.text);
+  const deletedDirectly = (await getFirst("products", `id=eq.${p.id}`)) === null;
+  const askedConfirm =
+    /\?/.test(t1.text) && /(confirm|delete|kar doon|pakka|sure)/i.test(t1.text);
 
-  let deletedRowCheck = null;
+  let deletedRowCheck = deletedDirectly;
   let t2 = null;
-  if (stillThere) {
-    t2 = await sendAdmin("Haan, confirm karta hoon. Product delete kar do.", t1.conversationId);
+  if (!deletedDirectly && t1.conversationId) {
+    t2 = await sendAdmin("Haan, delete kar do.", t1.conversationId);
     deletedRowCheck = (await getFirst("products", `id=eq.${p.id}`)) === null;
-  } else {
-    deletedRowCheck = true;
   }
 
   const executedDelete = hasTool(t2 ?? t1, ["delete_product"]);
-  const pass = askedOnce && deletedRowCheck;
+  const pass = !askedConfirm && deletedRowCheck && executedDelete;
 
-  results.record("A8", "delete product (one confirmation)", pass, {
+  results.record("A8", "delete product (direct, no confirmation)", pass, {
     tools: [...t1.tools, ...(t2?.tools ?? [])],
-    evidence: `existedBefore=${!!before}, stillAfterAsk=${stillThere}, deletedAfterConfirm=${deletedRowCheck}`,
+    evidence: `existedBefore=${!!before}, deletedDirectly=${deletedDirectly}, deletedAfter=${deletedRowCheck}`,
     note: `turn1="${t1.text.slice(0, 120)}" | turn2="${t2 ? t2.text.slice(0, 120) : "(none)"}"`,
-    mismatch: !askedOnce ? "AI did not ask a single clear confirmation before deleting"
-      : stillThere && !deletedRowCheck ? "product still in DB after confirm"
-      : !stillThere ? "product deleted WITHOUT waiting for confirmation" : null,
+    mismatch: askedConfirm ? "AI asked for confirmation before deleting a single product"
+      : !executedDelete ? "no delete_product tool call observed"
+      : !deletedRowCheck ? "product still in DB despite delete request" : null,
   });
   return executedDelete;
 }
@@ -289,43 +286,36 @@ async function t14_bulkOrderStatus(customer, orders) {
     (await getFirst("orders", `id=eq.${orders[0].id}`))?.status === "confirmed" &&
     (await getFirst("orders", `id=eq.${orders[1].id}`))?.status === "confirmed";
 
-  // Turn 1: the bulk request itself.
+  // Turn 1: the bulk request itself. A category/customer-scoped bulk change
+  // under 10 records must be applied DIRECTLY — no confirmation asked.
   const turn1 = await sendAdmin(
     `Customer "${fname}" (email ${customer.email}) ke saare pending orders ki status confirmed kar do (bulk update).`,
   );
 
-  // The bulk change must NOT have been applied before any user confirmation.
-  const appliedWithoutConfirmation = await applied();
-
-  // Turn 2: the owner confirms. The model occasionally emits a malformed
-  // tool-call JSON ("InvalidToolInputError") which the SDK feeds back for a
-  // self-correcting retry — tolerate exactly one follow-up retry.
-  const conversations = [turn1];
+  const turns = [turn1];
   if (!(await applied()) && turn1.conversationId) {
-    const t2 = await sendAdmin("Haan, confirm karta hoon. Saare orders confirm kar do.", turn1.conversationId);
-    conversations.push(t2);
-    if (!(await applied()) && t2.conversationId) {
-      conversations.push(await sendAdmin("Haan confirm. Abhi kar do.", t2.conversationId));
-    }
+    turns.push(await sendAdmin(`Wohi wala: Customer "${fname}" ke pending orders confirmed kar do.`, turn1.conversationId));
   }
 
-  const askedOnce = conversations.some((r) => /confirm|kar doon|karna hai/i.test(r.text));
-  const appliedAfterConfirmation = await applied();
-  const toolEvents = conversations.flatMap((r) => r.tools);
+  const appliedWithoutConfirmation = await applied();
+  const askedForConfirmation = turns.some((r) =>
+    /\?/.test(r.text) && /(confirm|kar doon|pakka|sure|proceed)/i.test(r.text),
+  );
+  const toolEvents = turns.flatMap((r) => r.tools);
 
   results.record(
     "A14",
-    "bulk order status change (one confirmation)",
-    !appliedWithoutConfirmation && appliedAfterConfirmation,
+    "bulk order status change (applied without confirmation)",
+    appliedWithoutConfirmation && !askedForConfirmation,
     {
       tools: toolEvents,
-      evidence: `appliedBefore=${appliedWithoutConfirmation} appliedAfter=${appliedAfterConfirmation}${askedOnce ? "" : " proactiveAsk=none"}`,
-      note: `turn1="${conversations[0].text.slice(0, 140)}"${conversations.length > 1 ? ` | turn2="${conversations[1].text.slice(0, 140)}"` : ""}`,
+      evidence: `applied=${appliedWithoutConfirmation} asked=${askedForConfirmation}`,
+      note: `turn1="${turns[0].text.slice(0, 140)}"${turns.length > 1 ? ` | turn2="${turns[1].text.slice(0, 140)}"` : ""}`,
       mismatch:
-        appliedWithoutConfirmation
-          ? "bulk change was applied WITHOUT any confirmation"
-          : !appliedAfterConfirmation
-            ? "bulk change did not apply after confirmation"
+        askedForConfirmation
+          ? "AI asked for confirmation on a <=10-record bulk change"
+          : !appliedWithoutConfirmation
+            ? "bulk change (<=10 records) was not applied directly in the turn"
             : null,
     },
   );
