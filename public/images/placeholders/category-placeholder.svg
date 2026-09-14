@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Category placeholder artwork">
+  <defs>
+    <linearGradient id="cpg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a1833"/>
+      <stop offset="1" stop-color="#4a2040"/>
+    </linearGradient>
+    <radialGradient id="cpl" cx="0.5" cy="0.3" r="0.7">
+      <stop offset="0" stop-color="#7a3570" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#3a1833" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#cpg)"/>
+  <rect width="800" height="1000" fill="url(#cpl)"/>
+  <g stroke="#d6c39a" stroke-width="1.2" opacity="0.28">
+    <line x1="0" y1="120" x2="800" y2="120"/>
+    <line x1="0" y1="240" x2="800" y2="240"/>
+    <line x1="0" y1="360" x2="800" y2="360"/>
+    <line x1="0" y1="480" x2="800" y2="480"/>
+    <line x1="0" y1="600" x2="800" y2="600"/>
+    <line x1="0" y1="720" x2="800" y2="720"/>
+    <line x1="0" y1="840" x2="800" y2="840"/>
+  </g>
+  <g fill="none" stroke="#d6c39a" opacity="0.5">
+    <path d="M400 330 C 360 300 340 330 400 360 C 460 390 440 420 400 390" stroke-width="3"/>
+    <path d="M300 420 C 268 398 254 420 300 442 C 346 464 336 486 300 464" stroke-width="2"/>
+    <path d="M500 420 C 532 398 546 420 500 442 C 454 464 464 486 500 464" stroke-width="2"/>
+  </g>
+  <text x="400" y="508" text-anchor="middle" font-family="Georgia, serif" font-size="40" letter-spacing="10" fill="#faf7f2" opacity="0.7">dINS</text>
+</svg>

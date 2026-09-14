@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Product placeholder artwork">
+  <defs>
+    <linearGradient id="ppg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5efe6"/>
+      <stop offset="1" stop-color="#faf7f2"/>
+    </linearGradient>
+    <linearGradient id="ppf" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#faf7f2"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#ppg)"/>
+  <g stroke="#efe7da" stroke-width="2" opacity="0.5">
+    <line x1="0" y1="104" x2="800" y2="88"/>
+    <line x1="0" y1="212" x2="800" y2="194"/>
+    <line x1="0" y1="326" x2="800" y2="308"/>
+  </g>
+  <ellipse cx="400" cy="912" rx="218" ry="20" fill="rgba(43,38,34,0.12)"/>
+  <path d="M400 190
+    C 372 190 352 214 344 248
+    C 338 282 300 306 276 332
+    C 240 372 226 428 226 486
+    L 226 560 C 226 590 258 604 292 598
+    C 314 560 328 520 336 470
+    C 342 520 336 604 344 668
+    C 336 720 308 788 310 860
+    C 311 892 489 892 490 860
+    C 492 788 464 720 456 668
+    C 464 604 458 520 464 470
+    C 472 520 486 560 508 598
+    C 542 604 574 590 574 560
+    L 574 486 C 574 428 560 372 524 332
+    C 500 306 462 282 456 248
+    C 448 214 428 190 400 190 Z"
+    fill="url(#ppf)"/>
+  <path d="M400 190 C 372 190 352 214 344 248 L 456 248 C 448 214 428 190 400 190 Z" fill="#f5efe6" opacity="0.55"/>
+  <path d="M400 190 L400 320" stroke="#f5efe6" stroke-width="3" opacity="0.6"/>
+  <path d="M374 288 C 396 266 404 266 426 288" stroke="#f5efe6" stroke-width="1.6" fill="none" opacity="0.5"/>
+  <g fill="#b89b63" opacity="0.8">
+    <circle cx="368" cy="300" r="3.4"/><circle cx="432" cy="300" r="3.4"/><circle cx="400" cy="334" r="2.8"/>
+  </g>
+  <g fill="none" stroke="#b89b63" stroke-width="2.2" opacity="0.7">
+    <path d="M380 236 C392 226 408 226 420 236"/>
+    <path d="M384 252 C396 244 404 244 416 252"/>
+  </g>
+  <text x="400" y="958" text-anchor="middle" font-family="Georgia, serif" font-size="26" letter-spacing="6" fill="#4a2040" opacity="0.55">dINS</text>
+</svg>
