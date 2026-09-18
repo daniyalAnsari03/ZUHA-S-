@@ -181,11 +181,11 @@ export async function getCustomerDetail(
     throw new ServiceError("CUSTOMER_READ_FAILED", "Failed to load customer.", profileError);
   }
 
-  if (!profile) return null;
-
   const { data: orders, error: ordersError } = await supabase
     .from("orders")
-    .select("id, order_number, status, payment_status, total, created_at")
+    .select(
+      "id, order_number, status, payment_status, total, created_at, customer_name, customer_phone, customer_email, city",
+    )
     .eq("user_id", customerId)
     .order("created_at", { ascending: false });
 
@@ -193,15 +193,40 @@ export async function getCustomerDetail(
     throw new ServiceError("CUSTOMER_ORDERS_FAILED", "Failed to load customer orders.", ordersError);
   }
 
-  const orderRows = (orders ?? []) as Pick<
-    OrderRow,
-    "id" | "order_number" | "status" | "payment_status" | "total" | "created_at"
-  >[];
+  const orderRows = (orders ?? []) as unknown as Array<
+    Pick<
+      OrderRow,
+      "id" | "order_number" | "status" | "payment_status" | "total" | "created_at"
+    > & {
+      customer_name: string;
+      customer_phone: string;
+      customer_email: string;
+      city: string;
+    }
+  >;
+
+  // A customer reachable from the admin Orders flow (via orders.user_id) may
+  // not have a profiles row yet (e.g. profile creation failed or historical
+  // data). Fall back to the order snapshot instead of returning a 404.
+  if (!profile && orderRows.length === 0) return null;
+
+  const resolvedProfile: ProfileRow = profile ?? {
+    id: customerId,
+    role: "customer",
+    full_name: orderRows[0].customer_name || null,
+    phone: orderRows[0].customer_phone || null,
+    address: null,
+    city: orderRows[0].city || null,
+    postal_code: null,
+    // Member since = their first order; most recent order as "updated".
+    created_at: orderRows[orderRows.length - 1].created_at,
+    updated_at: orderRows[0].created_at,
+  };
 
   const summary = computeCustomerSummary(orderRows);
 
   return {
-    profile,
+    profile: resolvedProfile,
     orders: orderRows,
     orderCount: summary.orderCount,
     activeOrderCount: summary.activeOrderCount,

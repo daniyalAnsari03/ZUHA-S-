@@ -141,7 +141,12 @@ export default async function AdminOrdersPage({
                       </p>
                     </td>
                     <td className="px-5 py-3.5">
-                      <p className="text-charcoal">{order.customer_name}</p>
+                      <Link
+                        href={`/admin/customers/${order.user_id}`}
+                        className="text-charcoal transition-colors hover:text-plum"
+                      >
+                        {order.customer_name}
+                      </Link>
                       <p className="text-xs text-charcoal-muted">{order.customer_email}</p>
                     </td>
                     <td className="px-5 py-3.5 text-charcoal-muted">

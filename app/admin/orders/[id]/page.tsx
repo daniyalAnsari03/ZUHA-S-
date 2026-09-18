@@ -180,7 +180,14 @@ export default async function AdminOrderDetailPage({
             <dl className="mt-4 space-y-3 text-sm">
               <div>
                 <dt className="text-xs uppercase tracking-wide text-charcoal-muted">Name</dt>
-                <dd className="mt-0.5 text-charcoal">{order.customer_name}</dd>
+                <dd className="mt-0.5 text-charcoal">
+                  <Link
+                    href={`/admin/customers/${order.user_id}`}
+                    className="font-medium text-plum transition-colors hover:text-plum-dark"
+                  >
+                    {order.customer_name}
+                  </Link>
+                </dd>
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-wide text-charcoal-muted">Phone</dt>
@@ -215,6 +222,12 @@ export default async function AdminOrderDetailPage({
                 </div>
               ) : null}
             </dl>
+            <Link
+              href={`/admin/customers/${order.user_id}`}
+              className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-plum transition-colors hover:text-plum-dark"
+            >
+              View customer profile →
+            </Link>
           </section>
         </div>
       </div>
