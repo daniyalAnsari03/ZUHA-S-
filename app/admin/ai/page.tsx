@@ -3,8 +3,11 @@ import { redirect } from "next/navigation";
 import { LineChart, Package, ShieldCheck, Users } from "lucide-react";
 
 import { getAuthUser } from "@/lib/auth/session";
+import { listApprovalRequests } from "@/services/ai/approval-service";
 import { AiAuditLogViewer } from "@/components/chat/ai-audit-log-viewer";
 import { AdminAiWorkplacePanel } from "@/components/chat/admin-ai-workplace-panel";
+import { PendingApprovalsViewer } from "@/components/chat/pending-approvals-viewer";
+import { GuardianDecisionViewer } from "@/components/chat/guardian-decision-viewer";
 
 export const metadata: Metadata = {
   title: "AI Workplace · Admin",
@@ -38,6 +41,13 @@ export default async function AdminAIWorkplacePage() {
   const user = await getAuthUser();
   if (!user || user.role !== "admin") redirect("/login");
 
+  let pendingApprovals: Awaited<ReturnType<typeof listApprovalRequests>> = [];
+  try {
+    pendingApprovals = await listApprovalRequests({ status: "pending" });
+  } catch (error) {
+    console.error("[admin] pending approvals load failed:", error);
+  }
+
   return (
     <div>
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -50,7 +60,7 @@ export default async function AdminAIWorkplacePage() {
           </p>
         </div>
         <span className="inline-flex rounded-full bg-cream px-3 py-1.5 text-xs font-semibold text-plum ring-1 ring-plum/20">
-          Phase 7 — operational
+          Phase 8 — Guardians + WhatsApp
         </span>
       </header>
 
@@ -58,6 +68,18 @@ export default async function AdminAIWorkplacePage() {
         <AdminAiWorkplacePanel initialConversationId={null} />
 
         <aside className="flex flex-col gap-4">
+          <PendingApprovalsViewer
+            initial={pendingApprovals.map((request) => ({
+              id: request.id,
+              agent_name: request.agent_name,
+              action_type: request.action_type,
+              risk: request.risk,
+              summary: request.summary,
+              target_type: request.target_type,
+              requested_at: request.requested_at,
+            }))}
+          />
+
           <div className="rounded-2xl border border-charcoal/10 bg-white p-5">
             <h2 className="font-serif text-base text-charcoal">Your team</h2>
             <ul className="mt-3 space-y-3">
@@ -92,6 +114,14 @@ export default async function AdminAIWorkplacePage() {
                 • Write actions are admin-only and blocked for anyone else.
               </li>
               <li>
+                • The Guardian evaluates every action before it runs — unknown
+                actions are denied.
+              </li>
+              <li>
+                • High-risk actions need an explicit approval (pending list
+                above).
+              </li>
+              <li>
                 • Nothing is reported as done unless the database confirms it.
               </li>
               <li>
@@ -100,6 +130,7 @@ export default async function AdminAIWorkplacePage() {
             </ul>
           </div>
 
+          <GuardianDecisionViewer />
           <AiAuditLogViewer />
         </aside>
       </div>

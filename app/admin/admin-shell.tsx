@@ -14,6 +14,7 @@ import {
   LogOut,
   Megaphone,
   Menu,
+  Plug,
   Package,
   ShoppingBag,
   Tags,
@@ -60,6 +61,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: "Operations",
     items: [
       { href: "/admin/notifications", label: "Notifications", icon: Bell },
+      { href: "/admin/integrations", label: "Integrations", icon: Plug },
       { href: "/admin/ai", label: "AI Workplace", icon: BrainCircuit },
     ],
   },
@@ -169,7 +171,7 @@ export function AdminShell({ userEmail, unreadCount, children }: AdminShellProps
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
         <Link href="/admin" className="font-serif text-lg font-semibold text-plum">
-          dINS Admin
+          DINS Admin
         </Link>
         <AdminNotificationBell unreadCount={unreadCount} />
       </header>
@@ -185,7 +187,7 @@ export function AdminShell({ userEmail, unreadCount, children }: AdminShellProps
           />
           <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-charcoal/10 px-4 py-3">
-              <span className="font-serif text-lg font-semibold text-plum">dINS Admin</span>
+              <span className="font-serif text-lg font-semibold text-plum">DINS Admin</span>
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
@@ -207,7 +209,7 @@ export function AdminShell({ userEmail, unreadCount, children }: AdminShellProps
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-charcoal/10 bg-white lg:flex">
           <div className="flex h-16 items-center border-b border-charcoal/10 px-5">
             <Link href="/admin" className="font-serif text-xl font-semibold text-plum">
-              dINS Admin
+              DINS Admin
             </Link>
           </div>
           <NavLinks pathname={pathname} />

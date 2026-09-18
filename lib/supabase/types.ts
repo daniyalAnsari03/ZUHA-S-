@@ -546,6 +546,308 @@ export interface Database {
         };
         Relationships: [];
       };
+      guardian_decisions: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          actor_role: "admin" | "customer" | "guest";
+          agent_name: string;
+          tool_name: string | null;
+          action_type: string;
+          risk: "low" | "medium" | "high";
+          decision: "allow" | "deny" | "require_approval";
+          reason: string | null;
+          target_type: string | null;
+          target_id: string | null;
+          args: Json;
+          approval_required: boolean;
+          approval_id: string | null;
+          execution_status:
+            | "pending"
+            | "approved_pending"
+            | "executed"
+            | "blocked"
+            | "failed"
+            | "skipped";
+          executed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          actor_role?: "admin" | "customer" | "guest";
+          agent_name: string;
+          tool_name?: string | null;
+          action_type: string;
+          risk: "low" | "medium" | "high";
+          decision: "allow" | "deny" | "require_approval";
+          reason?: string | null;
+          target_type?: string | null;
+          target_id?: string | null;
+          args?: Json;
+          approval_required?: boolean;
+          approval_id?: string | null;
+          execution_status?:
+            | "pending"
+            | "approved_pending"
+            | "executed"
+            | "blocked"
+            | "failed"
+            | "skipped";
+          executed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          actor_role?: "admin" | "customer" | "guest";
+          agent_name?: string;
+          tool_name?: string | null;
+          action_type?: string;
+          risk?: "low" | "medium" | "high";
+          decision?: "allow" | "deny" | "require_approval";
+          reason?: string | null;
+          target_type?: string | null;
+          target_id?: string | null;
+          args?: Json;
+          approval_required?: boolean;
+          approval_id?: string | null;
+          execution_status?:
+            | "pending"
+            | "approved_pending"
+            | "executed"
+            | "blocked"
+            | "failed"
+            | "skipped";
+          executed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      approval_requests: {
+        Row: {
+          id: string;
+          guardian_decision_id: string | null;
+          user_id: string | null;
+          agent_name: string;
+          action_type: string;
+          risk: "low" | "medium" | "high";
+          target_type: string | null;
+          target_id: string | null;
+          summary: string;
+          execution: Json;
+          context_hash: string;
+          status: "pending" | "approved" | "rejected" | "expired" | "cancelled";
+          requested_at: string;
+          decided_by: string | null;
+          decided_at: string | null;
+          expires_at: string;
+        };
+        Insert: {
+          id?: string;
+          guardian_decision_id?: string | null;
+          user_id?: string | null;
+          agent_name: string;
+          action_type: string;
+          risk?: "low" | "medium" | "high";
+          target_type?: string | null;
+          target_id?: string | null;
+          summary: string;
+          execution?: Json;
+          context_hash: string;
+          status?: "pending" | "approved" | "rejected" | "expired" | "cancelled";
+          requested_at?: string;
+          decided_by?: string | null;
+          decided_at?: string | null;
+          expires_at?: string;
+        };
+        Update: {
+          id?: string;
+          guardian_decision_id?: string | null;
+          user_id?: string | null;
+          agent_name?: string;
+          action_type?: string;
+          risk?: "low" | "medium" | "high";
+          target_type?: string | null;
+          target_id?: string | null;
+          summary?: string;
+          execution?: Json;
+          context_hash?: string;
+          status?: "pending" | "approved" | "rejected" | "expired" | "cancelled";
+          decided_by?: string | null;
+          decided_at?: string | null;
+          expires_at?: string;
+        };
+        Relationships: [];
+      };
+      whatsapp_settings: {
+        Row: {
+          id: boolean;
+          phone_number_id: string | null;
+          display_phone: string | null;
+          business_name: string | null;
+          require_approval_for_send: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: boolean;
+          phone_number_id?: string | null;
+          display_phone?: string | null;
+          business_name?: string | null;
+          require_approval_for_send?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: boolean;
+          phone_number_id?: string | null;
+          display_phone?: string | null;
+          business_name?: string | null;
+          require_approval_for_send?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      whatsapp_recipients: {
+        Row: {
+          id: string;
+          label: string;
+          phone: string;
+          recipient_type: "admin" | "customer";
+          user_id: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          label: string;
+          phone: string;
+          recipient_type?: "admin" | "customer";
+          user_id?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          label?: string;
+          phone?: string;
+          recipient_type?: "admin" | "customer";
+          user_id?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      whatsapp_messages: {
+        Row: {
+          id: string;
+          idempotency_key: string;
+          provider_message_id: string | null;
+          recipient_phone: string;
+          recipient_label: string | null;
+          content: string;
+          message_type: "text";
+          direction: "inbound" | "outbound";
+          sender_phone: string | null;
+          status: "queued" | "sent" | "delivered" | "read" | "failed" | "rejected";
+          provider_status: string | null;
+          error_code: string | null;
+          error_message: string | null;
+          requested_by_user_id: string | null;
+          guardian_decision_id: string | null;
+          created_at: string;
+          sent_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          idempotency_key: string;
+          provider_message_id?: string | null;
+          recipient_phone: string;
+          recipient_label?: string | null;
+          content?: string;
+          message_type?: "text";
+          direction?: "inbound" | "outbound";
+          sender_phone?: string | null;
+          status?: "queued" | "sent" | "delivered" | "read" | "failed" | "rejected";
+          provider_status?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          requested_by_user_id?: string | null;
+          guardian_decision_id?: string | null;
+          created_at?: string;
+          sent_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          idempotency_key?: string;
+          provider_message_id?: string | null;
+          recipient_phone?: string;
+          recipient_label?: string | null;
+          content?: string;
+          message_type?: "text";
+          direction?: "inbound" | "outbound";
+          sender_phone?: string | null;
+          status?: "queued" | "sent" | "delivered" | "read" | "failed" | "rejected";
+          provider_status?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          requested_by_user_id?: string | null;
+          guardian_decision_id?: string | null;
+          created_at?: string;
+          sent_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      whatsapp_webhook_events: {
+        Row: {
+          id: string;
+          provider_event_id: string;
+          event_type: "message" | "status" | "unknown";
+          status: "received" | "processed" | "ignored" | "failed" | "duplicate";
+          phone_number_id: string | null;
+          sender_phone: string | null;
+          payload: Json;
+          error_message: string | null;
+          created_at: string;
+          processed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          provider_event_id: string;
+          event_type?: "message" | "status" | "unknown";
+          status?: "received" | "processed" | "ignored" | "failed" | "duplicate";
+          phone_number_id?: string | null;
+          sender_phone?: string | null;
+          payload?: Json;
+          error_message?: string | null;
+          created_at?: string;
+          processed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          provider_event_id?: string;
+          event_type?: "message" | "status" | "unknown";
+          status?: "received" | "processed" | "ignored" | "failed" | "duplicate";
+          phone_number_id?: string | null;
+          sender_phone?: string | null;
+          payload?: Json;
+          error_message?: string | null;
+          created_at?: string;
+          processed_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
