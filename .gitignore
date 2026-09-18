@@ -46,6 +46,9 @@ yarn-error.log*
 # local dev server pid (runtime state)
 .server-pid
 
+# project documentation (not pushed to GitHub)
+/docs/
+
 # supabase local link state
 supabase/.temp/
 
