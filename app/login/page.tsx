@@ -6,7 +6,7 @@ import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Sign in to your dINS by Daniyal account.",
+  description: "Sign in to your DINS by Daniyal account.",
   robots: {
     index: false,
     follow: false,
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Premium customer login page for dINS by Daniyal.
+ * Premium customer login page for DINS by Daniyal.
  *
  * Sits directly on the storefront's ivory/cream background (the same token the
  * Footer uses) with no chrome — no announcement bar, navbar or footer. On
@@ -37,12 +37,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div className="flex items-center justify-center lg:justify-start">
           <Link
             href="/"
-            aria-label="dINS by Daniyal — home"
+            aria-label="DINS by Daniyal — home"
             className="inline-block"
           >
             <Image
               src="/images/brand/dins-by-daniyal-logo.png"
-              alt="dINS by Daniyal"
+              alt="DINS by Daniyal"
               width={408}
               height={214}
               priority

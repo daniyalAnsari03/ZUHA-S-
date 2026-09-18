@@ -151,7 +151,7 @@ export function SignupForm({ initialError = null }: SignupFormProps) {
         Create account
       </h1>
       <p className="mt-2 text-sm text-charcoal-muted">
-        Join dINS by Daniyal for a personalised shopping experience.
+        Join DINS by Daniyal for a personalised shopping experience.
       </p>
 
       <div className="mt-8">

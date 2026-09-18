@@ -1,5 +1,9 @@
 import type { AuditActorRole } from "@/services/ai/audit-service";
-import type { FocusEntity } from "@/services/ai/focus-service";
+import type { PendingDraft } from "@/services/ai/draft-service";
+import type {
+  FocusEntity,
+  RecentFocusEntities,
+} from "@/services/ai/focus-service";
 
 /**
  * Shared execution context threaded through every AI run.
@@ -25,6 +29,18 @@ export type AgentContext = {
    * ambiguous follow-ups resolve against explicit tracked state.
    */
   focusEntity?: FocusEntity | null;
+  /**
+   * The most recent focus entity of EACH type (product/order/customer) in this
+   * conversation, resolved from the tool audit trail so ambiguous references
+   * that span several turns still resolve to the right per-type entity.
+   */
+  recentFocusEntities?: RecentFocusEntities | null;
+  /**
+   * The active server-side pending draft for this conversation (product
+   * create/edit or checkout in progress). Tools and context builders read it
+   * so multi-turn task collection survives interruptions.
+   */
+  pendingDraft?: PendingDraft | null;
   /**
    * Stamped by the tool role guardrail before a guarded tool executes.
    * Tools use this for audit attribution when per-tool execution context

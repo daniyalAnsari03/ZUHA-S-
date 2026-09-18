@@ -31,7 +31,7 @@ export function AdminAiWorkplacePanel({
         channel="admin"
         storageKey="dins:ai:admin-conversation"
         title="AI Manager"
-        subtitle="dINS by Daniyal · business workforce"
+        subtitle="DINS by Daniyal · business workforce"
         fallbackAgent="AI Manager"
         variant="panel"
         quickPrompts={[

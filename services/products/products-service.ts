@@ -50,11 +50,11 @@ export async function listActiveProducts(
 
   let query = supabase
     .from("products")
-    .select(categorySlug ? "*, categories!inner(slug, name)" : "*, categories(slug, name)")
+    .select(categorySlug ? "*, category:categories!inner(slug, name)" : "*, category:categories(slug, name)")
     .eq("is_active", true);
 
   if (categorySlug) {
-    query = query.eq("categories.slug", categorySlug);
+    query = query.eq("category.slug", categorySlug);
   }
 
   if (featured !== undefined) {
@@ -82,6 +82,47 @@ export async function listActiveProducts(
   return data as unknown as ProductWithCategory[];
 }
 
+/**
+ * Count active products matching the same filters as listActiveProducts.
+ * Seeded so the AI can quote a REAL total ("there are 12 active products")
+ * instead of fabricating a count that exceeds the rows it actually saw.
+ */
+export async function countActiveProducts(
+  options: Omit<ProductListOptions, "limit" | "offset"> = {},
+): Promise<number> {
+  const { categorySlug, featured, search } = options;
+
+  const supabase = createPublicClient();
+
+  let query = supabase
+    .from("products")
+    .select("id", { count: "exact", head: true })
+    .eq("is_active", true);
+
+  if (categorySlug) {
+    query = query.eq("category.slug", categorySlug);
+  }
+
+  if (featured !== undefined) {
+    query = query.eq("is_featured", featured);
+  }
+
+  if (search?.trim()) {
+    const term = search.trim();
+    query = query.or(
+      `name.ilike.%${term}%,description.ilike.%${term}%,fabric.ilike.%${term}%,sku.ilike.%${term}%`,
+    );
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    throw new ServiceError("PRODUCT_COUNT_FAILED", "Failed to count products.");
+  }
+
+  return count ?? 0;
+}
+
 export async function getProductBySlug(
   slug: string,
 ): Promise<ProductWithCategory | null> {
@@ -89,7 +130,7 @@ export async function getProductBySlug(
 
   const { data, error } = await supabase
     .from("products")
-    .select("*, categories(slug, name)")
+    .select("*, category:categories(slug, name)")
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle();
@@ -108,7 +149,7 @@ export async function getProductById(
 
   const { data, error } = await supabase
     .from("products")
-    .select("*, categories(slug, name)")
+    .select("*, category:categories(slug, name)")
     .eq("id", id)
     .maybeSingle();
 
@@ -132,7 +173,7 @@ export async function getNewArrivals(
 
   const { data, error } = await supabase
     .from("products")
-    .select("*, categories(slug)")
+    .select("*, category:categories(slug)")
     .eq("is_active", true)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -157,7 +198,7 @@ export async function listAllProducts(
 
   const { data, error } = await supabase
     .from("products")
-    .select("*, categories(slug, name)")
+    .select("*, category:categories(slug, name)")
     .order("sort_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
 
@@ -194,7 +235,7 @@ export async function listPagedProducts(
 
   let query = supabase
     .from("products")
-    .select("*, categories(slug, name)", { count: "exact" });
+    .select("*, category:categories(slug, name)", { count: "exact" });
 
   if (options.search?.trim()) {
     const term = `%${options.search.trim()}%`;

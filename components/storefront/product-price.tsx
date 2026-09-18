@@ -1,12 +1,16 @@
 import { discountPercent, formatPrice } from "@/lib/storefront/format";
 import type { Product } from "@/lib/storefront/types";
 
+import { cn } from "@/lib/utils";
+
 type ProductPriceProps = {
   product: Product;
   /** Styles for the price line (selling-price size/color) in the current context. */
   className?: string;
   /** Element to render the price line as. */
   as?: "p" | "span";
+  /** Light-on-dark secondary tones for use over imagery. */
+  onDark?: boolean;
 };
 
 /**
@@ -18,6 +22,7 @@ export function ProductPrice({
   product,
   className = "",
   as = "p",
+  onDark = false,
 }: ProductPriceProps) {
   const Tag = as;
   const percent = discountPercent(product.price, product.compareAtPrice);
@@ -29,10 +34,20 @@ export function ProductPrice({
       <span>{formatPrice(product.price)}</span>
       {percent !== null ? (
         <>
-          <span className="text-xs text-charcoal-muted line-through max-sm:text-[11px]">
+          <span
+            className={cn(
+              "text-xs line-through max-sm:text-[11px]",
+              onDark ? "text-white/60" : "text-charcoal-muted",
+            )}
+          >
             {formatPrice(product.compareAtPrice!)}
           </span>
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-plum">
+          <span
+            className={cn(
+              "text-[11px] font-semibold uppercase tracking-wide",
+              onDark ? "text-gold-soft" : "text-plum",
+            )}
+          >
             {percent}% off
           </span>
         </>

@@ -11,7 +11,7 @@ import {
 export const metadata: Metadata = {
   title: "Shop",
   description:
-    "Browse the dINS by Daniyal collection — Jamawar, Embroidery, Cut-Dana, Plain, Unstitched and Lawn.",
+    "Browse the DINS by Daniyal collection — Jamawar, Embroidery, Cut-Dana, Plain, Unstitched and Lawn.",
 };
 
 type ShopPageProps = {
@@ -36,7 +36,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     <main className="flex-1 bg-white">
       <Container size="lg" className="py-10 sm:py-14">
         <p className="text-[11px] uppercase tracking-[0.32em] text-gold-muted">
-          dINS by Daniyal
+          DINS by Daniyal
         </p>
         <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
           <h1 className="font-serif text-3xl text-charcoal sm:text-4xl">
@@ -49,7 +49,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           ) : null}
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-x-4 gap-y-10 sm:grid-cols-2 sm:gap-x-6 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-2 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

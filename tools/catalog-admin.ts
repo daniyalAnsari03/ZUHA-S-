@@ -8,6 +8,7 @@ import {
   createProduct,
   deleteProduct,
   getProductById,
+  listAllProducts,
   setProductActive,
   updateProduct,
   type ProductWithCategory,
@@ -17,8 +18,10 @@ import { withToolAudit } from "@/tools/shared/audit";
 import {
   asResult,
   denied,
+  invalid,
   normalizeString,
   notFound,
+  ok,
   type ToolResult,
 } from "@/tools/shared/result";
 
@@ -302,8 +305,8 @@ export const setProductActiveTool = tool({
 export const deleteProductTool = tool({
   name: "delete_product",
   description:
-    "Permanently delete a product by id. HIGH RISK and irreversible. Use only after explicit confirmation from the owner is captured in the conversation.",
-  parameters: z.object({ id: z.string().uuid(), confirm: z.literal(true) }),
+    "Permanently delete a single product by id. HIGH RISK and irreversible. Execute directly when the owner clearly asked to delete this specific product — single-product deletes need NO confirmation (manual policy). Never add a confirm parameter and never ask the owner to confirm a single delete. Verify the product is gone afterwards.",
+  parameters: z.object({ id: z.string().uuid() }),
   strict: true,
   inputGuardrails: [toolRoleGuardrail("delete_product", [ADMIN_ROLE])],
   async execute(
@@ -386,6 +389,72 @@ export const resolveCategoryId = tool({
           );
         }
         return { ok: true, data: { id: match.id, slug: match.slug, name: match.name } };
+      },
+    );
+    return result;
+  },
+});
+
+/**
+ * Convert a human-friendly product name into a URL slug that satisfies the
+ * products.slug format (lowercase letters, digits and single hyphens only).
+ * Returns an empty string when no valid slug can be formed.
+ */
+export function slugifyProductName(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\w\s-]/g, "") // strip punctuation and non-ASCII scripts
+    .replace(/[\s_]+/g, "-") // spaces/underscores → hyphens
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : "";
+}
+
+/**
+ * Auto-generate a product URL slug from a product name (STEP 4 — slug
+ * friction). The owner should never be asked to type a slug when creating a
+ * product. If the generated slug already exists in the catalog
+ * (available:false), a genuine collision exists — the agent must surface it
+ * and ask the owner how to proceed (different name or an explicit slug)
+ * instead of silently choosing a different slug.
+ */
+export const generateProductSlug = tool({
+  name: "generate_product_slug",
+  description:
+    "Generate a product URL slug from a product name (e.g. 'Embroidered Kurta' → 'embroidered-kurta'). Use this whenever creating a product so the owner never has to type a slug. Returns { slug, available }. If available is false the exact slug already exists (a genuine collision) — ask the owner how to proceed instead of silently picking a different one. If no valid slug can be formed, handle the invalid result by asking the owner for an explicit slug.",
+  parameters: z.object({
+    name: z.string().min(1, "A product name is required.").max(160),
+  }),
+  strict: true,
+  inputGuardrails: [toolRoleGuardrail("generate_product_slug", [ADMIN_ROLE])],
+  async execute(
+    { name }: { name: string },
+    runContext?: RunContext<AgentContext>,
+  ) {
+    const ctx = runContext?.context;
+    if (!ctx) return { ok: false, reason: "error", message: "Missing execution context." } as const;
+    const actor = adminActor(ctx);
+
+    const result = await withToolAudit(
+      {
+        context: ctx,
+        agentName: ctx.agentName ?? "ai",
+        toolName: "generate_product_slug",
+        actionType: "product.slug.generate",
+        risk: "low",
+        summary: `Generate slug for "${name}"`,
+      },
+      async () => {
+        const slug = slugifyProductName(name);
+        if (!slug) {
+          return invalid(
+            "Could not create a slug from that name. Please ask the owner for an explicit slug, or a different product name.",
+          );
+        }
+        const all = await listAllProducts(actor);
+        const collision = all.some((p) => p.slug === slug);
+        return ok({ slug, available: !collision });
       },
     );
     return result;

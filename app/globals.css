@@ -48,6 +48,33 @@ h6 {
   color: #ffffff;
 }
 
+/* Premium slow gold sheen that drifts across the Shop By Category section. */
+@keyframes gold-sheen {
+  0%,
+  100% {
+    transform: translate3d(-18%, -12%, 0);
+  }
+  50% {
+    transform: translate3d(14%, 18%, 0);
+  }
+}
+
+.gold-sheen::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    52% 44% at 50% 46%,
+    rgba(243, 229, 200, 0.55) 0%,
+    rgba(214, 195, 154, 0.18) 48%,
+    transparent 72%
+  );
+  animation: gold-sheen 14s ease-in-out infinite;
+  will-change: transform;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-plum);
   outline-offset: 2px;

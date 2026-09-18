@@ -7,6 +7,19 @@ import {
 } from "@/services/whatsapp/whatsapp-reports";
 
 /**
+ * Human-readable failure for an admin approver. The provider message is kept
+ * bounded (no raw secrets) but the provider error code is appended so the owner
+ * can diagnose e.g. "(#131030) Recipient phone number not in allowed list".
+ */
+function providerFailureMessage(
+  result: { ok: false; message: string; providerCode?: string },
+): string {
+  return result.providerCode
+    ? `${result.message} (provider code: ${result.providerCode})`
+    : result.message;
+}
+
+/**
  * Executes the FROZEN execution payload of an approved (or about-to-be
  * approved) WhatsApp action. Only `execution.kind` values registered here can
  * ever run; any unknown payload is rejected. This is the ONLY executor wired
@@ -43,9 +56,10 @@ export async function executeApprovedWhatsappAction(
       requestedByUserId,
       idempotencyKey: `approved-${globalThis.crypto.randomUUID()}`,
     });
-    return result.ok
-      ? { ok: true, message: `Sent to ${label ?? phone}.` }
-      : { ok: false, error: result.message };
+    if (!result.ok) {
+      return { ok: false, error: providerFailureMessage(result) };
+    }
+    return { ok: true, message: `Sent to ${label ?? phone}.` };
   }
 
   if (kind === "whatsapp_report") {
@@ -65,9 +79,10 @@ export async function executeApprovedWhatsappAction(
       requestedByUserId,
       idempotencyKey: `report-approved-${globalThis.crypto.randomUUID()}`,
     });
-    return result.ok
-      ? { ok: true, message: `Report sent to ${label ?? phone}.` }
-      : { ok: false, error: result.message };
+    if (!result.ok) {
+      return { ok: false, error: providerFailureMessage(result) };
+    }
+    return { ok: true, message: `Report sent to ${label ?? phone}.` };
   }
 
   return { ok: false, error: "The approved action is not a supported WhatsApp action." };

@@ -23,7 +23,7 @@ export async function BrandStory() {
     "Craftsmanship that carries heritage into the modern wardrobe.";
   const body =
     content.brandStoryBody ||
-    "dINS by Daniyal is a Pakistani fashion label centred on considered detail — hand-finished embroidery, woven jamawar and unstitched collections made to be worn and kept.\n\nEach piece begins with fabric and technique; the result is design that feels at once familiar and new. We care less about seasons and more about garments you reach for again.";
+    "DINS by Daniyal is a Pakistani fashion label centred on considered detail — hand-finished embroidery, woven jamawar and unstitched collections made to be worn and kept.\n\nEach piece begins with fabric and technique; the result is design that feels at once familiar and new. We care less about seasons and more about garments you reach for again.";
   const cta = content.brandStoryCta || "Designed and finished in Pakistan.";
   const image =
     resolveImageUrl(content.brandStoryImage) ||

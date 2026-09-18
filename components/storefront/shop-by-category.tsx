@@ -31,9 +31,9 @@ export async function ShopByCategory({ categories }: ShopByCategoryProps) {
   return (
     <section
       aria-labelledby="shop-by-category-heading"
-      className="relative z-10 bg-gradient-to-b from-cream via-ivory to-ivory pb-4 pt-10 sm:pt-14"
+      className="gold-sheen relative z-10 -mt-16 overflow-hidden rounded-[4rem] bg-gradient-to-b from-[#c9b184] via-ivory to-white pb-4 pt-10 sm:pt-14"
     >
-      <Container size="lg">
+      <Container size="lg" className="relative z-10">
         <Reveal>
           <div className="mb-8 text-center sm:mb-10">
             <p className="text-[11px] uppercase tracking-[0.32em] text-gold-muted">

@@ -22,7 +22,25 @@ import {
   touchConversation,
   type ChatMessageRow,
 } from "@/services/ai/chat-service";
-import { resolveAiFocusEntity } from "@/services/ai/focus-service";
+import {
+  getPendingDraft,
+  setPendingDraft,
+  type PendingDraft,
+} from "@/services/ai/draft-service";
+import {
+  resolveAiFocusEntity,
+  resolveRecentFocusEntities,
+} from "@/services/ai/focus-service";
+
+/**
+ * Explicit cancel-intent detection for an active pending draft. When the
+ * incoming message clearly abandons the in-progress task ("chhod do", "cancel
+ * it", "drop it", "never mind"), the draft is cleared server-side before the
+ * turn runs so it can never get stuck. Deliberately narrow: an unrelated
+ * question mid-draft ("aaj ki sales?") must NOT match.
+ */
+const CANCEL_DRAFT_PATTERN =
+  /(?:^|\s)(?:chhod\s+do|chhor\s+do|chor\s+do|chord\s+do|chhodh\s+do|cancel\s+kar\s+do|cancel\s+karo|cancel(?:\s+it)?\b|cancel\s+the\s+(?:draft|product|checkout|order)\b|drop\s+it\b|never\s+mind\b|skip\s+it\b)(?=\s|$)/i;
 
 export type ChatUser =
   | { id: string; email: string | null; role: "admin" | "customer" }
@@ -233,14 +251,44 @@ export async function runChatTurn(
   // product/order/customer) so the next turn can resolve ambiguous references
   // against explicit tracked state. Best-effort: null focus is fine.
   let focusEntity = null;
+  let recentFocusEntities = null;
+  let pendingDraft: PendingDraft | null = null;
+  let draftCancelled = false;
   if (isAuthenticated) {
     try {
       focusEntity = await resolveAiFocusEntity(
         user!.id,
         conversation ?? undefined,
       );
+      // Per-type recent entities let follow-ups like "iska order" resolve to
+      // an order discussed several turns back even when newer product/customer
+      // turns happened in between.
+      recentFocusEntities = await resolveRecentFocusEntities(
+        user!.id,
+        conversation ?? undefined,
+      );
     } catch (error) {
       console.error("[ai] focus resolution failed:", error);
+    }
+
+    if (conversation) {
+      try {
+        pendingDraft = await getPendingDraft(conversation);
+      } catch (error) {
+        console.error("[ai] draft load failed:", error);
+      }
+      // Explicit cancel-intent clears the draft server-side before the run so
+      // a "chhod do" can never leave a stuck draft, even if the model's reply
+      // is plain text. Interruptions are NOT treated as cancels.
+      if (pendingDraft && CANCEL_DRAFT_PATTERN.test(message)) {
+        try {
+          await setPendingDraft(conversation, null);
+          draftCancelled = true;
+          pendingDraft = null;
+        } catch (error) {
+          console.error("[ai] draft cancel persist failed:", error);
+        }
+      }
     }
   }
 
@@ -251,10 +299,21 @@ export async function runChatTurn(
     requestId,
     conversationId: conversation ?? undefined,
     focusEntity,
+    recentFocusEntities,
+    pendingDraft,
   };
 
-  const inputItems: AgentInputItem[] = buildInputItems(historyRows, message, {
+  // Feed the model a bounded recency window of persisted history. Full threads
+  // are retained for ownership/authorization, but a tighter window keeps the
+  // model focused on the current thread of work and prevents old topics from
+  // bleeding into unrelated requests in long conversations.
+  const historyWindow = historyRows.slice(-20);
+
+  const inputItems: AgentInputItem[] = buildInputItems(historyWindow, message, {
     focusEntity,
+    recentFocusEntities,
+    pendingDraft,
+    draftCancelled,
   });
   const entryAgent: Agent<AgentContext> = getEntryAgent(channel);
 

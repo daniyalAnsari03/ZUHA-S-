@@ -47,10 +47,11 @@ type Props = {
 };
 
 /**
- * Compact unread-notification indicator designed exclusively for the floating
- * storefront chat widget trigger (bottom-right corner). Uses a distinct,
- * non-bell visual treatment: a small plum pill badge showing the unread count
- * that opens a lightweight notification popover when tapped.
+ * Persistent notification indicator designed exclusively for the floating
+ * storefront chat widget trigger (bottom-right corner). A small bespoke gold
+ * bell icon always hovers just above the AI Salesman chat button; an
+ * unread-count badge appears on its corner only when there are new
+ * notifications. Clicking it opens a lightweight notification popover.
  */
 export const ChatNotificationBadge = forwardRef<ChatNotificationBadgeHandle, Props>(
   function ChatNotificationBadge({ onOpenChange }, ref) {
@@ -102,21 +103,93 @@ export const ChatNotificationBadge = forwardRef<ChatNotificationBadgeHandle, Pro
       onOpenChange?.(open);
     }, [open, onOpenChange]);
 
-    if (unreadCount === 0) return null;
-
     return (
       <div className="relative">
         <motion.button
           ref={badgeRef}
           type="button"
           onClick={() => setOpen((prev) => !prev)}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 6, scale: 0.85 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.2 }}
-          aria-label={`${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`}
-          className="absolute -top-1.5 right-0 z-10 flex h-[22px] min-w-[22px] items-center justify-center rounded-full border-[2px] border-white bg-plum px-1 text-[10px] font-bold leading-none text-white shadow-md"
+          aria-label={
+            unreadCount > 0
+              ? `${unreadCount} unread notification${unreadCount === 1 ? "" : "s"}`
+              : "Notifications"
+          }
+          className="absolute inset-x-0 bottom-[calc(100%+0.375rem)] z-10 mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-plum text-white shadow-md shadow-plum/25 ring-1 ring-gold-soft/70 transition hover:bg-plum-dark max-[400px]:h-7 max-[400px]:w-7"
         >
-          {unreadCount > 99 ? "99+" : unreadCount}
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            className="h-4 w-4 max-[400px]:h-3.5 max-[400px]:w-3.5"
+          >
+            <defs>
+              <linearGradient
+                id="chat-bell-gold"
+                x1="6"
+                y1="3"
+                x2="18"
+                y2="22"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="0" stopColor="#d6c39a" />
+                <stop offset="0.55" stopColor="#b89b63" />
+                <stop offset="1" stopColor="#8f7748" />
+              </linearGradient>
+            </defs>
+            <circle
+              cx="12"
+              cy="4.5"
+              r="1.05"
+              stroke="url(#chat-bell-gold)"
+              strokeWidth="1.1"
+              strokeLinecap="round"
+            />
+            <path
+              d="M12 5.55V7"
+              stroke="url(#chat-bell-gold)"
+              strokeWidth="1.1"
+              strokeLinecap="round"
+            />
+            <path
+              d="M12 7c-2.6 0-4.6 1.9-4.6 4.5 0 2.8.85 5.2.75 6.7-.05.7.55 1.3 1.25 1.3h5.2c.7 0 1.3-.6 1.25-1.3-.1-1.5.75-3.9.75-6.7C16.6 8.9 14.6 7 12 7Z"
+              stroke="url(#chat-bell-gold)"
+              strokeWidth="1.15"
+              strokeLinejoin="round"
+              fill="url(#chat-bell-gold)"
+              fillOpacity="0.12"
+            />
+            <path
+              d="M8.7 18.25c2.1 1.15 4.5 1.15 6.6 0"
+              stroke="url(#chat-bell-gold)"
+              strokeWidth="1.1"
+              strokeLinecap="round"
+              opacity="0.8"
+            />
+            <path
+              d="M12 19.5v0.9"
+              stroke="url(#chat-bell-gold)"
+              strokeWidth="1.1"
+              strokeLinecap="round"
+            />
+            <circle
+              cx="12"
+              cy="20.75"
+              r="0.65"
+              stroke="url(#chat-bell-gold)"
+              strokeWidth="1.1"
+              fill="url(#chat-bell-gold)"
+              fillOpacity="0.25"
+            />
+          </svg>
+          {unreadCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-white bg-gold-muted px-0.5 text-[9px] font-bold leading-none text-charcoal">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
         </motion.button>
 
         <AnimatePresence>

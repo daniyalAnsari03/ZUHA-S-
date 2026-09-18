@@ -147,7 +147,7 @@ async function t5_productDetail(disposable) {
 }
 
 async function t6_createProduct() {
-  const t = `A${String(Date.now()).slice(-6)}`;
+  const t = `a${String(Date.now()).slice(-6)}`;
   token = t;
   const msg =
     `Ye ek naya test product hai jo main create karna chahta hoon. ` +

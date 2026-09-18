@@ -8,12 +8,14 @@ import {
   ImagePlus,
   Loader2,
   MessageCircle,
-  Send,
+  Plus,
+  SendHorizontal,
   Sparkles,
+  UserRound,
   X,
 } from "lucide-react";
 
-import { Spinner } from "@/components/ui/spinner";
+import { WidgetErrorBoundary } from "@/components/ui/widget-error-boundary";
 import { useAiChat, type ChatMessage } from "@/components/chat/use-ai-chat";
 import {
   ChatNotificationBadge,
@@ -42,9 +44,10 @@ type AiChatProps = {
   channel: "admin" | "salesman";
   storageKey: string;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   fallbackAgent: string;
   variant: "panel" | "floating";
+  theme?: "plum" | "gold";
   quickPrompts?: string[];
 };
 
@@ -66,12 +69,17 @@ function MessageBubble({ message }: { message: ChatMessage }) {
     : message.content;
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+    <motion.div
+      initial={{ opacity: 0, y: 14, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 320, damping: 28 }}
+      className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+    >
       <div
         className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
           isUser
-            ? "rounded-br-sm bg-plum text-white"
-            : "rounded-bl-sm bg-white text-charcoal ring-1 ring-charcoal/5"
+            ? "rounded-br-sm bg-gradient-to-br from-plum-dark via-plum to-plum-light text-white shadow-md shadow-plum/25 ring-1 ring-white/30"
+            : "rounded-bl-sm bg-white text-charcoal shadow-sm shadow-charcoal/5 ring-1 ring-charcoal/5"
         }`}
       >
         {attachment && (
@@ -91,7 +99,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
         )}
         {bodyText || "\u00A0"}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -101,6 +109,7 @@ function ChatBody({
   title,
   subtitle,
   fallbackAgent,
+  theme = "plum",
   quickPrompts,
 }: AiChatProps) {
   const {
@@ -119,6 +128,8 @@ function ChatBody({
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+
+  const isGold = theme === "gold";
 
   useEffect(() => {
     const node = scrollRef.current;
@@ -151,16 +162,27 @@ function ChatBody({
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-3xl shadow-xl shadow-plum/10 ring-1 ring-white/40">
-      {/* Premium gradient header: dark → gradually lighter */}
-      <header className="bg-gradient-to-b from-plum-dark via-plum to-plum-light px-4 py-3.5 sm:px-5">
+      {/* Premium gradient header: rich plum, dark → gradually lighter */}
+      <header className="relative bg-gradient-to-b from-plum-dark via-plum to-plum-light px-4 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_24px_-14px_rgba(74,32,64,0.55)] sm:px-5">
+        {/* Premium gold hairline: subtle, muted, never bright */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-3 sm:inset-x-4 bottom-0 h-px bg-gradient-to-r from-transparent via-gold-muted/60 to-transparent"
+        />
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25">
-              <Bot className="h-5 w-5 text-white" aria-hidden="true" />
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25">
+              {isGold ? (
+                <UserRound className="h-5 w-5 text-white" aria-hidden="true" />
+              ) : (
+                <Bot className="h-5 w-5 text-white" aria-hidden="true" />
+              )}
             </div>
-            <div>
+            <div className="min-w-0">
               <h2 className="font-serif text-base text-white">{title}</h2>
-              <p className="truncate text-xs text-white/70">{subtitle}</p>
+              {subtitle && (
+                <p className="truncate text-xs text-white/70">{subtitle}</p>
+              )}
             </div>
           </div>
           <button
@@ -169,46 +191,92 @@ function ChatBody({
             title="Start a new conversation"
             className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white/85 ring-1 ring-white/20 transition hover:bg-white/20"
           >
-            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="hidden sm:inline">New</span>
+            {isGold ? (
+              <>
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                <span className="hidden sm:inline">New</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                <span className="hidden sm:inline">New</span>
+              </>
+            )}
           </button>
         </div>
       </header>
 
-      {/* Message area: soft light → almost white */}
-      <div
-        ref={scrollRef}
-        className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-[#f6e9f0] to-white px-4 py-4 sm:px-5"
-      >
-        {messages.length === 0 && (
-          <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-plum/10">
-              <Sparkles className="h-6 w-6 text-plum" aria-hidden="true" />
+      {/* Message area: warm ivory → white */}
+      <div className="relative flex-1 overflow-hidden">
+        <div
+          ref={scrollRef}
+          className="relative z-0 h-full space-y-3 overflow-y-auto bg-gradient-to-b from-[#f6efe6] via-[#faf6ef] to-[#ffffff] px-4 py-4 sm:px-5"
+        >
+          {messages.length === 0 && (
+            <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
+              >
+                {isGold ? (
+                  <Image
+                    src="/images/brand/dins-logo.png"
+                    alt="DINS"
+                    width={408}
+                    height={146}
+                    priority
+                    className="h-10 w-auto opacity-90"
+                  />
+                ) : (
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-plum/10">
+                    <Sparkles className="h-6 w-6 text-plum" aria-hidden="true" />
+                  </span>
+                )}
+              </motion.div>
+              <p className="max-w-[26ch] text-sm leading-relaxed text-charcoal-muted">
+                {channel === "admin"
+                  ? "Ask the AI Manager anything about your store — products, stock, orders, customers or sales."
+                  : "Ask about products, availability, delivery or your order. I only answer from real store data."}
+              </p>
             </div>
-            <p className="max-w-[26ch] text-sm leading-relaxed text-charcoal-muted">
-              {channel === "admin"
-                ? "Ask the AI Manager anything about your store — products, stock, orders, customers or sales."
-                : "Ask about products, availability, delivery or your order. I only answer from real store data."}
-            </p>
-          </div>
-        )}
+          )}
 
-        {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
-        ))}
+          {messages.map((message) => (
+            <MessageBubble key={message.id} message={message} />
+          ))}
 
-        {isBusy && (
-          <div className="inline-flex items-center gap-2 rounded-2xl rounded-bl-sm bg-white px-4 py-2.5 text-xs text-charcoal-muted ring-1 ring-charcoal/5">
-            <Spinner className="h-4 w-4 text-plum" />
-            <span>{busyLabel} is working</span>
-          </div>
-        )}
+          {isBusy && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="inline-flex items-center gap-2.5 rounded-2xl rounded-bl-sm bg-white px-4 py-2.5 text-xs text-charcoal-muted ring-1 ring-charcoal/5"
+            >
+              <span className="flex items-center gap-1" aria-hidden="true">
+                {[0, 1, 2].map((i) => (
+                  <motion.span
+                    key={i}
+                    className="h-1.5 w-1.5 rounded-full bg-plum"
+                    animate={{ opacity: [0.35, 1, 0.35], y: [0, -2, 0] }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 0.9,
+                      delay: i * 0.14,
+                      ease: "easeInOut",
+                    }}
+                  />
+                ))}
+              </span>
+              <span>{busyLabel} is working</span>
+            </motion.div>
+          )}
 
-        {error && !isBusy && (
-          <div className="rounded-2xl bg-red-50 px-4 py-2.5 text-xs text-red-700 ring-1 ring-red-200">
-            {error}
-          </div>
-        )}
+          {error && !isBusy && (
+            <div className="rounded-2xl bg-red-50 px-4 py-2.5 text-xs text-red-700 ring-1 ring-red-200">
+              {error}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Quick prompts */}
@@ -220,7 +288,7 @@ function ChatBody({
               type="button"
               disabled={isBusy}
               onClick={() => setInput(prompt)}
-              className="rounded-full border border-plum/20 bg-white/80 px-3 py-1.5 text-xs text-plum transition hover:bg-plum/5"
+              className="rounded-full border border-plum/20 bg-white/80 px-3 py-1.5 text-xs text-plum transition hover:bg-plum/5 disabled:opacity-50"
             >
               {prompt}
             </button>
@@ -301,14 +369,15 @@ function ChatBody({
             disabled={isBusy}
             className="flex-1 rounded-full border border-charcoal/15 bg-[#faf6f8] px-4 py-2.5 text-sm text-charcoal outline-none transition placeholder:text-charcoal-muted focus:border-plum/40 focus:bg-white disabled:opacity-60"
           />
-          <button
+          <motion.button
             type="submit"
             disabled={isBusy || !input.trim()}
+            whileTap={{ scale: 0.9 }}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-plum text-white shadow-sm shadow-plum/20 transition hover:bg-plum-dark disabled:opacity-50"
             aria-label="Send message"
           >
-            <Send className="h-4 w-4" aria-hidden="true" />
-          </button>
+            <SendHorizontal className="h-4 w-4" aria-hidden="true" />
+          </motion.button>
         </div>
       </form>
     </div>
@@ -317,8 +386,9 @@ function ChatBody({
 
 /**
  * AI chat surface used by both the Admin AI Workplace (panel) and the
- * storefront AI Salesman (floating). The gradient + color language are LOCKED
- * to the premium plum direction and must not be changed casually.
+ * storefront AI Salesman (floating). Both share the same premium brand
+ * language: rich plum gradient header over a warm ivory → white message
+ * area, with plum accents throughout.
  */
 export function AiChat(props: AiChatProps) {
   if (props.variant === "panel") {
@@ -362,12 +432,14 @@ function FloatingChat(props: AiChatProps) {
       </AnimatePresence>
 
       <div className="fixed bottom-5 right-5 z-[60]">
-        <ChatNotificationBadge
-          ref={notifRef}
-          onOpenChange={(isOpen) => {
-            if (isOpen) setOpen(false);
-          }}
-        />
+        <WidgetErrorBoundary fallback={null}>
+          <ChatNotificationBadge
+            ref={notifRef}
+            onOpenChange={(isOpen) => {
+              if (isOpen) setOpen(false);
+            }}
+          />
+        </WidgetErrorBoundary>
         <motion.button
           type="button"
           onClick={() => {

@@ -1,6 +1,11 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  type Variants,
+} from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -16,13 +21,21 @@ type SlideOverProps = {
   labelledById?: string;
 };
 
-const easing: [number, number, number, number] = [0.22, 1, 0.36, 1];
+/**
+ * Content wrapper variant. Passing the hidden/visible labels down lets panel
+ * children (menu rows, search results) cascade in on open.
+ */
+const contentVariants: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.12 } },
+};
 
 /**
  * Accessible slide-over panel (drawer) rendered in a portal. Handles Escape,
  * backdrop click, initial focus and focus return on close. Keeps the storefront
  * interactive beneath it rather than navigating — used for the menu, search,
- * wishlist and cart entry points.
+ * wishlist and cart entry points. Opens with a premium spring slide, a gradient
+ * top accent and staggered inner content.
  */
 export function SlideOver({
   open,
@@ -33,6 +46,7 @@ export function SlideOver({
   labelledById,
 }: SlideOverProps) {
   const panelRef = useRef<HTMLElement>(null);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!open) return;
@@ -56,6 +70,21 @@ export function SlideOver({
 
   if (typeof document === "undefined") return null;
 
+  const offscreen = side === "right" ? "100%" : "-100%";
+  const panelVariants: Variants = reduceMotion
+    ? {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { duration: 0.2 } },
+      }
+    : {
+        hidden: { x: offscreen, opacity: 0.5 },
+        visible: {
+          x: 0,
+          opacity: 1,
+          transition: { type: "spring", stiffness: 300, damping: 34, mass: 0.9 },
+        },
+      };
+
   return createPortal(
     <AnimatePresence>
       {open && (
@@ -67,7 +96,7 @@ export function SlideOver({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25 }}
             onClick={onClose}
           />
           <motion.aside
@@ -77,32 +106,41 @@ export function SlideOver({
             aria-modal="true"
             aria-label={title}
             className={cn(
-              "absolute top-0 flex h-full flex-col border-charcoal/10 bg-white shadow-2xl",
-              side === "right" ? "right-0 border-l" : "left-0 border-r",
-              side === "right" ? "w-full max-w-md" : "w-full max-w-xs sm:max-w-sm",
+              "absolute top-0 flex h-full w-full max-w-xs flex-col overflow-hidden border-plum-dark/15 bg-gradient-to-b from-ivory to-cream shadow-2xl sm:max-w-sm",
+              side === "right"
+                ? "right-0 rounded-l-3xl border-l"
+                : "left-0 rounded-r-3xl border-r",
             )}
-            initial={{ x: side === "right" ? "100%" : "-100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: side === "right" ? "100%" : "-100%" }}
-            transition={{ type: "tween", duration: 0.28, ease: easing }}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={panelVariants}
           >
-            <div className="flex shrink-0 items-center justify-between border-b border-charcoal/10 px-5 py-4 sm:px-6">
-              <h2 className="font-serif text-lg text-charcoal">
-                {title}
-              </h2>
-              <button
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-soft to-transparent"
+            />
+            <div className="relative flex shrink-0 items-center justify-between border-b border-plum-dark/30 bg-gradient-to-r from-plum-dark to-plum px-5 py-4 sm:px-6">
+              <h2 className="font-serif text-lg text-ivory">{title}</h2>
+              <motion.button
                 type="button"
                 onClick={onClose}
                 data-autofocus
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-charcoal transition-colors hover:bg-plum/5 focus-visible:outline-plum"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-ivory/90 transition-colors hover:border-gold-soft/60 hover:bg-white/10 hover:text-gold-soft focus-visible:outline-gold-soft"
                 aria-label={`Close ${title}`}
+                whileHover={{ rotate: 90, scale: 1.08 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 320, damping: 20 }}
               >
                 <X className="h-5 w-5" aria-hidden="true" />
-              </button>
+              </motion.button>
             </div>
-            <div className="flex-1 overflow-y-auto overscroll-contain">
+            <motion.div
+              className="flex-1 overflow-y-auto overscroll-contain"
+              variants={contentVariants}
+            >
               {children}
-            </div>
+            </motion.div>
           </motion.aside>
         </div>
       )}

@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: product.name,
     description:
-      product.description || `${product.name} — premium Pakistani fashion by dINS by Daniyal.`,
+      product.description || `${product.name} — premium Pakistani fashion by DINS by Daniyal.`,
     openGraph: {
       type: "website",
       title: product.name,
@@ -100,7 +100,7 @@ export default async function ProductDetailPage({ params }: Props) {
           <div className="flex flex-col justify-start gap-6">
             <div>
               <p className="text-[11px] uppercase tracking-[0.32em] text-gold-muted">
-                dINS by Daniyal
+                DINS by Daniyal
               </p>
               <h1 className="mt-2 font-serif text-2xl leading-tight text-charcoal sm:text-3xl lg:text-4xl">
                 {product.name}

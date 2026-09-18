@@ -585,6 +585,8 @@ describe("14. Customer AI Security Boundary", () => {
       "update_cart_quantity",
       "remove_from_cart",
       "place_cod_order",
+      "save_checkout_draft",
+      "cancel_draft",
       "list_my_orders",
       "get_my_order",
     ];

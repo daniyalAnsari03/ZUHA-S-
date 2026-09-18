@@ -1,4 +1,4 @@
-# dINS by Daniyal — AI E-Commerce Website
+# DINS by Daniyal — AI E-Commerce Website
 
 A production-grade AI-powered e-commerce platform for a premium Pakistani
 fashion/clothing brand.

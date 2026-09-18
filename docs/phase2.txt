@@ -139,7 +139,7 @@ Hamburger menu
 
 Brand wordmark:
 
-**dINS by Daniyal**
+**DINS by Daniyal**
 
 Use the existing project typography/design system where possible.
 

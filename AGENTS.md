@@ -665,7 +665,7 @@ Hamburger menu.
 
 Brand logo:
 
-**dINS by Daniyal**
+**DINS by Daniyal**
 
 ### Right
 
@@ -1803,9 +1803,12 @@ After a completed fix/feature:
 3. inspect git diff
 4. ensure no secrets are included
 5. commit the final working changes
-6. push to GitHub `main`
+6. STOP — wait for the owner's explicit go-ahead before pushing to GitHub or deploying anywhere
+7. push to GitHub `main`
 
 The final state must be committed.
+
+**Push/Deploy Guard (MANDATORY):** STOP before ANY `git push` to `main` or any Vercel deployment. Do not push or deploy until the owner gives explicit go-ahead. The owner remains the ultimate authority.
 
 ---
 
@@ -1819,10 +1822,11 @@ After the final completed fix/result for a task:
 
 1. verify locally
 2. commit
-3. push to GitHub `main`
-4. deploy production to Vercel
-5. verify the production deployment
-6. report the production result
+3. STOP — wait for the owner's explicit go-ahead before Push/Deploy
+4. push to GitHub `main`
+5. deploy production to Vercel
+6. verify the production deployment
+7. report the production result
 
 Do not claim deployment success without evidence.
 
@@ -1931,10 +1935,11 @@ For every future coding task:
 8. Verify actual behavior.
 9. Check for regressions.
 10. Commit changes.
-11. Push to GitHub `main`.
-12. Deploy to Vercel production when the task is complete.
-13. Verify production.
-14. Report what was actually completed.
+11. STOP — wait for the owner's explicit go-ahead before Push/Deploy.
+12. Push to GitHub `main`.
+13. Deploy to Vercel production when the task is complete.
+14. Verify production.
+15. Report what was actually completed.
 
 Do not unnecessarily modify unrelated parts of the application.
 
@@ -2071,7 +2076,7 @@ Do not force this exact structure if an existing valid architecture is already p
 
 Primary brand:
 
-**dINS by Daniyal**
+**DINS by Daniyal**
 
 The visual identity should feel like a premium Pakistani fashion label.
 

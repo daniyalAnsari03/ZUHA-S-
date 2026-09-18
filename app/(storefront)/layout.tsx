@@ -9,6 +9,7 @@ import {
   getActiveCategories,
   getAllActiveProducts,
 } from "@/lib/storefront/data";
+import { WidgetErrorBoundary } from "@/components/ui/widget-error-boundary";
 
 /**
  * Storefront chrome layout.
@@ -34,7 +35,9 @@ export default async function StorefrontLayout({
       <Navbar categories={categories} products={products} />
       <div className="flex flex-1 flex-col">{children}</div>
       <Footer categories={categories} />
-      <AiSalesmanWidget />
+      <WidgetErrorBoundary>
+        <AiSalesmanWidget />
+      </WidgetErrorBoundary>
     </>
   );
 }

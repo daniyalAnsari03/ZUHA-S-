@@ -17,17 +17,17 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-const siteTitle = "dINS by Daniyal | Premium Pakistani Fashion";
+const siteTitle = "DINS by Daniyal | Premium Pakistani Fashion";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://dinsbydaniyal.com"),
   title: {
     default: siteTitle,
-    template: "%s | dINS by Daniyal",
+    template: "%s | DINS by Daniyal",
   },
   description:
-    "Premium Pakistani fashion and embroidery. Jamawar, Cut-Dana embroidery, lawn and unstitched collections by dINS by Daniyal.",
-  applicationName: "dINS by Daniyal",
+    "Premium Pakistani fashion and embroidery. Jamawar, Cut-Dana embroidery, lawn and unstitched collections by DINS by Daniyal.",
+  applicationName: "DINS by Daniyal",
   keywords: [
     "Pakistani fashion",
     "Jamawar",
@@ -35,21 +35,21 @@ export const metadata: Metadata = {
     "Cut-Dana",
     "lawn",
     "unstitched",
-    "dINS by Daniyal",
+    "DINS by Daniyal",
   ],
   openGraph: {
     type: "website",
     locale: "en_PK",
-    siteName: "dINS by Daniyal",
+    siteName: "DINS by Daniyal",
     title: siteTitle,
     description:
-      "Premium Pakistani fashion and embroidery by dINS by Daniyal.",
+      "Premium Pakistani fashion and embroidery by DINS by Daniyal.",
   },
   twitter: {
     card: "summary_large_image",
     title: siteTitle,
     description:
-      "Premium Pakistani fashion and embroidery by dINS by Daniyal.",
+      "Premium Pakistani fashion and embroidery by DINS by Daniyal.",
   },
   robots: {
     index: true,

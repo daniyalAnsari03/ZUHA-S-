@@ -8,7 +8,14 @@ import {
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import { formatPKTDate } from "@/lib/time";
 import { ServiceError } from "@/services/base";
-import type { FocusEntity } from "@/services/ai/focus-service";
+import {
+  missingDraftFields,
+  type PendingDraft,
+} from "@/services/ai/draft-service";
+import type {
+  FocusEntity,
+  RecentFocusEntities,
+} from "@/services/ai/focus-service";
 
 export type AiChannel = "admin" | "salesman";
 export type AiMessageRole = "user" | "assistant";
@@ -159,11 +166,21 @@ export async function touchConversation(
  * - When a tracked focus entity exists, states it explicitly so ambiguous
  *   follow-ups ("khudhi karo", "iska", "is order ko") resolve against the last
  *   named/actioned entity instead of the model's own attention.
+ * - When a pending draft is active, states it explicitly so the next reply is
+ *   interpreted as filling THAT draft — never as a new/unrelated request.
  */
 export function buildContextItems(options: {
   focusEntity?: FocusEntity | null;
+  recentFocusEntities?: RecentFocusEntities | null;
+  pendingDraft?: PendingDraft | null;
+  draftCancelled?: boolean;
 }): AgentInputItem[] {
-  const { focusEntity } = options;
+  const {
+    focusEntity,
+    recentFocusEntities,
+    pendingDraft,
+    draftCancelled,
+  } = options;
   const lines: string[] = [
     `Today's date (Asia/Karachi): ${formatPKTDate()}. Use this date for any business date question.`,
   ];
@@ -171,11 +188,84 @@ export function buildContextItems(options: {
   if (focusEntity) {
     lines.push(
       `Current focus: ${focusEntity.type} "${focusEntity.name}" (id: ${focusEntity.id}). ` +
-        "This is the specific product/order/customer most recently named or acted on in " +
-        "this conversation. Resolve ambiguous references like \"khudhi karo\", \"iska\", " +
-        "\"is product ko\", \"is order ko\" against this entity. If the current request " +
-        "clearly refers to a different entity, ignore this line. If this focus seems stale " +
-        "for the current request, ask one short clarifying question instead of guessing.",
+        "This line exists ONLY to resolve ambiguous follow-ups like \"khudhi karo\", \"iska\", " +
+        "\"is product ko\", \"is order ko\" in the CURRENT message. It is NOT a suggestion to " +
+        "mention, re-verify, or act on this entity. If the current message is about a different " +
+        "topic (sales, orders, customers, categories, a different product, etc.), IGNORE this " +
+        "line completely — do not mention or reference the focused entity at all. If the current " +
+        "request clearly names or refers to a different entity, ignore this line. If this focus " +
+        "seems stale for the current request, ask one short clarifying question instead of guessing. " +
+        "SHORT VERB-ONLY CONTINUATIONS (very short messages with NO entity name and NO entity type " +
+        "that continue the previous action — \"delete\", \"delete ua?\", \"update karo\", \"haan\", " +
+        "\"kar do\") MUST resolve against THIS focused entity of the matching type — never against a " +
+        "different, earlier-discussed entity, and never by guessing an entity from raw conversation " +
+        "memory (if the focus line has no entity of the matching type, ask ONE short clarifying " +
+        "question instead of acting). This verb-only rule does NOT apply to references that NAME an " +
+        "entity type (\"iska order\", \"us customer\", \"wo product\") — resolve those against the " +
+        "\"Recently discussed entities\" list below (most recent entity of that type), not against " +
+        "this single focus line.",
+    );
+  }
+
+  if (recentFocusEntities) {
+    const recent = [
+      recentFocusEntities.product ? `product "${recentFocusEntities.product.name}"` : null,
+      recentFocusEntities.order ? `order "${recentFocusEntities.order.name}"` : null,
+      recentFocusEntities.customer
+        ? `customer "${recentFocusEntities.customer.name}"`
+        : null,
+    ].filter(Boolean);
+    if (recent.length > 0) {
+      lines.push(
+        `Recently discussed entities (most recent per type): ${recent.join(", ")}. ` +
+          "These are ONLY for resolving ambiguous references in the CURRENT message, " +
+          "regardless of how many turns back the entity was discussed. If the current " +
+          "message uses an ambiguous reference to an entity type (" +
+          "\"iska order\", \"wo product\", \"us customer\"), match it to the most recent " +
+          "entity of that type listed here (this list takes precedence over the single \"Current " +
+          "focus\" line for any reference that names an entity type). Do NOT act on any of these " +
+          "entities unless " +
+          "the current message clearly refers to them. If the current message names " +
+          "something not listed here, prefer what the current message names.",
+      );
+    }
+  }
+
+  if (draftCancelled) {
+    lines.push(
+      "PENDING DRAFT: the user just cancelled the pending draft in this conversation. " +
+        "There is no active draft now. Continue the conversation normally.",
+    );
+  }
+
+  if (pendingDraft) {
+    const missing = missingDraftFields(pendingDraft.kind, pendingDraft.fields);
+    const collected = Object.entries(pendingDraft.fields)
+      .map(([key, value]) =>
+        `${key}=${typeof value === "string" ? `"${value}"` : String(value)}`,
+      )
+      .join(", ");
+
+    const nextField = pendingDraft.expect ?? missing[0] ?? null;
+    const completionNote =
+      pendingDraft.kind === "product-edit"
+        ? "No mandatory fields remain for this edit. Keep collecting any further fields the owner wants changed, then apply the edit once the request is fully specified and clear the draft with cancel_draft."
+        : missing.length === 0
+          ? "The draft is complete. Proceed to finish the task (create the product / place the order), then clear the draft with cancel_draft."
+          : `Ask the owner for the next missing field.`;
+
+    lines.push(
+      `ACTIVE PENDING DRAFT (this conversation): kind=${pendingDraft.kind}` +
+        (pendingDraft.targetId ? `, targetId=${pendingDraft.targetId}` : "") +
+        `. Already collected: ${collected || "(none)"}. ` +
+        `Still missing: ${missing.length > 0 ? missing.join(", ") : "(none)"}. ` +
+        (nextField
+          ? ` The next reply about this task should be read as the value for field "${nextField}". `
+          : "") +
+        "RULES for this draft: (1) While a draft is active, interpret the user's reply on this task as FILLING THE DRAFT's next missing field — never as a new, unrelated request, and never match it against unrelated existing records. " +
+        "(2) If the user asks an unrelated question mid-draft (e.g. about sales, orders, another product) with no draft-filling intent, answer that question normally and DO NOT clear the draft — resume the draft when the user returns to it, and keep saving progress with the draft tool after every relevant exchange. " +
+        "(3) Cancel the draft ONLY when the user explicitly says 'chhod do' / 'cancel it' / clearly abandons the task (call cancel_draft). " +
+        "(4) " + completionNote,
     );
   }
 
@@ -190,7 +280,12 @@ export function buildContextItems(options: {
 export function buildInputItems(
   history: ChatMessageRow[],
   currentMessage: string,
-  options?: { focusEntity?: FocusEntity | null },
+  options?: {
+    focusEntity?: FocusEntity | null;
+    recentFocusEntities?: RecentFocusEntities | null;
+    pendingDraft?: PendingDraft | null;
+    draftCancelled?: boolean;
+  },
 ): AgentInputItem[] {
   const items: AgentInputItem[] = buildContextItems(options ?? {});
 

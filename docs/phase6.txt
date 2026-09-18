@@ -2,7 +2,7 @@
 
 ## Complete Implementation — Production-Ready, Nothing Incomplete
 
-You are implementing **Phase 6** of the existing dINS by Daniyal AI E-Commerce application.
+You are implementing **Phase 6** of the existing DINS by Daniyal AI E-Commerce application.
 
 PROJECT ROOT:
 `D:\ai_business_ecommerce`
@@ -73,7 +73,7 @@ Test:
 2. ADMIN LAYOUT / NAVIGATION
 ============================
 
-Create/complete a polished Admin Panel layout consistent with the existing dINS design system.
+Create/complete a polished Admin Panel layout consistent with the existing DINS design system.
 
 Include:
 
@@ -417,7 +417,7 @@ Admin lists should have appropriate:
 
 Do not introduce unnecessary complexity.
 
-UX must remain premium and consistent with the existing dINS visual system.
+UX must remain premium and consistent with the existing DINS visual system.
 
 ==================================================
 14. RESPONSIVE DESIGN

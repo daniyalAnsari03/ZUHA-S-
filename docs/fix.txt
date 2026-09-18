@@ -1,42 +1,71 @@
-STOREFRONT NAVBAR CHANGES
+CRITICAL — the AI fabricated a fake factual claim and it's now recurring:
+1. At one point the AI stated "aapki website par 25 products hain, meri
+   catalog mein 20, 5 missing hain" — this "25 products / 5 missing" claim was
+   NEVER mentioned by the owner anywhere in the conversation; it appears to be
+   entirely invented. Then, ~10 turns later, in a COMPLETELY UNRELATED
+   conversation about the Media Library feature, the AI brought this same
+   fabricated "20 vs 25" claim back up unprompted. Find out: is any tool
+   result or stale conversation-history data plausibly producing a "25" or
+   "20" number that got misattributed into this specific sentence? Or is this
+   pure model confabulation? Add a hard, explicit rule to SHARED_SAFETY (and
+   audit all agents): NEVER state a specific number, count, or discrepancy
+   claim (e.g. "X products missing", "Y vs Z") unless it was JUST computed
+   from an actual tool call in THIS turn — if unsure or no real data supports
+   a specific figure, say so plainly instead of inventing one. Also: a claim
+   made in an earlier turn must never be restated as fact in a later,
+   unrelated turn without re-verifying it against fresh data.
 
-Current navbar (right side): search icon, notification/bell icon,
-wishlist/heart icon, bag/cart icon.
+REGRESSION — single delete is asking for confirmation again:
+2. "Dhaga Resham Kurta delete karo" triggered "Kya aap is product ko
+   permanently delete karna chahte hain?" — single-item delete must execute
+   directly per the existing no-confirmation-except->10-records policy. Find
+   why this regressed (check deleteProductTool and productAgent instructions
+   for any leftover/reintroduced confirmation step) and fix it.
 
-1. Remove the notification/bell icon from the navbar entirely.
-2. Remove the wishlist/heart icon from the navbar entirely.
-3. Add a Login/Account icon in the navbar, in the slot where the wishlist icon
-   was (right side, before the bag icon). Use a simple person/account-style
-   icon consistent with the site's existing icon set — do NOT reuse the bell
-   icon's visual style for this.
-4. Remove the "Login" menu item from the hamburger sidebar menu — since login
-   now lives in the navbar itself, it must not also appear in the sidebar.
-5. Final navbar right-side icon order: Search → Login/Account → Bag.
+REGRESSION — wrong-target bug on a DIFFERENT product (not Khirke Jamawar this
+time):
+3. After the delete-confirmation exchange, the owner sent short/fragmented
+   messages ("delete", "delete ua?") — the AI responded about "Buta Jaal" (a
+   product created earlier in the SAME session) instead of the actual subject,
+   "Dhaga Resham Kurta". This suggests the anchoring tendency isn't specific to
+   one hardcoded product — it can latch onto whatever is most recently
+   created/mentioned generally. Check whether a very short/ambiguous message
+   ("delete", "delete ua?") is bypassing the focus-resolution/draft mechanism
+   entirely (e.g. too short to match any pattern, falling back to some other
+   default). Fix so short/fragmented follow-ups still resolve against the
+   correct current focus entity, never a different recently-mentioned one.
 
-CHAT WIDGET NOTIFICATION INDICATOR
+WRONG ANALYSIS — "most popular" answered from stock level, not real sales data:
+4. "Jamawar mein sabse hit konsa hai?" was answered using stock level as a
+   proxy for popularity ("only 5 left, so it's the most popular") instead of
+   calling the actual sales/analytics tool that has real units-sold data
+   (used correctly elsewhere in this system for "best-selling product").
+   Fix productAgent/salesAgent instructions so any "best-selling"/"most
+   popular"/"hit" question always uses real sales data, never stock level as
+   a guess.
 
-6. Move the notification affordance from the navbar to the floating chat
-   widget button (bottom-right corner of the screen). Add a small notification
-   indicator (badge/dot or a distinct small icon) positioned on/above that
-   chat button to show unread notification state. Use a different icon/visual
-   treatment than the bell icon being removed from the navbar — do not reuse
-   that exact design, the owner specifically dislikes it.
+VAGUE NON-ANSWER:
+5. "Customers AI salesman se shop kar rahe hain ya manually?" got a vague,
+   non-committal answer ("data verify kiya ja raha hai") instead of either a
+   real answer from actual data or a clear "I don't have a way to determine
+   that." Fix to give one or the other, never a vague evasion.
 
-HERO / SECTION-BELOW-HERO OVERLAP FIX
+VERIFY A CAPABILITY CLAIM:
+6. The AI gave a detailed, confident explanation of a "Media Library"
+   feature (upload, replace, organize images) when asked. Confirm whether
+   Media Library is an ACTUAL registered admin capability/tool in this
+   codebase. If it is not, this was invented — add it to the "never claim
+   unregistered capabilities" rule and make the agent say it doesn't have
+   that information instead. If it IS real, make sure the explanation comes
+   from real docs/CMS content, not generic assumed behavior.
 
-7. Below the hero section ("NEW ARRIVALS" banner), there is a cream/beige
-   rounded section that currently overlaps upward onto the bottom of the hero
-   image (a "lifted card" effect), with a visible white color layer between
-   the hero and that rounded cream section (visible near the rounded
-   corners/edge).
-   Fix: remove that white layer/gap entirely, and stop the cream section from
-   overlapping upward onto the hero — it should sit in its normal position
-   directly after the hero, without wrapping up over it. Inspect the actual
-   homepage hero component and the section immediately below it (likely a
-   negative margin-top, border-radius, and/or z-index layering trick causing
-   this) and fix the CSS so there is a clean, direct transition from the hero
-   into the cream section with no white sliver or overlap.
+MISROUTED META-QUESTION:
+7. "Notification koi unread hai?" got forwarded to Support without a real
+   answer. Check whether a real notifications tool/capability exists for
+   admin; if yes, use it and answer directly; if no, say so plainly instead
+   of deflecting to Support.
 
-Keep the overall premium/elegant visual style consistent with the rest of the
-site. Send me a preview screenshot or link when done, before considering this
-complete.
+Report root cause and fix for each of the 7 items above. Re-run admin-ai-qa.mjs,
+phase7-sustained.mjs, and no-guess-regression.mjs to confirm no new
+regressions, and add new QA assertions covering items 1-4 specifically so they
+don't silently reappear.

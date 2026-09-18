@@ -32,7 +32,7 @@ async function generateText(
   return response.choices[0]?.message?.content ?? "";
 }
 
-const MARKETING_SYSTEM = `You are the marketing copywriter for dINS by Daniyal, a premium Pakistani fashion label. 
+const MARKETING_SYSTEM = `You are the marketing copywriter for DINS by Daniyal, a premium Pakistani fashion label. 
 You write elegant, aspirational copy that reflects luxury craftsmanship. 
 Prices are in PKR. Never fabricate product details — only use what the user provides.
 Be concise and impactful. Output only the requested copy, no meta-commentary.`;

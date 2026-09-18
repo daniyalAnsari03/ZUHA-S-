@@ -36,7 +36,7 @@ export async function Footer({ categories }: FooterProps) {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <p className="font-serif text-lg tracking-wide text-charcoal">
-              dINS by Daniyal
+              DINS by Daniyal
             </p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-charcoal-muted">
               {about}
@@ -130,7 +130,7 @@ export async function Footer({ categories }: FooterProps) {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-charcoal/10 pt-6 text-xs text-charcoal-muted sm:flex-row">
-          <p>© {new Date().getFullYear()} dINS by Daniyal. {copyright}</p>
+          <p>© {new Date().getFullYear()} DINS by Daniyal. {copyright}</p>
           <p>{tagline}</p>
         </div>
       </Container>

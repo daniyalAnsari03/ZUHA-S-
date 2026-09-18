@@ -6,7 +6,7 @@ import { SignupForm } from "./signup-form";
 
 export const metadata: Metadata = {
   title: "Create account",
-  description: "Create a dINS by Daniyal account.",
+  description: "Create a DINS by Daniyal account.",
   robots: {
     index: false,
     follow: false,
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Premium customer signup page for dINS by Daniyal.
+ * Premium customer signup page for DINS by Daniyal.
  *
  * Visually identical to the `/login` authentication screen: sits directly on
  * the storefront's ivory background with no chrome (no announcement bar,
@@ -37,12 +37,12 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
         <div className="flex items-center justify-center lg:justify-start">
           <Link
             href="/"
-            aria-label="dINS by Daniyal — home"
+            aria-label="DINS by Daniyal — home"
             className="inline-block"
           >
             <Image
               src="/images/brand/dins-by-daniyal-logo.png"
-              alt="dINS by Daniyal"
+              alt="DINS by Daniyal"
               width={408}
               height={214}
               priority

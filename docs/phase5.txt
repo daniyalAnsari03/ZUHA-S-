@@ -469,7 +469,7 @@ Avoid creating multiple competing implementations for the same operation.
 
 # 16. UI / DESIGN REQUIREMENTS
 
-Match the existing dINS by Daniyal premium visual language.
+Match the existing DINS by Daniyal premium visual language.
 
 Do NOT redesign the website.
 

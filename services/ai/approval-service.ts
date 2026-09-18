@@ -207,10 +207,16 @@ export async function decideApprovalRequest(input: {
       if (input.executor) {
         const executionResult = await input.executor(request.execution ?? {});
         if (!executionResult.ok) {
-          throw new ServiceError(
-            "APPROVAL_EXECUTION_FAILED",
-            executionResult.error ?? "The approved action could not be executed.",
+          console.error(
+            "[approval] approved action could not be executed for",
+            input.approvalId,
+            executionResult.error,
           );
+          return {
+            ok: false,
+            error:
+              executionResult.error ?? "The approved action could not be executed.",
+          };
         }
       }
 
@@ -223,6 +229,7 @@ export async function decideApprovalRequest(input: {
         })
         .eq("id", input.approvalId);
       if (error) {
+        console.error("[approval] approve update failed:", error.message);
         throw error;
       }
       return { ok: true, message: "Approved." };
@@ -237,10 +244,12 @@ export async function decideApprovalRequest(input: {
       })
       .eq("id", input.approvalId);
     if (error) {
+      console.error("[approval] reject update failed:", error.message);
       throw error;
     }
     return { ok: true, message: "Rejected." };
-  } catch {
+  } catch (error) {
+    console.error("[approval] decision failed:", error);
     return {
       ok: false,
       error: "Failed to update the approval request.",

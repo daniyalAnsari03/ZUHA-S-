@@ -6,7 +6,7 @@ You are working inside the EXISTING project:
 
 `D:\ai_business_ecommerce`
 
-This is the existing **dINS by Daniyal AI E-Commerce** project.
+This is the existing **DINS by Daniyal AI E-Commerce** project.
 
 DO NOT create another project.
 DO NOT create another root directory.
@@ -765,7 +765,7 @@ Do not create a fake "AI workplace" UI that only returns static responses.
 
 # 21. CUSTOMER AI UI
 
-Integrate Customer AI Salesman into the storefront without damaging the existing premium dINS design.
+Integrate Customer AI Salesman into the storefront without damaging the existing premium DINS design.
 
 The UI must:
 
@@ -1172,7 +1172,7 @@ Do not redesign the entire website.
 
 Preserve the existing:
 
-* dINS branding
+* DINS branding
 * premium visual identity
 * typography
 * colors

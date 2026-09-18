@@ -85,10 +85,10 @@ describe("AddToBagButton", () => {
     mocks.addToCart.mockResolvedValue(null);
   });
 
-  it("shows a functional Add to Bag control", () => {
+  it("shows a functional Add to Cart control", () => {
     render(<AddToBagButton productId="00000000-0000-4000-8000-000000000000" />);
     expect(
-      screen.getByRole("button", { name: "ADD TO BAG" }),
+      screen.getByRole("button", { name: "ADD TO CART" }),
     ).toBeInTheDocument();
   });
 
@@ -96,7 +96,7 @@ describe("AddToBagButton", () => {
     const user = userEvent.setup();
     render(<AddToBagButton productId="00000000-0000-4000-8000-000000000000" />);
 
-    await user.click(screen.getByRole("button", { name: "ADD TO BAG" }));
+    await user.click(screen.getByRole("button", { name: "ADD TO CART" }));
 
     expect(mocks.addToCart).toHaveBeenCalledWith(
       "00000000-0000-4000-8000-000000000000",
@@ -110,7 +110,7 @@ describe("AddToBagButton", () => {
     const user = userEvent.setup();
     render(<AddToBagButton productId="00000000-0000-4000-8000-000000000000" />);
 
-    await user.click(screen.getByRole("button", { name: "ADD TO BAG" }));
+    await user.click(screen.getByRole("button", { name: "ADD TO CART" }));
 
     expect(await screen.findByText(/please sign in/i)).toBeInTheDocument();
   });

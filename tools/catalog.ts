@@ -5,6 +5,7 @@ import type { AgentContext } from "@/agents/context";
 import { getCmsContent } from "@/services/cms/cms-service";
 import { listActiveCategories } from "@/services/categories/categories-service";
 import {
+  countActiveProducts,
   getProductBySlug,
   listActiveProducts,
   type ProductWithCategory,
@@ -80,7 +81,7 @@ export const listCategories = tool({
 export const listProducts = tool({
   name: "list_products",
   description:
-    "Search the live product catalog. Supports category filter and free-text search on name, fabric, embroidery or SKU. Returns concise catalog lines (never internal notes). For 'all products' requests, call with no search and a higher limit (e.g. 20).",
+    "Search the live product catalog. Supports category filter and free-text search on name, fabric, embroidery or SKU. Returns concise catalog lines (never internal notes) plus totalCount — the REAL number of active products matching the filter. For 'all products' requests, call with no search and a higher limit (e.g. 20). NEVER state a product count larger than the totalCount this tool returns.",
   parameters: z.object({
     categorySlug: z.string().optional(),
     search: z.string().optional(),
@@ -105,10 +106,18 @@ export const listProducts = tool({
       }),
     );
     if (!result.ok) return result;
+    const totalCount = await asResult(() =>
+      countActiveProducts({
+        categorySlug: normalizedCategory,
+        search: normalizedSearch,
+      }),
+    );
+    const total = totalCount.ok ? totalCount.data : result.data.length;
     if (result.data.length === 0) {
       return {
         ok: true,
         data: [],
+        totalCount: total,
         message: normalizedSearch
           ? `No products found matching "${normalizedSearch}". Try a different search term or browse by category.`
           : "No products currently available in the catalog.",
@@ -117,6 +126,8 @@ export const listProducts = tool({
     return {
       ok: true,
       data: result.data.map((product) => toCatalogLine(product)),
+      totalCount: total,
+      truncated: result.data.length < total,
     };
   },
 });

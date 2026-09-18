@@ -1,7 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { useMemo } from "react";
 
 import type { Announcement } from "@/lib/storefront/types";
 
@@ -9,10 +9,13 @@ type AnnouncementBarProps = {
   announcements: Announcement[];
 };
 
+const SEPARATOR = "   •   ";
+
 /**
- * Rotating announcement strip. Only ONE message is visible at a time; messages
- * transition smoothly. In Phase 2 the messages come from the storefront
- * config; admin-controlled messaging arrives in a later phase.
+ * Continuous news-style ticker strip. All active announcements scroll
+ * right-to-left (like a news headline ticker) in a seamless loop. In Phase 2
+ * the messages come from the storefront config; admin-controlled messaging
+ * arrives in a later phase.
  */
 export function AnnouncementBar({ announcements }: AnnouncementBarProps) {
   const active = useMemo(
@@ -23,22 +26,12 @@ export function AnnouncementBar({ announcements }: AnnouncementBarProps) {
     [announcements],
   );
 
-  const [index, setIndex] = useState(0);
+  const content = useMemo(() => {
+    const text = active.map((a) => a.message.trim()).join(SEPARATOR);
+    return text ? `${text}${SEPARATOR}` : "";
+  }, [active]);
 
-  const count = active.length;
-  const current = active[index % count] ?? null;
-
-  useEffect(() => {
-    if (count <= 1) return;
-    const item = active[index % count];
-    if (!item) return;
-    const timer = setTimeout(() => {
-      setIndex((i) => (i + 1) % count);
-    }, item.durationMs);
-    return () => clearTimeout(timer);
-  }, [index, active, count]);
-
-  if (!current) return null;
+  if (!content) return null;
 
   return (
     <div
@@ -46,18 +39,18 @@ export function AnnouncementBar({ announcements }: AnnouncementBarProps) {
       aria-label="Announcements"
       className="relative overflow-hidden bg-plum-dark text-ivory"
     >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.p
-          key={current.id}
-          className="mx-auto max-w-7xl px-4 py-2.5 text-center text-[11px] font-medium uppercase tracking-[0.2em] sm:text-xs"
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 6 }}
-          transition={{ duration: 0.35 }}
-        >
-          {current.message}
-        </motion.p>
-      </AnimatePresence>
+      <motion.div
+        className="flex whitespace-nowrap will-change-transform"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration: 35, ease: "linear", repeat: Infinity }}
+      >
+        <span className="shrink-0 py-2.5 pl-5 text-[9px] font-medium uppercase tracking-[0.2em] sm:text-[10px]">
+          {content}
+        </span>
+        <span className="shrink-0 py-2.5 pl-5 text-[9px] font-medium uppercase tracking-[0.2em] sm:text-[10px]">
+          {content}
+        </span>
+      </motion.div>
     </div>
   );
 }

@@ -122,7 +122,7 @@ export function LoginForm({ initialError = null, initialMessage = null }: LoginF
         Sign in
       </h1>
       <p className="mt-2 text-sm text-charcoal-muted">
-        Welcome back to dINS by Daniyal.
+        Welcome back to DINS by Daniyal.
       </p>
 
       <div className="mt-8">
