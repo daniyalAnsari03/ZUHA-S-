@@ -8,11 +8,11 @@ import { getAuthUser } from "@/lib/auth/session";
 import { resolveImageUrl } from "@/lib/images";
 import { formatPrice } from "@/lib/storefront/format";
 import { listAllCategories } from "@/services/categories/categories-service";
-import { listPagedProducts } from "@/services/products/products-service";
+import { listAllProducts } from "@/services/products/products-service";
 import { toggleProductActiveAction } from "@/app/admin/actions";
 
 export const metadata: Metadata = {
-  title: "Products · Admin",
+  title: "Products ┬╖ Admin",
   robots: { index: false, follow: false },
 };
 
@@ -32,22 +32,17 @@ export default async function AdminProductsPage({
   const params = await searchParams;
   const search = params.search;
   const status = params.status;
-  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
-  const perPage = 20;
-  const offset = (page - 1) * perPage;
 
-  const [result, categories] = await Promise.all([
-    listPagedProducts(actor, {
+
+  const [products, categories] = await Promise.all([
+    listAllProducts(actor, {
       search,
       isActive: status === "archived" ? false : status === "active" ? true : undefined,
-      limit: perPage,
-      offset,
-    }).catch(() => ({ products: [], total: 0 })),
+    }).catch(() => []),
     listAllCategories(actor).catch(() => []),
   ]);
 
-  const { products, total } = result;
-  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const total = products.length;
   const categoryName = new Map(categories.map((c) => [c.id, c.name]));
 
   return (
@@ -57,7 +52,7 @@ export default async function AdminProductsPage({
           <h1 className="font-serif text-3xl text-charcoal">Products</h1>
           <p className="mt-1 text-sm text-charcoal-muted">
             {total} products total ({" "}
-            {products.filter((p) => p.is_active).length} active on this page)
+            {products.filter((p) => p.is_active).length} active)
           </p>
         </div>
         <Link
@@ -103,7 +98,7 @@ export default async function AdminProductsPage({
               type="text"
               name="search"
               defaultValue={search ?? ""}
-              placeholder="Search by name, SKU, or description…"
+              placeholder="Search by name, SKU, or descriptionΓÇª"
               className="w-full rounded-lg border border-charcoal/15 bg-white py-2.5 pl-10 pr-4 text-sm text-charcoal placeholder:text-charcoal-muted/60 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
             />
           </div>
@@ -120,7 +115,7 @@ export default async function AdminProductsPage({
         <div className="mt-8 rounded-xl border border-charcoal/10 bg-white p-10 text-center">
           <Package className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
           <p className="mt-3 text-sm text-charcoal-muted">
-            {search || status ? "No products match the current filters." : "No products yet — add your first product."}
+            {search || status ? "No products match the current filters." : "No products yet ΓÇö add your first product."}
           </p>
         </div>
       ) : (
@@ -170,8 +165,8 @@ export default async function AdminProductsPage({
                       </td>
                       <td className="px-5 py-3 text-sm text-charcoal-muted">
                         {product.category_id
-                          ? categoryName.get(product.category_id) ?? "—"
-                          : "—"}
+                          ? categoryName.get(product.category_id) ?? "ΓÇö"
+                          : "ΓÇö"}
                       </td>
                       <td className="px-5 py-3 text-sm text-charcoal">
                         {formatPrice(product.price)}
@@ -229,33 +224,3 @@ export default async function AdminProductsPage({
             </table>
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-charcoal/10 px-5 py-3">
-              <p className="text-xs text-charcoal-muted">
-                Page {page} of {totalPages}
-              </p>
-              <div className="flex gap-2">
-                {page > 1 && (
-                  <Link
-                    href={`/admin/products?page=${page - 1}${status ? `&status=${status}` : ""}${search ? `&search=${encodeURIComponent(search)}` : ""}`}
-                    className="rounded border border-charcoal/15 px-3 py-1.5 text-xs font-medium text-charcoal hover:border-plum hover:text-plum"
-                  >
-                    Previous
-                  </Link>
-                )}
-                {page < totalPages && (
-                  <Link
-                    href={`/admin/products?page=${page + 1}${status ? `&status=${status}` : ""}${search ? `&search=${encodeURIComponent(search)}` : ""}`}
-                    className="rounded border border-charcoal/15 px-3 py-1.5 text-xs font-medium text-charcoal hover:border-plum hover:text-plum"
-                  >
-                    Next
-                  </Link>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}

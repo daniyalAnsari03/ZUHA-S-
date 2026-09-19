@@ -189,16 +189,47 @@ export async function getNewArrivals(
  * Admin view of every product (active and inactive). Reads rely on RLS admin
  * policies, so the requester must hold an admin session.
  */
+export type ListAllProductsOptions = {
+  search?: string;
+  categoryId?: string;
+  isActive?: boolean;
+};
+
+/**
+ * Admin view of every matching product (active AND inactive) as a single
+ * ARRAY. Pulling the full match set here is deliberate: this view powers the
+ * admin one-page catalog page and the AI tools (catalog, inventory) that
+ * iterate this array — never silently truncate it. Reads rely on RLS admin
+ * policies, so the requester must hold an admin session. Optional filters
+ * narrow the result, but the array contract (and full-match-set behavior) is
+ * preserved regardless.
+ */
 export async function listAllProducts(
   actor: AdminActor,
+  options: ListAllProductsOptions = {},
 ): Promise<ProductWithCategory[]> {
   assertRole(actor.role, ["admin"]);
 
   const supabase = await createSupabaseClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("products")
-    .select("*, category:categories(slug, name)")
+    .select("*, category:categories(slug, name)");
+
+  if (options.search?.trim()) {
+    const term = `%${options.search.trim()}%`;
+    query = query.or(`name.ilike.${term},sku.ilike.${term},description.ilike.${term}`);
+  }
+
+  if (options.categoryId) {
+    query = query.eq("category_id", options.categoryId);
+  }
+
+  if (options.isActive !== undefined) {
+    query = query.eq("is_active", options.isActive);
+  }
+
+  const { data, error } = await query
     .order("sort_order", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
 
