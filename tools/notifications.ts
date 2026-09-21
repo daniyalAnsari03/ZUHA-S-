@@ -25,13 +25,13 @@ type AdminNotificationReadData = {
 
 /**
  * Admin-only read of the notification centre: the real unread count plus the
- * latest notifications (new orders, low-stock alerts, approval requests,
- * failed WhatsApp messages). Read-only — it never marks anything read.
+ * latest notifications (new orders, low-stock alerts). Read-only — it never
+ * marks anything read.
  */
 export const getAdminNotificationsTool = tool({
   name: "get_admin_notifications",
   description:
-    "Read the admin notification centre: unread count plus the latest notifications (new orders, low-stock alerts, approval-required actions, failed WhatsApp sends). Use it to answer notification questions for the owner (e.g. 'notification koi unread hai?', 'kitni unread notifications hain?'). Read-only.",
+    "Read the admin notification centre: unread count plus the latest notifications (new orders, low-stock alerts). Use it to answer notification questions for the owner (e.g. 'notification koi unread hai?', 'kitni unread notifications hain?'). Read-only.",
   parameters: z.object({
     unreadOnly: z.boolean().optional(),
     limit: z.number().int().min(1).max(20).optional(),

@@ -90,7 +90,7 @@ export default async function AdminAnalyticsPage() {
       </div>
 
       {!analytics ? (
-        <div className="mt-8 rounded-xl border border-charcoal/10 bg-white p-10 text-center text-sm text-charcoal-muted">
+        <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center text-sm text-charcoal-muted">
           Analytics could not be loaded right now. Please try again.
         </div>
       ) : (
@@ -100,7 +100,7 @@ export default async function AdminAnalyticsPage() {
               <Link
                 key={kpi.label}
                 href={kpi.href}
-                className="rounded-2xl border border-charcoal/10 bg-white p-5 transition-colors hover:border-plum/30"
+                className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-5 transition-colors hover:border-plum/30"
               >
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
@@ -116,7 +116,7 @@ export default async function AdminAnalyticsPage() {
 
           <div className="mt-10 grid gap-6 lg:grid-cols-5">
             {/* Sales trend */}
-            <section className="rounded-2xl border border-charcoal/10 bg-white p-6 lg:col-span-3">
+            <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6 lg:col-span-3">
               <h2 className="font-serif text-lg text-charcoal">Sales trend</h2>
               <p className="text-xs text-charcoal-muted">
                 Daily revenue over the last {analytics.trendDays} days
@@ -152,7 +152,7 @@ export default async function AdminAnalyticsPage() {
             </section>
 
             {/* Status distribution */}
-            <section className="rounded-2xl border border-charcoal/10 bg-white p-6 lg:col-span-2">
+            <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6 lg:col-span-2">
               <h2 className="font-serif text-lg text-charcoal">Order status</h2>
               <ul className="mt-4 divide-y divide-charcoal/5">
                 {analytics.statusDistribution.map((item) => {
@@ -185,11 +185,11 @@ export default async function AdminAnalyticsPage() {
           <section className="mt-10">
             <h2 className="font-serif text-xl text-charcoal">Top products</h2>
             {analytics.topProducts.length === 0 ? (
-              <p className="mt-4 rounded-2xl border border-charcoal/10 bg-white px-5 py-8 text-center text-sm text-charcoal-muted">
+              <p className="mt-4 rounded-2xl border border-charcoal/10 bg-neutral-soft px-5 py-8 text-center text-sm text-charcoal-muted">
                 No product sales yet — paid orders will appear here.
               </p>
             ) : (
-              <div className="mt-4 overflow-hidden rounded-xl border border-charcoal/10 bg-white">
+              <div className="mt-4 overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-charcoal/10 bg-cream/40">
@@ -239,7 +239,7 @@ export default async function AdminAnalyticsPage() {
                 <li key={order.id}>
                   <Link
                     href={`/admin/orders/${order.id}`}
-                    className="flex items-center justify-between gap-4 py-2.5 transition-colors hover:bg-white"
+                    className="flex items-center justify-between gap-4 py-2.5 transition-colors hover:bg-cream"
                   >
                     <div className="min-w-0">
                       <p className="font-mono text-xs font-medium text-charcoal">

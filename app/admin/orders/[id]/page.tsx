@@ -88,7 +88,7 @@ export default async function AdminOrderDetailPage({
           />
 
           {/* Order items */}
-          <section className="rounded-xl border border-charcoal/10 bg-white p-6">
+          <section className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6">
             <h2 className="font-serif text-lg text-charcoal">Items</h2>
             <ul className="mt-4 divide-y divide-charcoal/5">
               {order.items.map((item) => (
@@ -124,7 +124,7 @@ export default async function AdminOrderDetailPage({
 
           {/* Status history */}
           {order.history.length > 0 && (
-            <section className="rounded-xl border border-charcoal/10 bg-white p-6">
+            <section className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6">
               <h2 className="font-serif text-lg text-charcoal">Status History</h2>
               <ul className="mt-4 space-y-4">
                 {order.history.map((h) => (
@@ -154,7 +154,7 @@ export default async function AdminOrderDetailPage({
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Order summary */}
-          <section className="rounded-xl border border-charcoal/10 bg-white p-6">
+          <section className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6">
             <h2 className="font-serif text-lg text-charcoal">Order Summary</h2>
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
@@ -175,7 +175,7 @@ export default async function AdminOrderDetailPage({
           </section>
 
           {/* Customer info */}
-          <section className="rounded-xl border border-charcoal/10 bg-white p-6">
+          <section className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6">
             <h2 className="font-serif text-lg text-charcoal">Customer</h2>
             <dl className="mt-4 space-y-3 text-sm">
               <div>

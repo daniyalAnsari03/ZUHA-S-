@@ -304,7 +304,7 @@ export function CheckoutForm({ itemCount, totals: initialTotals, items }: Checko
               placeholder="Anything we should know about your order (optional)"
               aria-invalid={!!errors.orderNotes || undefined}
               {...register("orderNotes")}
-              className="w-full rounded-lg border border-charcoal/15 bg-white px-4 py-3 text-sm text-charcoal placeholder:text-charcoal-muted/60 transition-colors focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15 disabled:opacity-50"
+              className="w-full rounded-lg border border-charcoal/15 bg-ivory px-4 py-3 text-sm text-charcoal placeholder:text-charcoal-muted/60 transition-colors focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15 disabled:opacity-50"
             />
             {errors.orderNotes ? (
               <p role="alert" className="mt-1 text-xs text-red-600">
@@ -351,7 +351,7 @@ function OrderSummary({
   items: CheckoutItem[];
 }) {
   return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5 sm:p-6">
+    <div className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-5 sm:p-6">
       <h2 className="font-serif text-lg text-charcoal">Order summary</h2>
       <p className="mt-1 text-xs uppercase tracking-wide text-charcoal-muted">
         {itemCount} {itemCount === 1 ? "item" : "items"}

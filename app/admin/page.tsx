@@ -88,7 +88,7 @@ export default async function AdminOverviewPage() {
       </div>
 
       {!dashboard ? (
-        <div className="mt-8 rounded-xl border border-charcoal/10 bg-white p-10 text-center text-sm text-charcoal-muted">
+        <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center text-sm text-charcoal-muted">
           Dashboard could not be loaded right now. Please try again.
         </div>
       ) : (
@@ -98,7 +98,7 @@ export default async function AdminOverviewPage() {
               <Link
                 key={stat.label}
                 href={stat.href}
-                className="rounded-2xl border border-charcoal/10 bg-white p-5 transition-colors hover:border-plum/30"
+                className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-5 transition-colors hover:border-plum/30"
               >
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
@@ -114,7 +114,7 @@ export default async function AdminOverviewPage() {
 
           <div className="mt-10 grid gap-6 lg:grid-cols-2">
             {/* Order status distribution */}
-            <section className="rounded-2xl border border-charcoal/10 bg-white p-6">
+            <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6">
               <div className="flex items-center justify-between">
                 <h2 className="font-serif text-lg text-charcoal">Order status</h2>
                 <Link
@@ -157,7 +157,7 @@ export default async function AdminOverviewPage() {
             </section>
 
             {/* Recent orders */}
-            <section className="rounded-2xl border border-charcoal/10 bg-white p-6">
+            <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6">
               <div className="flex items-center justify-between">
                 <h2 className="font-serif text-lg text-charcoal">Recent orders</h2>
                 <Link
@@ -217,11 +217,11 @@ export default async function AdminOverviewPage() {
             </div>
 
             {dashboard.lowStockProducts.length === 0 ? (
-              <p className="mt-4 rounded-2xl border border-charcoal/10 bg-white px-5 py-8 text-center text-sm text-charcoal-muted">
+              <p className="mt-4 rounded-2xl border border-charcoal/10 bg-neutral-soft px-5 py-8 text-center text-sm text-charcoal-muted">
                 No low-stock products — inventory is healthy.
               </p>
             ) : (
-              <ul className="mt-4 divide-y divide-charcoal/5 overflow-hidden rounded-2xl border border-charcoal/10 bg-white">
+              <ul className="mt-4 divide-y divide-charcoal/5 overflow-hidden rounded-2xl border border-charcoal/10 bg-neutral-soft">
                 {dashboard.lowStockProducts.slice(0, 5).map((product) => (
                   <li key={product.id}>
                     <Link

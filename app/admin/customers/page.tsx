@@ -71,7 +71,7 @@ export default async function AdminCustomersPage({
               name="search"
               defaultValue={search ?? ""}
               placeholder="Search by name, phone, or city…"
-              className="w-full rounded-lg border border-charcoal/15 bg-white py-2.5 pl-10 pr-4 text-sm text-charcoal placeholder:text-charcoal-muted/60 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
+              className="w-full rounded-lg border border-charcoal/15 bg-ivory py-2.5 pl-10 pr-4 text-sm text-charcoal placeholder:text-charcoal-muted/60 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
             />
           </div>
           <button
@@ -84,14 +84,14 @@ export default async function AdminCustomersPage({
       </form>
 
       {result.customers.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-charcoal/10 bg-white p-10 text-center">
+        <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center">
           <Users className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
           <p className="mt-3 text-sm text-charcoal-muted">
             {search ? "No customers match your search." : "No customers yet."}
           </p>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-xl border border-charcoal/10 bg-white">
+        <div className="mt-6 overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>

@@ -3,7 +3,6 @@ import { Agent } from "@openai/agents";
 import { AI_MODEL } from "./config";
 import type { AgentContext } from "./context";
 import { rejectPromptInjectionGuardrail } from "@/guardians/prompt-injection";
-import { sendWhatsAppMessage, sendWhatsAppReport } from "@/tools/whatsapp";
 import { getAdminNotificationsTool } from "@/tools/notifications";
 
 import {
@@ -64,7 +63,7 @@ ANSWER OVERVIEW / GENERAL QUESTIONS DIRECTLY:
   - "dashboard mein kaun kaun se options hain?" / "what can you do?" / "kya kya kar sakte ho"
   - "business overview do" / "kya overview hai" / "sab kuch batao"
   - Questions about how the system works, what is automated, or what a report means.
-  - NOTIFICATIONS: "notification koi unread hai?" / "kitni unread notifications hain?" / "notifications kya hain?" / "naya order aaya?" → answer directly using the get_admin_notifications tool (real unread count + latest notifications: new orders, low-stock alerts, approval requests, failed WhatsApp sends). NEVER route notification questions to Support.
+  - NOTIFICATIONS: "notification koi unread hai?" / "kitni unread notifications hain?" / "notifications kya hain?" / "naya order aaya?" → answer directly using the get_admin_notifications tool (real unread count + latest notifications: new orders, low-stock alerts). NEVER route notification questions to Support.
 - For a business-data overview (sales, orders, stock, customers), call the employee that owns each area (e.g. sales first, then orders or inventory as needed) and present the consolidated answer yourself in plain business language. Chain handoffs one at a time — when an employee hands back after calling transfer_to_manager, hand to the next employee.
 - Pure conversational / factual questions that need no business data (greetings, thanks, what you are, how requests work) are answered directly — do NOT route them to an employee.
 - DATA-GAP QUESTIONS (MANDATORY): If the owner asks something the system does NOT track — e.g. "customers AI salesman se shop kar rahe hain ya manually?" — answer plainly that the system cannot determine that because orders are not tagged by how they were placed (there is no AI-vs-manual channel field on orders). Say what data would be needed instead of guessing or deflecting.
@@ -107,7 +106,8 @@ ROUTES — use these EXACT handoff tool calls:
   "sabse hit konsa hai" / "most popular / most requested product" / "hit product" / "jamawar mein sabse hit" / "sabse zyada bikne wala"
   "kitne orders hue" / "order count"
   "low stock products" / "inventory status"
-  ANY sales report, revenue question, performance metric, or popularity/best-seller question
+  "report bhejo" / "report email send karo" / "daily report" / "weekly report" / "aaj ki report"
+  ANY sales report, revenue question, performance metric, popularity/best-seller question, or explicit request to SEND a business report email
 
 - MARKETING → call transfer_to_marketing:
   "marketing copy" / "social post" / "ad copy" / "Facebook post"
@@ -134,12 +134,7 @@ RESPONSE FORMAT (MANDATORY — THE ADMIN CHAT RENDERS PLAIN TEXT ONLY):
 - For lists use a single dash and a space: "- Item here". Never use asterisk bullets ("* item").
 - Keep replies short and scannable with "label: value" lines holding the real values from the tool result, e.g. "Name: <real product name>", "Price: <real price>", "Stock: <real stock>". Do NOT repeat example entities as if they were real data.
 
-LANGUAGE: Reply in English for English input, Roman Urdu for Roman Urdu input (never Urdu script), matching whichever is dominant for mixed messages. Be direct and efficient — this is a business tool, not small talk.
-
-WHATSAPP (OWNER/ADMIN CHANNEL):
-- You have two WhatsApp tools: send_whatsapp_message (any plain text to an approved admin recipient like the owner) and send_whatsapp_report (daily_sales / low_stock / orders report built from live data). Use them when the owner asks to send a message, alert, notice, or report to their WhatsApp. Never invent a recipient label — only approved recipients exist; the tool resolves by label and rejects unknown ones.
-- WhatsApp sends are guarded. If the store requires approval for sends, the system raises an approval request and NO message is actually sent until the owner approves it in the Admin Panel. In that case tell the owner the message is waiting for approval — do NOT claim it was sent.
-- Keep WhatsApp content concise and plain text (no markdown unless a report's stars/titles are acceptable). Every figure must come from real tools/data — never estimate.`;
+LANGUAGE: Reply in English for English input, Roman Urdu for Roman Urdu input (never Urdu script), matching whichever is dominant for mixed messages. Be direct and efficient — this is a business tool, not small talk.`;
 
 /**
  * AI Manager — the coordinator. It never touches the database directly; it
@@ -154,7 +149,7 @@ export const managerAgent = new Agent<AgentContext>({
   instructions: ADMIN_INSTRUCTIONS,
   model: AI_MODEL,
   inputGuardrails: [rejectPromptInjectionGuardrail("manager")],
-  tools: [sendWhatsAppMessage, sendWhatsAppReport, getAdminNotificationsTool],
+  tools: [getAdminNotificationsTool],
   handoffs: [
     productAgent,
     inventoryAgent,

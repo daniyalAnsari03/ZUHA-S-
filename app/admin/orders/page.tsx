@@ -73,7 +73,7 @@ export default async function AdminOrdersPage({
         <Link
           href="/admin/orders"
           className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
-            !status ? "bg-plum text-white" : "border border-charcoal/15 bg-white text-charcoal hover:border-plum hover:text-plum"
+            !status ? "bg-plum text-white" : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
           }`}
         >
           All
@@ -83,7 +83,7 @@ export default async function AdminOrdersPage({
             key={s}
             href={`/admin/orders?status=${s}`}
             className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium capitalize transition-colors ${
-              status === s ? "bg-plum text-white" : "border border-charcoal/15 bg-white text-charcoal hover:border-plum hover:text-plum"
+              status === s ? "bg-plum text-white" : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
             }`}
           >
             {s}
@@ -100,7 +100,7 @@ export default async function AdminOrdersPage({
             name="search"
             defaultValue={search ?? ""}
             placeholder="Search by order number, name, or email…"
-            className="flex-1 rounded-lg border border-charcoal/15 bg-white px-4 py-2.5 text-sm text-charcoal placeholder:text-charcoal-muted/60 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
+            className="flex-1 rounded-lg border border-charcoal/15 bg-ivory px-4 py-2.5 text-sm text-charcoal placeholder:text-charcoal-muted/60 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
           />
           <button
             type="submit"
@@ -113,12 +113,12 @@ export default async function AdminOrdersPage({
 
       {/* Orders list */}
       {result.orders.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-charcoal/10 bg-white p-10 text-center">
+        <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center">
           <Package className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
           <p className="mt-3 text-sm text-charcoal-muted">No orders found.</p>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-xl border border-charcoal/10 bg-white">
+        <div className="mt-6 overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>

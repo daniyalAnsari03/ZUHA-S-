@@ -77,7 +77,7 @@ export default async function AdminProductsPage({
             className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
               status === option.value
                 ? "bg-plum text-white"
-                : "border border-charcoal/15 bg-white text-charcoal hover:border-plum hover:text-plum"
+                : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
             }`}
           >
             {option.label}
@@ -99,7 +99,7 @@ export default async function AdminProductsPage({
               name="search"
               defaultValue={search ?? ""}
               placeholder="Search by name, SKU, or descriptionΓÇª"
-              className="w-full rounded-lg border border-charcoal/15 bg-white py-2.5 pl-10 pr-4 text-sm text-charcoal placeholder:text-charcoal-muted/60 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
+              className="w-full rounded-lg border border-charcoal/15 bg-ivory py-2.5 pl-10 pr-4 text-sm text-charcoal placeholder:text-charcoal-muted/60 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
             />
           </div>
           <button
@@ -112,14 +112,14 @@ export default async function AdminProductsPage({
       </form>
 
       {products.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-charcoal/10 bg-white p-10 text-center">
+        <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center">
           <Package className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
           <p className="mt-3 text-sm text-charcoal-muted">
             {search || status ? "No products match the current filters." : "No products yet ΓÇö add your first product."}
           </p>
         </div>
       ) : (
-        <div className="mt-8 overflow-hidden rounded-2xl border border-charcoal/10 bg-white">
+        <div className="mt-8 overflow-hidden rounded-2xl border border-charcoal/10 bg-neutral-soft">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[780px] border-collapse text-left">
               <thead>
@@ -223,4 +223,9 @@ export default async function AdminProductsPage({
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
 

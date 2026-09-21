@@ -55,7 +55,7 @@ export default async function AdminNotificationsPage() {
           <form action={markAdminAllNotificationsReadAction}>
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 rounded-full border border-charcoal/15 bg-white px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
+              className="inline-flex items-center gap-1.5 rounded-full border border-charcoal/15 bg-neutral-soft px-4 py-2 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
             >
               <BellOff className="h-4 w-4" aria-hidden="true" />
               Mark all as read
@@ -65,11 +65,11 @@ export default async function AdminNotificationsPage() {
       </div>
 
       {errorShown ? (
-        <div className="mt-8 rounded-xl border border-charcoal/10 bg-white p-10 text-center text-sm text-charcoal-muted">
+        <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center text-sm text-charcoal-muted">
           Notifications could not be loaded right now.
         </div>
       ) : notifications.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-charcoal/10 bg-white p-10 text-center">
+        <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center">
           <Bell className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
           <p className="mt-3 text-sm text-charcoal-muted">
             No notifications yet. New orders and low-stock alerts will appear
@@ -77,7 +77,7 @@ export default async function AdminNotificationsPage() {
           </p>
         </div>
       ) : (
-        <ul className="mt-6 divide-y divide-charcoal/5 overflow-hidden rounded-xl border border-charcoal/10 bg-white">
+        <ul className="mt-6 divide-y divide-charcoal/5 overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft">
           {notifications.map((n) => (
             <li
               key={n.id}

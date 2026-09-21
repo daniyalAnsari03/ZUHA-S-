@@ -98,7 +98,7 @@ export default async function OrderDetailPage({
           <div className="space-y-8">
             {/* Order progress */}
             {!isCancelled && (
-              <section className="rounded-xl border border-charcoal/10 bg-white p-6">
+              <section className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6">
                 <h2 className="font-serif text-lg text-charcoal">Order Progress</h2>
                 <div className="mt-5 flex items-center justify-between">
                   {STATUS_FLOW.map((step, i) => {
@@ -111,7 +111,7 @@ export default async function OrderDetailPage({
                             className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium ${
                               isActive
                                 ? "bg-plum text-white"
-                                : "border border-charcoal/20 bg-white text-charcoal-muted"
+                                : "border border-charcoal/20 bg-ivory text-charcoal-muted"
                             } ${isCurrent ? "ring-2 ring-plum/30" : ""}`}
                           >
                             {isActive && i < currentStep ? (
@@ -151,7 +151,7 @@ export default async function OrderDetailPage({
             )}
 
             {/* Order items */}
-            <section className="rounded-xl border border-charcoal/10 bg-white p-6">
+            <section className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6">
               <h2 className="font-serif text-lg text-charcoal">Items</h2>
               <ul className="mt-4 divide-y divide-charcoal/5">
                 {order.items.map((item) => (
@@ -187,7 +187,7 @@ export default async function OrderDetailPage({
 
             {/* Status history */}
             {order.history.length > 0 && (
-              <section className="rounded-xl border border-charcoal/10 bg-white p-6">
+              <section className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6">
                 <h2 className="font-serif text-lg text-charcoal">Status History</h2>
                 <ul className="mt-4 space-y-4">
                   {order.history.map((h) => (
@@ -217,7 +217,7 @@ export default async function OrderDetailPage({
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Order summary */}
-            <section className="rounded-xl border border-charcoal/10 bg-white p-6">
+            <section className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6">
               <h2 className="font-serif text-lg text-charcoal">Order Summary</h2>
               <dl className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -238,7 +238,7 @@ export default async function OrderDetailPage({
             </section>
 
             {/* Shipping info */}
-            <section className="rounded-xl border border-charcoal/10 bg-white p-6">
+            <section className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6">
               <h2 className="font-serif text-lg text-charcoal">Shipping Details</h2>
               <dl className="mt-4 space-y-3 text-sm">
                 <div>

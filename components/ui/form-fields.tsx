@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 const labelClass =
   "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-muted";
 const controlClass =
-  "w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none transition-colors placeholder:text-charcoal-muted/50 focus:border-plum focus:ring-2 focus:ring-plum/10 disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none transition-colors placeholder:text-charcoal-muted/50 focus:border-plum focus:ring-2 focus:ring-plum/10 disabled:cursor-not-allowed disabled:opacity-60";
 
 type FieldBaseProps = {
   label: string;

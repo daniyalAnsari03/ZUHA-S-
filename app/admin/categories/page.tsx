@@ -33,7 +33,7 @@ export default async function AdminCategoriesPage() {
       </div>
 
       <div className="mt-8 -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <table className="w-full min-w-[640px] border-collapse overflow-hidden rounded-2xl border border-charcoal/10 bg-white text-left">
+        <table className="w-full min-w-[640px] border-collapse overflow-hidden rounded-2xl border border-charcoal/10 bg-neutral-soft text-left">
           <thead>
             <tr className="border-b border-charcoal/10 text-xs uppercase tracking-wide text-charcoal-muted">
               <th className="px-5 py-3.5 font-semibold">Category</th>

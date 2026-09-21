@@ -140,7 +140,7 @@ export function ImagePicker({
           <button
             type="button"
             onClick={openModal}
-            className="flex h-24 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-charcoal/20 bg-white text-charcoal-muted transition-colors hover:border-plum/40 hover:text-plum"
+            className="flex h-24 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-charcoal/20 bg-neutral-soft text-charcoal-muted transition-colors hover:border-plum/40 hover:text-plum"
           >
             {displayUrl ? (
               <div className="relative h-full w-full overflow-hidden rounded-lg">
@@ -183,7 +183,7 @@ export function ImagePicker({
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="relative w-full max-w-2xl rounded-2xl bg-white shadow-xl">
+          <div className="relative w-full max-w-2xl rounded-2xl bg-neutral-soft shadow-xl">
             <div className="flex items-center justify-between border-b border-charcoal/10 px-6 py-4">
               <h3 className="font-serif text-lg text-charcoal">
                 Choose Image

@@ -57,7 +57,7 @@ export function CategoryForm({
     <form action={formAction} className="mt-8 space-y-8">
       <FormError message={state.ok ? undefined : state.error} />
 
-      <section className="rounded-2xl border border-charcoal/10 bg-white p-6">
+      <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6">
         <h2 className="font-serif text-lg text-charcoal">Category details</h2>
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <TextField

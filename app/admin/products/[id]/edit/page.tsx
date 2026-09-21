@@ -74,7 +74,7 @@ export default async function EditProductPage({ params }: Props) {
             confirmLabel="Delete product"
             action={deleteProductAction.bind(null, product.id)}
             redirectTo="/admin/products"
-            className="rounded-lg border border-red-200 bg-white px-4 py-2 text-red-700 hover:border-red-400 hover:bg-red-50"
+            className="rounded-lg border border-red-200 bg-ivory px-4 py-2 text-red-700 hover:border-red-400 hover:bg-red-50"
           />
         </div>
       </section>

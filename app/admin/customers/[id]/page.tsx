@@ -78,7 +78,7 @@ export default async function AdminCustomerDetailPage({
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-charcoal/10 bg-white p-5">
+        <div className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
               Orders
@@ -91,7 +91,7 @@ export default async function AdminCustomerDetailPage({
           </p>
           <p className="mt-1 text-xs text-charcoal-muted">active / total</p>
         </div>
-        <div className="rounded-2xl border border-charcoal/10 bg-white p-5">
+        <div className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
               Total spend
@@ -103,7 +103,7 @@ export default async function AdminCustomerDetailPage({
           </p>
           <p className="mt-1 text-xs text-charcoal-muted">excludes cancelled / refunded</p>
         </div>
-        <div className="rounded-2xl border border-charcoal/10 bg-white p-5">
+        <div className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
               Member since
@@ -122,11 +122,11 @@ export default async function AdminCustomerDetailPage({
       <section className="mt-10">
         <h2 className="font-serif text-xl text-charcoal">Order history</h2>
         {orders.length === 0 ? (
-          <p className="mt-4 rounded-2xl border border-charcoal/10 bg-white px-5 py-8 text-center text-sm text-charcoal-muted">
+          <p className="mt-4 rounded-2xl border border-charcoal/10 bg-neutral-soft px-5 py-8 text-center text-sm text-charcoal-muted">
             This customer has not placed any orders yet.
           </p>
         ) : (
-          <div className="mt-4 overflow-hidden rounded-xl border border-charcoal/10 bg-white">
+          <div className="mt-4 overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-charcoal/10 bg-cream/40">

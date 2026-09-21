@@ -86,7 +86,7 @@ export function ConfirmDelete({
             onClick={() => setOpen(false)}
             aria-label="Cancel"
           />
-          <div className="relative w-full max-w-md rounded-2xl border border-charcoal/10 bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-md rounded-2xl border border-charcoal/10 bg-neutral-soft p-6 shadow-xl">
             <h3 className="font-serif text-lg text-charcoal">{title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-charcoal-muted">
               {description}

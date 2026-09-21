@@ -57,7 +57,7 @@ export default async function OrdersPage() {
         </h1>
 
         {orders.length === 0 ? (
-          <div className="mt-8 rounded-xl border border-charcoal/10 bg-white p-8 sm:p-10 text-center">
+          <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-8 sm:p-10 text-center">
             <p className="text-sm text-charcoal-muted">
               You haven&apos;t placed any orders yet. Browse the collection and find
               something you love.
@@ -70,7 +70,7 @@ export default async function OrdersPage() {
             </Link>
           </div>
         ) : (
-          <ul className="mt-8 divide-y divide-charcoal/5 overflow-hidden rounded-xl border border-charcoal/10 bg-white">
+          <ul className="mt-8 divide-y divide-charcoal/5 overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft">
             {orders.map((order) => (
               <li key={order.id}>
                 <Link

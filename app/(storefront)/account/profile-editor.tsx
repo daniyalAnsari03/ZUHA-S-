@@ -44,7 +44,7 @@ export function ProfileEditor({
   };
 
   return (
-    <article className="rounded-xl border border-charcoal/10 bg-white p-6 sm:p-8">
+    <article className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6 sm:p-8">
       <h2 className="font-serif text-lg text-charcoal">Account Information</h2>
       <dl className="mt-4 grid gap-4 sm:grid-cols-2">
         <div>

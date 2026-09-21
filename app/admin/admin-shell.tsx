@@ -12,9 +12,9 @@ import {
   Image,
   LayoutDashboard,
   LogOut,
+  Mail,
   Megaphone,
   Menu,
-  Plug,
   Package,
   ShoppingBag,
   Tags,
@@ -61,7 +61,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     title: "Operations",
     items: [
       { href: "/admin/notifications", label: "Notifications", icon: Bell },
-      { href: "/admin/integrations", label: "Integrations", icon: Plug },
+      { href: "/admin/reports", label: "Email Reports", icon: Mail },
       { href: "/admin/ai", label: "AI Workplace", icon: BrainCircuit },
     ],
   },
@@ -142,7 +142,7 @@ function SidebarFooter({ userEmail }: { userEmail: string | null }) {
         <form action={adminSignOutAction}>
           <button
             type="submit"
-            className="inline-flex items-center gap-1 rounded-md p-1.5 text-charcoal-muted transition-colors hover:bg-white hover:text-plum"
+            className="inline-flex items-center gap-1 rounded-md p-1.5 text-charcoal-muted transition-colors hover:bg-cream hover:text-plum"
             aria-label="Sign out"
             title="Sign out"
           >
@@ -161,7 +161,7 @@ export function AdminShell({ userEmail, unreadCount, children }: AdminShellProps
   return (
     <div className="min-h-screen bg-[var(--color-ivory)]">
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-charcoal/10 bg-white px-4 lg:hidden">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-charcoal/10 bg-neutral-soft px-4 lg:hidden">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
@@ -185,7 +185,7 @@ export function AdminShell({ userEmail, unreadCount, children }: AdminShellProps
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
           />
-          <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-white shadow-xl">
+          <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-neutral-soft shadow-xl">
             <div className="flex items-center justify-between border-b border-charcoal/10 px-4 py-3">
               <span className="font-serif text-lg font-semibold text-plum">DINS Admin</span>
               <button
@@ -206,7 +206,7 @@ export function AdminShell({ userEmail, unreadCount, children }: AdminShellProps
       {/* Desktop layout */}
       <div className="mx-auto flex max-w-none">
         {/* Sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-charcoal/10 bg-white lg:flex">
+        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-charcoal/10 bg-neutral-soft lg:flex">
           <div className="flex h-16 items-center border-b border-charcoal/10 px-5">
             <Link href="/admin" className="font-serif text-xl font-semibold text-plum">
               DINS Admin
@@ -219,7 +219,7 @@ export function AdminShell({ userEmail, unreadCount, children }: AdminShellProps
         {/* Main */}
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Top bar (desktop) */}
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-charcoal/10 bg-white/90 px-6 backdrop-blur lg:px-8">
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-charcoal/10 bg-ivory/90 px-6 backdrop-blur lg:px-8">
             <div className="text-sm text-charcoal-muted">
               {/* Breadcrumb area — pages render their own headings below */}
             </div>

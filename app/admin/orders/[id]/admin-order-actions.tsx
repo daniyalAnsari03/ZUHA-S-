@@ -57,7 +57,7 @@ export function AdminOrderActions({
   };
 
   return (
-    <section className="rounded-xl border border-charcoal/10 bg-white p-6">
+    <section className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6">
       <h2 className="font-serif text-lg text-charcoal">Update Status</h2>
 
       {allowed.length === 0 ? (
@@ -75,7 +75,7 @@ export function AdminOrderActions({
                 className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium capitalize transition-colors ${
                   selectedStatus === s
                     ? "bg-plum text-white"
-                    : "border border-charcoal/15 bg-white text-charcoal hover:border-plum hover:text-plum"
+                    : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
                 }`}
               >
                 {STATUS_LABELS[s] ?? s}
@@ -98,7 +98,7 @@ export function AdminOrderActions({
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Add a note about this status change…"
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-4 py-2.5 text-sm text-charcoal placeholder:text-charcoal-muted/60 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-4 py-2.5 text-sm text-charcoal placeholder:text-charcoal-muted/60 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
                 />
               </div>
 

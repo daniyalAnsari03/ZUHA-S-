@@ -12,9 +12,7 @@ export type NotificationType =
   | "order_delivered"
   | "order_cancelled"
   | "admin_new_order"
-  | "admin_inventory_alert"
-  | "admin_approval_requested"
-  | "whatsapp_message_failed";
+  | "admin_inventory_alert";
 
 /* ---------------------------------------------------------------------------
  * Customer notifications
@@ -297,84 +295,5 @@ export async function maybeAlertAdminOnStockCrossing(
     prevStock > lowStockThreshold
   ) {
     await notifyAdminsOfLowStock(productName, productId).catch(() => {});
-  }
-}
-
-/* ---------------------------------------------------------------------------
- * Admin approval & WhatsApp alerts (Phase 8)
- * --------------------------------------------------------------------- */
-
-/**
- * Notify every admin that a high-risk AI action awaits approval. Best-effort:
- * failures are swallowed so the approval flow never breaks because a
- * notification could not be written.
- */
-export async function notifyAdminsOfApprovalRequest(input: {
-  summary: string;
-  actionType: string;
-}): Promise<void> {
-  try {
-    const { createAdminClient } = await import("@/lib/supabase/admin");
-    const supabase = createAdminClient();
-
-    const { data: admins } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("role", "admin");
-
-    if (!admins || admins.length === 0) return;
-
-    const title = "AI action awaiting approval";
-    const message = `The AI is waiting for approval: ${input.summary}. Review it in the AI Workplace.`;
-
-    for (const admin of admins) {
-      try {
-        await supabase.from("notifications").insert({
-          user_id: admin.id,
-          type: "admin_approval_requested",
-          title,
-          message,
-        });
-      } catch {
-        // Best-effort per admin
-      }
-    }
-  } catch {
-    // Best-effort — never fail a business operation for a notification.
-  }
-}
-
-/**
- * Notify every admin that an outbound WhatsApp message failed. Best-effort.
- */
-export async function notifyAdminsOfWhatsappFailure(input: {
-  message: string;
-}): Promise<void> {
-  try {
-    const { createAdminClient } = await import("@/lib/supabase/admin");
-    const supabase = createAdminClient();
-
-    const { data: admins } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("role", "admin");
-
-    if (!admins || admins.length === 0) return;
-
-    const title = "WhatsApp message failed";
-    for (const admin of admins) {
-      try {
-        await supabase.from("notifications").insert({
-          user_id: admin.id,
-          type: "whatsapp_message_failed",
-          title,
-          message: input.message,
-        });
-      } catch {
-        // Best-effort per admin
-      }
-    }
-  } catch {
-    // Best-effort
   }
 }

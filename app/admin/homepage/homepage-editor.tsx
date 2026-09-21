@@ -70,7 +70,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <section className="rounded-2xl border border-charcoal/10 bg-white p-6">
+      <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6">
         <h2 className="font-serif text-lg text-charcoal">Hero Section</h2>
         <p className="mt-1 text-sm text-charcoal-muted">
           Controls the main hero banner on the homepage.
@@ -103,7 +103,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                 type="text"
                 value={heroData.eyebrow}
                 onChange={(e) => updateHero("eyebrow", e.target.value)}
-                className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 placeholder="Jamawar · Embroidery · Lawn"
               />
             </label>
@@ -116,7 +116,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                 type="text"
                 value={heroData.ctaHref}
                 onChange={(e) => updateHero("ctaHref", e.target.value)}
-                className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 placeholder="/shop"
               />
             </label>
@@ -130,7 +130,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
               type="text"
               value={heroData.heading}
               onChange={(e) => updateHero("heading", e.target.value)}
-              className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+              className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
               placeholder="Where Pakistani craftsmanship meets modern elegance."
               required
             />
@@ -144,7 +144,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
               value={heroData.paragraph}
               onChange={(e) => updateHero("paragraph", e.target.value)}
               rows={3}
-              className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+              className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
               placeholder="Hand-finished embroidery, heritage jamawar..."
             />
           </label>
@@ -158,7 +158,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                 type="text"
                 value={heroData.ctaLabel}
                 onChange={(e) => updateHero("ctaLabel", e.target.value)}
-                className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 placeholder="Shop the Collection"
               />
             </label>
@@ -198,7 +198,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
       </section>
 
       {/* Homepage Content */}
-      <section className="rounded-2xl border border-charcoal/10 bg-white p-6">
+      <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6">
         <h2 className="font-serif text-lg text-charcoal">Homepage Content</h2>
         <p className="mt-1 text-sm text-charcoal-muted">
           Edit headings, brand story, social section, newsletter, and footer text.
@@ -238,7 +238,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("shopByCategoryEyebrow", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
               <label className="block">
@@ -251,7 +251,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("shopByCategoryHeading", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
             </div>
@@ -273,7 +273,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("brandStoryHeading", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
               <label className="block">
@@ -286,7 +286,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                     updateHome("brandStoryBody", e.target.value)
                   }
                   rows={4}
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
               <label className="block">
@@ -299,7 +299,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("brandStoryCta", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
               <ImagePicker
@@ -328,7 +328,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("socialEyebrow", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
               <label className="block">
@@ -341,7 +341,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("socialHeading", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
               <label className="block">
@@ -354,7 +354,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("socialDescription", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
               <label className="block">
@@ -367,7 +367,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("socialHandle", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                   placeholder="@dinsbydaniyal"
                 />
               </label>
@@ -412,7 +412,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("newsletterEyebrow", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
               <label className="block">
@@ -425,7 +425,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("newsletterHeading", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
               <label className="block sm:col-span-2">
@@ -438,7 +438,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("newsletterDescription", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
               <label className="block sm:col-span-2">
@@ -451,7 +451,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   onChange={(e) =>
                     updateHome("newsletterCtaLabel", e.target.value)
                   }
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                   placeholder="Subscribe"
                 />
               </label>
@@ -470,7 +470,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                   value={homeData.footerAbout}
                   onChange={(e) => updateHome("footerAbout", e.target.value)}
                   rows={2}
-                  className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                  className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -484,7 +484,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                     onChange={(e) =>
                       updateHome("footerCopyright", e.target.value)
                     }
-                    className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                    className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                   />
                 </label>
                 <label className="block">
@@ -497,7 +497,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                     onChange={(e) =>
                       updateHome("footerTagline", e.target.value)
                     }
-                    className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                    className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                   />
                 </label>
               </div>

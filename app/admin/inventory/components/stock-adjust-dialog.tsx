@@ -55,7 +55,7 @@ export function StockAdjustDialog({
           reset();
           setOpen(true);
         }}
-        className="inline-flex items-center gap-1 rounded-md border border-charcoal/15 bg-white px-2.5 py-1.5 text-xs font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
+        className="inline-flex items-center gap-1 rounded-md border border-charcoal/15 bg-neutral-soft px-2.5 py-1.5 text-xs font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
       >
         <Plus className="h-3 w-3" aria-hidden="true" />
         Adjust
@@ -74,7 +74,7 @@ export function StockAdjustDialog({
             onClick={() => setOpen(false)}
             aria-label="Close dialog"
           />
-          <div className="relative w-full max-w-md rounded-2xl border border-charcoal/10 bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-md rounded-2xl border border-charcoal/10 bg-neutral-soft p-6 shadow-xl">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="font-serif text-lg text-charcoal">Adjust stock</h3>
@@ -121,7 +121,7 @@ export function StockAdjustDialog({
                     step={1}
                     value={stock}
                     onChange={(e) => setStock(Math.max(0, e.target.valueAsNumber || 0))}
-                    className="w-full rounded-lg border border-charcoal/15 px-3 py-2 text-sm tabular-nums text-charcoal focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
+                    className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm tabular-nums text-charcoal focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
                   />
                   <button
                     type="button"
@@ -150,7 +150,7 @@ export function StockAdjustDialog({
                   onChange={(e) =>
                     setThreshold(Math.max(0, e.target.valueAsNumber || 0))
                   }
-                  className="mt-1.5 w-full rounded-lg border border-charcoal/15 px-3 py-2 text-sm tabular-nums text-charcoal focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
+                  className="mt-1.5 w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm tabular-nums text-charcoal focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
                 />
               </div>
             </div>

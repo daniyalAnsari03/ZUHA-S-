@@ -68,14 +68,14 @@ export default async function AccountPage() {
                 </Link>
                 <Link
                   href="/shop"
-                  className="flex items-center justify-between rounded-lg border border-charcoal/10 bg-white px-5 py-4 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
+                  className="flex items-center justify-between rounded-lg border border-charcoal/10 bg-neutral-soft px-5 py-4 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
                 >
                   <span>Continue Shopping</span>
                   <span aria-hidden="true">→</span>
                 </Link>
                 <Link
                   href="/wishlist"
-                  className="flex items-center justify-between rounded-lg border border-charcoal/10 bg-white px-5 py-4 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
+                  className="flex items-center justify-between rounded-lg border border-charcoal/10 bg-neutral-soft px-5 py-4 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
                 >
                   <span>Wishlist ({wishlistItemCount} saved)</span>
                   <span aria-hidden="true">→</span>
@@ -85,21 +85,21 @@ export default async function AccountPage() {
               <nav aria-label="Account actions" className="space-y-3">
                 <Link
                   href="/shop"
-                  className="flex items-center justify-between rounded-lg border border-charcoal/10 bg-white px-5 py-4 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
+                  className="flex items-center justify-between rounded-lg border border-charcoal/10 bg-neutral-soft px-5 py-4 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
                 >
                   <span>Continue Shopping</span>
                   <span aria-hidden="true">→</span>
                 </Link>
                 <Link
                   href="/orders"
-                  className="flex items-center justify-between rounded-lg border border-charcoal/10 bg-white px-5 py-4 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
+                  className="flex items-center justify-between rounded-lg border border-charcoal/10 bg-neutral-soft px-5 py-4 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
                 >
                   <span>My Orders</span>
                   <span aria-hidden="true">→</span>
                 </Link>
                 <Link
                   href="/wishlist"
-                  className="flex items-center justify-between rounded-lg border border-charcoal/10 bg-white px-5 py-4 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
+                  className="flex items-center justify-between rounded-lg border border-charcoal/10 bg-neutral-soft px-5 py-4 text-sm font-medium text-charcoal transition-colors hover:border-plum hover:text-plum"
                 >
                   <span>Wishlist ({wishlistItemCount} saved)</span>
                   <span aria-hidden="true">→</span>
@@ -109,7 +109,7 @@ export default async function AccountPage() {
           </section>
 
           <aside className="space-y-6">
-            <article className="rounded-xl border border-charcoal/10 bg-white p-6 sm:p-8">
+            <article className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6 sm:p-8">
               <h2 className="font-serif text-lg text-charcoal">Quick Actions</h2>
               <div className="mt-4 space-y-3">
                 <Link
@@ -134,7 +134,7 @@ export default async function AccountPage() {
                 const supabase = await createClient();
                 await supabase.auth.signOut();
               }}
-              className="rounded-xl border border-charcoal/10 bg-white p-6 sm:p-8"
+              className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6 sm:p-8"
             >
               <h2 className="font-serif text-lg text-charcoal">Session</h2>
               <button

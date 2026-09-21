@@ -88,7 +88,7 @@ export default async function AdminInventoryPage({
           className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
             !status
               ? "bg-plum text-white"
-              : "border border-charcoal/15 bg-white text-charcoal hover:border-plum hover:text-plum"
+              : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
           }`}
         >
           All
@@ -98,7 +98,7 @@ export default async function AdminInventoryPage({
           className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
             status === "low"
               ? "bg-plum text-white"
-              : "border border-charcoal/15 bg-white text-charcoal hover:border-plum hover:text-plum"
+              : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
           }`}
         >
           Low stock
@@ -108,7 +108,7 @@ export default async function AdminInventoryPage({
           className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
             status === "out"
               ? "bg-plum text-white"
-              : "border border-charcoal/15 bg-white text-charcoal hover:border-plum hover:text-plum"
+              : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
           }`}
         >
           Out of stock
@@ -137,7 +137,7 @@ export default async function AdminInventoryPage({
               name="search"
               defaultValue={search ?? ""}
               placeholder="Search by name, SKU, or description…"
-              className="w-full rounded-lg border border-charcoal/15 bg-white py-2.5 pl-10 pr-4 text-sm text-charcoal placeholder:text-charcoal-muted/60 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
+              className="w-full rounded-lg border border-charcoal/15 bg-ivory py-2.5 pl-10 pr-4 text-sm text-charcoal placeholder:text-charcoal-muted/60 focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
             />
           </div>
           <button
@@ -150,14 +150,14 @@ export default async function AdminInventoryPage({
       </form>
 
       {filtered.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-charcoal/10 bg-white p-10 text-center">
+        <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center">
           <Boxes className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
           <p className="mt-3 text-sm text-charcoal-muted">
             No products match the current filters.
           </p>
         </div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-xl border border-charcoal/10 bg-white">
+        <div className="mt-6 overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>

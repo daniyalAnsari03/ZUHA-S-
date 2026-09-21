@@ -173,7 +173,7 @@ export function MediaLibraryClient() {
           <Loader2 className="h-8 w-8 animate-spin text-plum" />
         </div>
       ) : !loaded ? (
-        <div className="rounded-2xl border border-charcoal/10 bg-white py-20 text-center">
+        <div className="rounded-2xl border border-charcoal/10 bg-neutral-soft py-20 text-center">
           <ImageIcon className="mx-auto mb-3 h-10 w-10 text-charcoal/30" />
           <p className="text-sm text-charcoal-muted mb-4">
             Click below to load your media library.
@@ -187,7 +187,7 @@ export function MediaLibraryClient() {
           </button>
         </div>
       ) : files.length === 0 ? (
-        <div className="rounded-2xl border border-charcoal/10 bg-white py-20 text-center">
+        <div className="rounded-2xl border border-charcoal/10 bg-neutral-soft py-20 text-center">
           <ImageIcon className="mx-auto mb-3 h-10 w-10 text-charcoal/30" />
           <p className="text-sm text-charcoal-muted">
             No images uploaded yet.

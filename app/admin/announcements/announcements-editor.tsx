@@ -97,7 +97,7 @@ export function AnnouncementsEditor({
           {items.map((item, index) => (
             <div
               key={item.id}
-              className="rounded-2xl border border-charcoal/10 bg-white p-5"
+              className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-5"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 space-y-4">
@@ -111,7 +111,7 @@ export function AnnouncementsEditor({
                       onChange={(e) =>
                         updateItem(index, "message", e.target.value)
                       }
-                      className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                      className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                       placeholder="Complimentary shipping on orders over PKR 15,000"
                       required
                     />
@@ -128,7 +128,7 @@ export function AnnouncementsEditor({
                         onChange={(e) =>
                           updateItem(index, "href", e.target.value)
                         }
-                        className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                        className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                         placeholder="/shop"
                       />
                     </label>
@@ -147,7 +147,7 @@ export function AnnouncementsEditor({
                             parseInt(e.target.value) || 5000,
                           )
                         }
-                        className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                        className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                         min="1000"
                         step="1000"
                       />
@@ -167,7 +167,7 @@ export function AnnouncementsEditor({
                             parseInt(e.target.value) || 0,
                           )
                         }
-                        className="w-full rounded-lg border border-charcoal/15 bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
+                        className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                         min="0"
                       />
                     </label>

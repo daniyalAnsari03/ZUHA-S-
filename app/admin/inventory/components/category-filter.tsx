@@ -29,7 +29,7 @@ export function CategoryFilterSelect({
         const qs = params.toString();
         router.push(qs ? `/admin/inventory?${qs}` : "/admin/inventory");
       }}
-      className="ml-auto rounded-lg border border-charcoal/15 bg-white px-3 py-1.5 text-xs font-medium text-charcoal focus:border-plum focus:outline-none"
+      className="ml-auto rounded-lg border border-charcoal/15 bg-ivory px-3 py-1.5 text-xs font-medium text-charcoal focus:border-plum focus:outline-none"
     >
       <option value="">All categories</option>
       {categories.map((c) => (
