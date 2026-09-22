@@ -218,8 +218,8 @@ export function AdminShell({ userEmail, unreadCount, children }: AdminShellProps
 
         {/* Main */}
         <div className="flex min-w-0 flex-1 flex-col">
-          {/* Top bar (desktop) */}
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-charcoal/10 bg-ivory/90 px-6 backdrop-blur lg:px-8">
+          {/* Top bar (desktop only) */}
+          <header className="sticky top-0 z-30 hidden h-16 items-center justify-between border-b border-charcoal/10 bg-ivory/90 px-6 backdrop-blur lg:flex lg:px-8">
             <div className="text-sm text-charcoal-muted">
               {/* Breadcrumb area — pages render their own headings below */}
             </div>

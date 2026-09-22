@@ -112,7 +112,7 @@ export function AdminNotificationBell({ unreadCount: initialUnread }: { unreadCo
       {open && (
         <div
           ref={panelRef}
-          className="absolute right-0 top-full z-50 mt-2 w-96 max-h-[480px] overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft shadow-lg"
+          className="absolute right-0 top-full z-50 mt-2 w-[min(24rem,calc(100vw-2rem))] max-h-[480px] overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft shadow-lg"
         >
           <div className="flex items-center justify-between border-b border-charcoal/10 px-4 py-3">
             <h3 className="font-serif text-sm text-charcoal">Admin notifications</h3>

@@ -163,11 +163,11 @@ export default async function AdminAnalyticsPage() {
                       ? Math.round((item.count / analytics.ordersCount) * 100)
                       : 0;
                   return (
-                    <li key={item.status} className="flex items-center gap-4 py-2.5">
-                      <span className="w-28 shrink-0 text-sm font-medium text-charcoal">
+                    <li key={item.status} className="flex items-center gap-3 py-2.5 sm:gap-4">
+                      <span className="w-24 shrink-0 truncate text-sm font-medium text-charcoal sm:w-28">
                         {item.label}
                       </span>
-                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-ivory">
+                      <div className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-ivory">
                         <div
                           className="h-full rounded-full bg-plum"
                           style={{ width: `${pct}%` }}
@@ -241,18 +241,18 @@ export default async function AdminAnalyticsPage() {
                 <li key={order.id}>
                   <Link
                     href={`/admin/orders/${order.id}`}
-                    className="flex items-center justify-between gap-4 py-2.5 transition-colors hover:bg-cream"
+                    className="flex items-center justify-between gap-3 py-2.5 transition-colors hover:bg-cream sm:gap-4"
                   >
                     <div className="min-w-0">
-                      <p className="font-mono text-xs font-medium text-charcoal">
+                      <p className="truncate font-mono text-xs font-medium text-charcoal">
                         {order.orderNumber}
                       </p>
                       <p className="truncate text-sm text-charcoal-muted">
                         {order.customerName}
                       </p>
                     </div>
-                    <div className="flex shrink-0 items-center gap-3">
-                      <span className="text-sm font-medium text-charcoal">
+                    <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
+                      <span className="whitespace-nowrap text-sm font-medium text-charcoal">
                         {formatPrice(order.total)}
                       </span>
                       <OrderStatusBadge status={order.status} />

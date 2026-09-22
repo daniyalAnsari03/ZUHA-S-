@@ -393,7 +393,7 @@ function ChatBody({
 export function AiChat(props: AiChatProps) {
   if (props.variant === "panel") {
     return (
-      <div className="h-[70vh] min-h-[30rem]">
+      <div className="h-[70vh] min-h-[26rem] min-w-0 sm:min-h-[30rem]">
         <ChatBody {...props} />
       </div>
     );
