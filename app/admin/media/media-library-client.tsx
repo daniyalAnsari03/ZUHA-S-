@@ -33,7 +33,7 @@ export function MediaLibraryClient() {
     setError(null);
     try {
       const { listMediaAction } = await import("@/app/admin/actions");
-      const result = await listMediaAction();
+      const result = await listMediaAction("media");
       if (result.ok) {
         setFiles(
           result.files.filter((f) => {
@@ -189,9 +189,7 @@ export function MediaLibraryClient() {
       ) : files.length === 0 ? (
         <div className="rounded-2xl border border-charcoal/10 bg-neutral-soft py-20 text-center">
           <ImageIcon className="mx-auto mb-3 h-10 w-10 text-charcoal/30" />
-          <p className="text-sm text-charcoal-muted">
-            No images uploaded yet.
-          </p>
+          <p className="text-sm text-charcoal-muted">No images uploaded yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
@@ -222,9 +220,7 @@ export function MediaLibraryClient() {
                     {file.name.length > 25
                       ? file.name.slice(0, 25) + "..."
                       : file.name}
-                    {file.size > 0 && (
-                      <> · {formatFileSize(file.size)}</>
-                    )}
+                    {file.size > 0 && <> · {formatFileSize(file.size)}</>}
                   </span>
                 </div>
               </button>
