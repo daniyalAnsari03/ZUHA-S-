@@ -30,7 +30,7 @@ export type OrderStatus =
 
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 
-export type EmailReportType = "daily" | "weekly" | "manual";
+export type EmailReportType = "daily" | "weekly" | "monthly" | "manual";
 export type EmailLogStatus = "pending" | "sent" | "failed";
 export type EmailLogSource = "cron" | "admin" | "ai";
 
@@ -584,6 +584,7 @@ export interface Database {
           risk_level: "low" | "medium" | "high";
           error_message: string | null;
           requested_by: string | null;
+          period_key: string | null;
           created_at: string;
           sent_at: string | null;
           updated_at: string;
@@ -600,6 +601,7 @@ export interface Database {
           risk_level?: "low" | "medium" | "high";
           error_message?: string | null;
           requested_by?: string | null;
+          period_key?: string | null;
           created_at?: string;
           sent_at?: string | null;
           updated_at?: string;
@@ -616,6 +618,7 @@ export interface Database {
           risk_level?: "low" | "medium" | "high";
           error_message?: string | null;
           requested_by?: string | null;
+          period_key?: string | null;
           created_at?: string;
           sent_at?: string | null;
           updated_at?: string;

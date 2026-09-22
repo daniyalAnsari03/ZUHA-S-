@@ -59,6 +59,11 @@ export function EmailReportsClient({ recipient }: EmailReportsClientProps) {
     { ok: true } satisfies ActionResult,
   );
 
+  const [monthlyState, monthlyFormAction, monthlyPending] = useActionState(
+    sendReportNowAction.bind(null, "monthly"),
+    { ok: true } satisfies ActionResult,
+  );
+
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-2">
       {/* Recipient */}
@@ -68,8 +73,8 @@ export function EmailReportsClient({ recipient }: EmailReportsClientProps) {
           Report Email Address
         </h2>
         <p className="mt-1 text-sm text-charcoal-muted">
-          The automated daily/weekly reports and on-demand sends are delivered
-          to this address.
+          The automated daily/weekly/monthly reports and on-demand sends are
+          delivered to this address.
         </p>
 
         <form action={saveFormAction} className="mt-4 space-y-3">
@@ -145,6 +150,20 @@ export function EmailReportsClient({ recipient }: EmailReportsClientProps) {
               </span>
             </button>
           </form>
+          <form action={monthlyFormAction}>
+            <button
+              type="submit"
+              disabled={monthlyPending}
+              className="w-full rounded-xl border border-plum/25 bg-white px-4 py-3 text-left transition-colors hover:border-plum hover:bg-cream disabled:opacity-60"
+            >
+              <span className="block text-sm font-semibold text-plum">
+                {monthlyPending ? "Sending…" : "Send Monthly Report"}
+              </span>
+              <span className="mt-0.5 block text-xs text-charcoal-muted">
+                Current month (PKT)
+              </span>
+            </button>
+          </form>
         </div>
 
         <div className="mt-4 space-y-2">
@@ -156,6 +175,10 @@ export function EmailReportsClient({ recipient }: EmailReportsClientProps) {
             <ResultBanner message={`Weekly: ${weeklyState.message}`} />
           )}
           {!weeklyState.ok && <ErrorBanner message={`Weekly: ${weeklyState.error}`} />}
+          {monthlyState.ok && monthlyState.message && (
+            <ResultBanner message={`Monthly: ${monthlyState.message}`} />
+          )}
+          {!monthlyState.ok && <ErrorBanner message={`Monthly: ${monthlyState.error}`} />}
         </div>
       </section>
     </div>

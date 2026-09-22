@@ -57,7 +57,7 @@ export async function updateReportEmailAction(
  * admin's email when no store recipient is configured yet.
  */
 export async function sendReportNowAction(
-  reportType: "daily" | "weekly",
+  reportType: "daily" | "weekly" | "monthly",
 ): Promise<ActionResult & { subject?: string; recipient?: string }> {
   const user = await getAuthUser();
   if (!user || user.role !== "admin") {

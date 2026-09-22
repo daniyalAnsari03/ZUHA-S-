@@ -280,6 +280,58 @@ export async function notifyAdminsOfLowStock(
 }
 
 /**
+ * Pure guard for the instant out-of-stock alert: true only when a stock change
+ * moved a product INTO exactly 0 stock from a previously positive value. This
+ * never fires on a low-stock (still positive) crossing and never on a zero →
+ * zero edit.
+ */
+export function crossedToOutOfStock(
+  prevStock: number,
+  newStock: number,
+): boolean {
+  return newStock === 0 && prevStock > 0;
+}
+
+/** Notify every admin that a product just went out of stock (stock = 0). */
+export async function notifyAdminsOfOutOfStock(
+  productName: string,
+  productId?: string,
+  prevStock?: number,
+): Promise<void> {
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const supabase = createAdminClient();
+
+    const { data: admins } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("role", "admin");
+
+    if (!admins || admins.length === 0) return;
+
+    const title = "Out of stock";
+    const message = productId
+      ? `"${productName}" is now out of stock${prevStock !== undefined ? ` (was ${prevStock})` : ""}. Restock soon.`
+      : `A product is now out of stock. Restock soon.`;
+
+    for (const admin of admins) {
+      try {
+        await supabase.from("notifications").insert({
+          user_id: admin.id,
+          type: "admin_inventory_alert",
+          title,
+          message,
+        });
+      } catch {
+        // Best-effort per admin
+      }
+    }
+  } catch {
+    // Best-effort — never fail a business operation for a notification.
+  }
+}
+
+/**
  * Check whether a stock reduction crosses INTO the low-stock zone and, if so,
  * alert admins. prevStock is the stock before the reduction.
  */

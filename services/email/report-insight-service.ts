@@ -17,7 +17,7 @@ import { ServiceError } from "@/services/base";
  */
 
 export async function generateReportInsight(
-  reportType: "daily" | "weekly",
+  reportType: "daily" | "weekly" | "monthly",
   dataJson: string,
 ): Promise<string> {
   if (!dataJson.trim()) {

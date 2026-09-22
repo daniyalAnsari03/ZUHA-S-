@@ -11,6 +11,10 @@ import {
 } from "@/services/products/products-service";
 import { withToolAudit } from "@/tools/shared/audit";
 import { asResult, notFound } from "@/tools/shared/result";
+import {
+  crossedToOutOfStock,
+  notifyAdminsOfOutOfStock,
+} from "@/services/notifications/notification-service";
 
 const adminActor = (ctx: AgentContext) => ({
   id: ctx.userId!,
@@ -158,16 +162,29 @@ export const updateStockTool = tool({
         if (!current.data) {
           return notFound(`No product found with id "${id}".`);
         }
+        const prevStock = current.data.stock_quantity;
         // Preserve the existing threshold when the model does not supply one
         // instead of silently resetting it to the schema default of 5.
         const threshold =
           lowStockThreshold ?? current.data.low_stock_threshold;
-        return asResult(() =>
+        const updated = await asResult(() =>
           updateStock(actor, id, {
             stockQuantity,
             lowStockThreshold: threshold,
           }),
         );
+        // INSTANT OUT-OF-STOCK ALERT: when stock hits exactly 0 on this
+        // update, notify every admin immediately — separate from the periodic
+        // daily/weekly/monthly report digest. Best-effort; a notification
+        // failure must never fail the stock update.
+        if (updated.ok && crossedToOutOfStock(prevStock, updated.data.stock_quantity)) {
+          notifyAdminsOfOutOfStock(
+            updated.data.name,
+            id,
+            prevStock,
+          ).catch(() => {});
+        }
+        return updated;
       },
     );
     if (!result.ok) return result;

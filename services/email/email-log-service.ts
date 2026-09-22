@@ -7,6 +7,8 @@ import type {
 import type { RiskLevel } from "@/lib/security/guardians";
 import { ServiceError } from "@/services/base";
 
+const EMAIL_LOG_INSERT_CONFLICT_CODE = "23505";
+
 /**
  * Email logging — the durable audit trail for every report email
  * (email_logs table).
@@ -27,14 +29,20 @@ import { ServiceError } from "@/services/base";
 
 type EmailLogRow = Database["public"]["Tables"]["email_logs"]["Row"];
 
+export type ReportType = "daily" | "weekly" | "monthly" | "manual";
+
 export type EmailLogEntry = {
   recipientEmail: string;
-  reportType: "daily" | "weekly" | "manual";
+  reportType: ReportType;
   subject: string;
   aiSummary?: string | null;
   source: EmailLogSource;
   riskLevel: RiskLevel;
   requestedBy?: string | null;
+  /** Stable identity of the report PERIOD this row belongs to (see
+   * `reportPeriodKey` in report-data-service). Set by cron so duplicate-send
+   * protection is race-safe at the database level. */
+  periodKey?: string | null;
 };
 
 /** PKT date key of "today" for log-bucket checks. */
@@ -44,15 +52,6 @@ function pktTodayKey(): string {
   )
     .toISOString()
     .slice(0, 10);
-}
-
-/**
- * PKT midnight as a UTC instant (PKT = UTC+5, so 00:00 PKT = 19:00 UTC the
- * previous day). Used to filter logs created "since the start of the PKT day".
- */
-function pktDayStartUTC(): string {
-  const [y, m, d] = pktTodayKey().split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d - 1, 19, 0, 0)).toISOString();
 }
 
 export async function createPendingEmailLog(
@@ -71,11 +70,21 @@ export async function createPendingEmailLog(
       source: entry.source,
       risk_level: entry.riskLevel,
       requested_by: entry.requestedBy ?? null,
+      period_key: entry.periodKey ?? null,
     })
     .select("id")
     .single();
 
   if (error) {
+    // Unique-violation: a pending/sent cron row already exists for the same
+    // report period. Thrown as a dedicated service error so the caller can
+    // report the run as skipped instead of sending a duplicate email.
+    if (error.code === EMAIL_LOG_INSERT_CONFLICT_CODE) {
+      throw new ServiceError(
+        "EMAIL_LOG_PERIOD_DUPLICATE",
+        "A report for this period was already sent. The duplicate send was skipped.",
+      );
+    }
     throw new ServiceError(
       "EMAIL_LOG_CREATE_FAILED",
       "Failed to record the email attempt.",
@@ -152,20 +161,25 @@ export async function getEmailLogStatus(
 }
 
 /**
- * True when a pending/sent run of this report type already exists today PKT.
- * Used by the cron engine so a daily/weekly report is never double-sent.
+ * True when a pending/sent run of this report type already exists for the
+ * given report PERIOD key (see `reportPeriodKey`). Used by the cron engine so
+ * a daily/weekly/monthly report is never double-sent for the same period.
+ * `periodKey` is null-tolerant: null matches no rows (admin/manual sends do not
+ * rely on this check).
  */
-export async function hasProcessedReportToday(
-  reportType: "daily" | "weekly",
+export async function hasProcessedReportPeriod(
+  reportType: "daily" | "weekly" | "monthly",
+  periodKey: string | null,
 ): Promise<boolean> {
+  if (!periodKey) return false;
   const supabase = createAdminClient();
 
   const { data, error } = await supabase
     .from("email_logs")
     .select("id")
     .eq("report_type", reportType)
+    .eq("period_key", periodKey)
     .in("status", ["pending", "sent"])
-    .gte("created_at", pktDayStartUTC())
     .limit(1);
 
   if (error) {
@@ -173,6 +187,17 @@ export async function hasProcessedReportToday(
   }
 
   return (data?.length ?? 0) > 0;
+}
+
+/**
+ * Legacy per-day check kept for compatibility with callers that bucket by the
+ * PKT calendar day. For daily/weekly reports this is now expressed via
+ * `hasProcessedReportPeriod` with the exact period key.
+ */
+export async function hasProcessedReportToday(
+  reportType: "daily" | "weekly",
+): Promise<boolean> {
+  return hasProcessedReportPeriod(reportType, pktTodayKey());
 }
 
 export async function listEmailLogs(

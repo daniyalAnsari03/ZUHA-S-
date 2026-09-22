@@ -7,12 +7,19 @@ import { ServiceError } from "@/services/base";
 
 import {
   buildDailySalesSummary,
+  buildMonthlySalesSummary,
   buildWeeklySalesSummary,
   buildReportSubject,
+  reportPeriodKey,
   type DailySalesSummary,
+  type MonthlySalesSummary,
   type WeeklySalesSummary,
 } from "./report-data-service";
 import { generateReportInsight } from "./report-insight-service";
+import {
+  buildPlainReportInsight,
+  insightNumbersMatch,
+} from "./insight-sanitization";
 import {
   createPendingEmailLog,
   getEmailLogStatus,
@@ -23,8 +30,9 @@ import { resolveReportRecipient } from "./store-settings-service";
 
 import DailyReportEmail from "@/emails/DailyReport";
 import WeeklyReportEmail from "@/emails/WeeklyReport";
+import MonthlyReportEmail from "@/emails/MonthlyReport";
 
-export type ReportKind = "daily" | "weekly";
+export type ReportKind = "daily" | "weekly" | "monthly";
 
 export type SendReportEmailOptions = {
   reportType: ReportKind;
@@ -42,6 +50,7 @@ export type SendReportEmailResult =
     recipient: string;
     subject: string;
     aiInsight: string;
+    periodKey: string;
     providerMessageId: string | null;
     riskLevel: RiskLevel;
   }
@@ -63,7 +72,7 @@ function fail(
 /** JSON-safe summary handed to the insight agent — numbers only, no secrets. */
 function summaryJson(
   reportType: ReportKind,
-  summary: DailySalesSummary | WeeklySalesSummary,
+  summary: DailySalesSummary | WeeklySalesSummary | MonthlySalesSummary,
 ): string {
   if (reportType === "daily" && summary.reportType === "daily") {
     return JSON.stringify({
@@ -85,21 +94,43 @@ function summaryJson(
     });
   }
 
-  const weekly = summary as WeeklySalesSummary;
+  if (reportType === "weekly" && summary.reportType === "weekly") {
+    return JSON.stringify({
+      reportType: "weekly",
+      week: summary.weekLabel,
+      revenue: summary.revenue,
+      previousRevenue: summary.previousRevenue,
+      revenueGrowthPercent: summary.revenueGrowthPercent,
+      orderCount: summary.orderCount,
+      previousOrderCount: summary.previousOrderCount,
+      bestSellers: summary.bestSellers.map((p) => ({
+        name: p.name,
+        unitsSold: p.unitsSold,
+        revenue: p.revenue,
+      })),
+      lowStock: summary.lowStock.map((p) => ({
+        name: p.name,
+        stockQuantity: p.stockQuantity,
+        threshold: p.lowStockThreshold,
+      })),
+    });
+  }
+
+  const monthly = summary as MonthlySalesSummary;
   return JSON.stringify({
-    reportType: "weekly",
-    week: weekly.weekLabel,
-    revenue: weekly.revenue,
-    previousRevenue: weekly.previousRevenue,
-    revenueGrowthPercent: weekly.revenueGrowthPercent,
-    orderCount: weekly.orderCount,
-    previousOrderCount: weekly.previousOrderCount,
-    bestSellers: weekly.bestSellers.map((p) => ({
+    reportType: "monthly",
+    month: monthly.monthLabel,
+    revenue: monthly.revenue,
+    previousRevenue: monthly.previousRevenue,
+    revenueGrowthPercent: monthly.revenueGrowthPercent,
+    orderCount: monthly.orderCount,
+    previousOrderCount: monthly.previousOrderCount,
+    bestSellers: monthly.bestSellers.map((p) => ({
       name: p.name,
       unitsSold: p.unitsSold,
       revenue: p.revenue,
     })),
-    lowStock: weekly.lowStock.map((p) => ({
+    lowStock: monthly.lowStock.map((p) => ({
       name: p.name,
       stockQuantity: p.stockQuantity,
       threshold: p.lowStockThreshold,
@@ -108,7 +139,7 @@ function summaryJson(
 }
 
 /**
- * Build and send a business report email (daily/weekly) through Resend.
+ * Build and send a business report email (daily/weekly/monthly) through Resend.
  *
  * End-to-end flow (fail-closed):
  *   1. Guardian — classify the send source; unverified sources are blocked.
@@ -116,6 +147,9 @@ function summaryJson(
  *      guessed; unset recipient fails the send before anything is attempted.
  *   3. Data — real summary built from the database (revenue rule applies).
  *   4. Insight — AI 3-line analysis; empty/failed insight aborts the send.
+ *      Every number the AI writes is then verified against the real data; on
+ *      any mismatch the email falls back to a plain templated message built
+ *      only from the raw numbers.
  *   5. Audit — an email_logs 'pending' row is created BEFORE the provider call.
  *   6. Send — Resend; result is recorded as 'sent' (with message id) or
  *      'failed' (with reason) and re-read to VERIFY the recorded status.
@@ -142,13 +176,23 @@ export async function sendReportEmail(
     const summary =
       reportType === "daily"
         ? await buildDailySalesSummary()
-        : await buildWeeklySalesSummary();
+        : reportType === "weekly"
+          ? await buildWeeklySalesSummary()
+          : await buildMonthlySalesSummary();
     const subject = buildReportSubject(reportType, summary);
+    const periodKey = reportPeriodKey(reportType);
 
     const insight = await generateReportInsight(
       reportType,
       summaryJson(reportType, summary),
     );
+
+    // TRUTH CHECK: every number the AI wrote must exist in the real summary.
+    // If any does not, fall back to a plain templated message built only from
+    // the raw data — a report email must never carry a fabricated figure.
+    const verifiedInsight = insightNumbersMatch(summary, insight)
+      ? insight
+      : buildPlainReportInsight(reportType, summary);
 
     let html: string;
     if (summary.reportType === "daily") {
@@ -160,10 +204,10 @@ export async function sendReportEmail(
           averageOrderValue: summary.averageOrderValue,
           topProducts: summary.topProducts,
           lowStock: summary.lowStock,
-          aiInsight: insight,
+          aiInsight: verifiedInsight,
         }),
       );
-    } else {
+    } else if (summary.reportType === "weekly") {
       html = await render(
         WeeklyReportEmail({
           weekLabel: summary.weekLabel,
@@ -174,20 +218,48 @@ export async function sendReportEmail(
           previousOrderCount: summary.previousOrderCount,
           bestSellers: summary.bestSellers,
           lowStock: summary.lowStock,
-          aiInsight: insight,
+          aiInsight: verifiedInsight,
+        }),
+      );
+    } else {
+      html = await render(
+        MonthlyReportEmail({
+          monthLabel: summary.monthLabel,
+          revenue: summary.revenue,
+          previousRevenue: summary.previousRevenue,
+          revenueGrowthPercent: summary.revenueGrowthPercent ?? 0,
+          orderCount: summary.orderCount,
+          previousOrderCount: summary.previousOrderCount,
+          bestSellers: summary.bestSellers,
+          lowStock: summary.lowStock,
+          aiInsight: verifiedInsight,
         }),
       );
     }
 
-    const emailLogId = await createPendingEmailLog({
-      recipientEmail: recipient,
-      reportType,
-      subject,
-      aiSummary: insight,
-      source,
-      riskLevel: guardian.risk,
-      requestedBy: options.requestedBy ?? null,
-    });
+    let emailLogId: string;
+    try {
+      emailLogId = await createPendingEmailLog({
+        recipientEmail: recipient,
+        reportType,
+        subject,
+        aiSummary: verifiedInsight,
+        source,
+        riskLevel: guardian.risk,
+        requestedBy: options.requestedBy ?? null,
+        periodKey,
+      });
+    } catch (error) {
+      if (
+        error instanceof ServiceError &&
+        error.code === "EMAIL_LOG_PERIOD_DUPLICATE"
+      ) {
+        // A pending/sent cron run of the same period already exists — never
+        // send a duplicate for the same report period.
+        return fail("already_sent", error.message);
+      }
+      throw error;
+    }
 
     // Env-config check AFTER the pending log is recorded so the failure is
     // always visible in Admin → Email Reports.
@@ -239,7 +311,8 @@ export async function sendReportEmail(
       emailLogId,
       recipient,
       subject,
-      aiInsight: insight,
+      aiInsight: verifiedInsight,
+      periodKey,
       providerMessageId,
       riskLevel: guardian.risk,
     };

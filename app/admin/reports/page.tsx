@@ -48,8 +48,8 @@ export default async function AdminEmailReportsPage() {
         <div>
           <h1 className="font-serif text-3xl text-charcoal">Email Reports</h1>
           <p className="mt-1 text-sm text-charcoal-muted">
-            Automated business report emails (daily/weekly) with AI insights.
-            Delivered via Resend; every send is audited below.
+            Automated business report emails (daily/weekly/monthly) with AI
+            insights. Delivered via Resend; every send is audited below.
           </p>
         </div>
       </div>

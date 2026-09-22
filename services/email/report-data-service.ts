@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
-import { BUSINESS_TIMEZONE, todayKeyPKT } from "@/lib/time";
+import { BUSINESS_TIMEZONE, nowInPKT, todayKeyPKT } from "@/lib/time";
 import { ServiceError } from "@/services/base";
 import {
   computeTopProducts,
@@ -68,6 +68,24 @@ export type WeeklySalesSummary = {
   bestSellers: ReportTopProduct[];
   lowStock: ReportLowStockItem[];
 };
+
+export type MonthlySalesSummary = {
+  reportType: "monthly";
+  monthKey: string;
+  monthLabel: string;
+  revenue: number;
+  previousRevenue: number;
+  revenueGrowthPercent: number | null;
+  orderCount: number;
+  previousOrderCount: number;
+  bestSellers: ReportTopProduct[];
+  lowStock: ReportLowStockItem[];
+};
+
+export type ReportSummary =
+  | DailySalesSummary
+  | WeeklySalesSummary
+  | MonthlySalesSummary;
 
 export type ReportSnapshot = {
   orders: OrderRow[];
@@ -200,6 +218,42 @@ function weekWindowKeys(): { startKey: string; endKey: string } {
   return { startKey: `${y}-${m}-${d}`, endKey: todayKeyPKT() };
 }
 
+const MONTH_LABEL = new Intl.DateTimeFormat("en-GB", {
+  month: "long",
+  year: "numeric",
+});
+
+function pktCurrentMonth(): string {
+  const d = nowInPKT();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function monthLabel(monthKey: string): string {
+  const [y, m] = monthKey.split("-").map(Number);
+  return MONTH_LABEL.format(new Date(y, m - 1, 1));
+}
+
+function shiftMonthKey(monthKey: string, months: number): string {
+  const [y, m] = monthKey.split("-").map(Number);
+  const d = new Date(y, m - 1 + months, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/**
+ * Stable identity string for a report PERIOD, used for duplicate-send
+ * protection. Two runs covering the same period must compute the same key:
+ *   daily   → YYYY-MM-DD (the PKT business day)
+ *   weekly  → YYYY-MM-DD of the trailing-window start
+ *   monthly → YYYY-MM of the current PKT calendar month
+ */
+export function reportPeriodKey(
+  reportType: "daily" | "weekly" | "monthly",
+): string {
+  if (reportType === "daily") return todayKeyPKT();
+  if (reportType === "weekly") return weekWindowKeys().startKey;
+  return pktCurrentMonth();
+}
+
 /**
  * Build today's (PKT) business summary: revenue, order count, average order
  * value, today's top products and low-stock alerts.
@@ -272,7 +326,7 @@ export async function buildWeeklySalesSummary(): Promise<WeeklySalesSummary> {
 
   const bestSellers = toReportProducts(currentItems, orderById, 5);
 
-  const revenueGrowthPercent =
+  const revenueGrowth =
     previousRevenue > 0
       ? ((revenue - previousRevenue) / previousRevenue) * 100
       : revenue > 0
@@ -286,7 +340,63 @@ export async function buildWeeklySalesSummary(): Promise<WeeklySalesSummary> {
     weekLabel: `${labelShort(startKey)} – ${labelShort(endKey)}`,
     revenue,
     previousRevenue,
-    revenueGrowthPercent,
+    revenueGrowthPercent: revenueGrowth,
+    orderCount: currentOrders.length,
+    previousOrderCount: previousOrders.length,
+    bestSellers,
+    lowStock: lowStockItems(snapshot.products),
+  };
+}
+
+/**
+ * Build the current calendar-month (PKT) business summary with the
+ * revenue/order growth over the previous calendar month, plus best sellers
+ * and low stock.
+ */
+export async function buildMonthlySalesSummary(): Promise<MonthlySalesSummary> {
+  const snapshot = await loadReportSnapshot();
+  const monthKey = pktCurrentMonth();
+  const previousMonthKey = shiftMonthKey(monthKey, -1);
+
+  const inMonth = (iso: string, key: string) =>
+    pktDateKey(iso).startsWith(key);
+
+  const currentOrders = snapshot.orders.filter(
+    (o) => countsAsRevenue(o) && inMonth(o.created_at, monthKey),
+  );
+  const previousOrders = snapshot.orders.filter(
+    (o) => countsAsRevenue(o) && inMonth(o.created_at, previousMonthKey),
+  );
+
+  const revenue = currentOrders.reduce((sum, o) => sum + o.total, 0);
+  const previousRevenue = previousOrders.reduce(
+    (sum, o) => sum + o.total,
+    0,
+  );
+
+  const orderById = new Map(snapshot.orders.map((o) => [o.id, o]));
+  const currentItems = snapshot.items.filter((item) => {
+    const order = orderById.get(item.order_id);
+    if (!order) return false;
+    return countsAsRevenue(order) && inMonth(order.created_at, monthKey);
+  });
+
+  const bestSellers = toReportProducts(currentItems, orderById, 5);
+
+  const revenueGrowth =
+    previousRevenue > 0
+      ? ((revenue - previousRevenue) / previousRevenue) * 100
+      : revenue > 0
+        ? 100
+        : 0;
+
+  return {
+    reportType: "monthly",
+    monthKey,
+    monthLabel: monthLabel(monthKey),
+    revenue,
+    previousRevenue,
+    revenueGrowthPercent: revenueGrowth,
     orderCount: currentOrders.length,
     previousOrderCount: previousOrders.length,
     bestSellers,
@@ -314,14 +424,17 @@ function labelShort(key: string): string {
 
 /** Report subject lines built from real summary data. */
 export function buildReportSubject(
-  reportType: "daily" | "weekly",
-  summary: DailySalesSummary | WeeklySalesSummary,
+  reportType: "daily" | "weekly" | "monthly",
+  summary: ReportSummary,
 ): string {
   if (reportType === "daily" && summary.reportType === "daily") {
     return `DINS Daily Business Report — ${summary.dateLabel}`;
   }
   if (reportType === "weekly" && summary.reportType === "weekly") {
     return `DINS Weekly Business Report — ${summary.weekLabel}`;
+  }
+  if (reportType === "monthly" && summary.reportType === "monthly") {
+    return `DINS Monthly Business Report — ${summary.monthLabel}`;
   }
   return "DINS Business Report";
 }

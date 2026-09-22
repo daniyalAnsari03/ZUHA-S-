@@ -5,6 +5,7 @@ import type { AgentContext } from "@/agents/context";
 import { toolRoleGuardrail, ADMIN_ROLE } from "@/guardians/authorization";
 import {
   buildDailySalesSummary,
+  buildMonthlySalesSummary,
   buildWeeklySalesSummary,
 } from "@/services/email/report-data-service";
 import { sendReportEmail } from "@/services/email/email.service";
@@ -139,24 +140,72 @@ export const getWeeklySalesSummaryTool = tool({
 });
 
 /**
+ * Admin-only read of the current calendar-month business summary with
+ * month-over-month growth. Used by the Sales Employee for monthly reports.
+ * Read-only, low risk.
+ */
+export const getMonthlySalesSummaryTool = tool({
+  name: "get_monthly_sales_summary",
+  description:
+    "Get the current calendar-month business summary (Pakistan time) for the admin: revenue, orders, growth vs the previous month, best sellers and low-stock items. Use for 'monthly report', 'is mahine ki sales', 'this month ka report'. Read-only.",
+  parameters: z.object({}),
+  strict: true,
+  inputGuardrails: [toolRoleGuardrail("get_monthly_sales_summary", [ADMIN_ROLE])],
+  async execute(_params: Record<string, never>, runContext?: RunContext<AgentContext>) {
+    const ctx = runContext?.context;
+    if (!ctx) return { ok: false, reason: "error", message: "Missing execution context." } as const;
+
+    const result = await withToolAudit(
+      {
+        context: ctx,
+        agentName: ctx.agentName ?? "ai",
+        toolName: "get_monthly_sales_summary",
+        actionType: "reports.monthly.read",
+        risk: "low",
+        summary: "Read monthly sales summary",
+      },
+      async () => asResult(() => buildMonthlySalesSummary()),
+    );
+    if (!result.ok) return result;
+
+    const data = result.data;
+    return {
+      ok: true,
+      data: {
+        month: data.monthLabel,
+        revenue: `PKR ${Math.round(data.revenue).toLocaleString("en-PK")}`,
+        previousRevenue: `PKR ${Math.round(data.previousRevenue).toLocaleString("en-PK")}`,
+        revenueGrowthPercent:
+          data.revenueGrowthPercent === null ? null : `${data.revenueGrowthPercent.toFixed(0)}%`,
+        orderCount: data.orderCount,
+        previousOrderCount: data.previousOrderCount,
+        bestSellers: formatTopProducts(data.bestSellers),
+        lowStock: formatLowStock(data.lowStock),
+      },
+    };
+  },
+});
+
+/**
  * Admin-only tool that actually SENDS a business report email through the
- * Resend engine. The email body is built from REAL database data (daily or
- * weekly summary) plus a short AI insight. The send is risk-classified by the
- * Email Guardian, audited in email_logs, and verified (status re-read) before
- * being reported as sent. Use only when the owner explicitly asks to send a
- * report by email ("report email bhejo", "daily report email karo").
+ * Resend engine. The email body is built from REAL database data (daily,
+ * weekly or monthly summary) plus a short AI insight. The send is
+ * risk-classified by the Email Guardian, audited in email_logs, and verified
+ * (status re-read) before being reported as sent. Use only when the owner
+ * explicitly asks to send a report by email ("report email bhejo", "daily
+ * report email karo").
  */
 export const sendReportEmailTool = tool({
   name: "send_report_email",
   description:
-    "Send a business report email to the configured report address (Admin → Email Reports). Type must be 'daily' or 'weekly'. Builds the report from real database data plus an AI insight, records it in email_logs and verifies it was sent. Use ONLY when the owner explicitly asks for a report by email.",
+    "Send a business report email to the configured report address (Admin → Email Reports). Type must be 'daily', 'weekly' or 'monthly'. Builds the report from real database data plus an AI insight, records it in email_logs and verifies it was sent. Use ONLY when the owner explicitly asks for a report by email.",
   parameters: z.object({
-    reportType: z.enum(["daily", "weekly"]),
+    reportType: z.enum(["daily", "weekly", "monthly"]),
   }),
   strict: true,
   inputGuardrails: [toolRoleGuardrail("send_report_email", [ADMIN_ROLE])],
   async execute(
-    { reportType }: { reportType: "daily" | "weekly" },
+    { reportType }: { reportType: "daily" | "weekly" | "monthly" },
     runContext?: RunContext<AgentContext>,
   ) {
     const ctx = runContext?.context;
