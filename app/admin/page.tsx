@@ -93,12 +93,12 @@ export default async function AdminOverviewPage() {
         </div>
       ) : (
         <>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {stats.map((stat) => (
               <Link
                 key={stat.label}
                 href={stat.href}
-                className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-5 transition-colors hover:border-plum/30"
+                className="min-w-0 rounded-2xl border border-charcoal/10 bg-neutral-soft p-5 transition-colors hover:border-plum/30"
               >
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
@@ -112,9 +112,9 @@ export default async function AdminOverviewPage() {
             ))}
           </div>
 
-          <div className="mt-10 grid gap-6 lg:grid-cols-2">
+          <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Order status distribution */}
-            <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6">
+            <section className="min-w-0 rounded-2xl border border-charcoal/10 bg-neutral-soft p-6">
               <div className="flex items-center justify-between">
                 <h2 className="font-serif text-lg text-charcoal">Order status</h2>
                 <Link
@@ -157,7 +157,7 @@ export default async function AdminOverviewPage() {
             </section>
 
             {/* Recent orders */}
-            <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6">
+            <section className="min-w-0 rounded-2xl border border-charcoal/10 bg-neutral-soft p-6">
               <div className="flex items-center justify-between">
                 <h2 className="font-serif text-lg text-charcoal">Recent orders</h2>
                 <Link

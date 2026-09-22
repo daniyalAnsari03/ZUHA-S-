@@ -95,12 +95,12 @@ export default async function AdminAnalyticsPage() {
         </div>
       ) : (
         <>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {kpis.map((kpi) => (
               <Link
                 key={kpi.label}
                 href={kpi.href}
-                className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-5 transition-colors hover:border-plum/30"
+                className="min-w-0 rounded-2xl border border-charcoal/10 bg-neutral-soft p-5 transition-colors hover:border-plum/30"
               >
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
@@ -114,9 +114,9 @@ export default async function AdminAnalyticsPage() {
             ))}
           </div>
 
-          <div className="mt-10 grid gap-6 lg:grid-cols-5">
+          <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-5">
             {/* Sales trend */}
-            <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6 lg:col-span-3">
+            <section className="min-w-0 rounded-2xl border border-charcoal/10 bg-neutral-soft p-6 lg:col-span-3">
               <h2 className="font-serif text-lg text-charcoal">Sales trend</h2>
               <p className="text-xs text-charcoal-muted">
                 Daily revenue over the last {analytics.trendDays} days
@@ -154,7 +154,7 @@ export default async function AdminAnalyticsPage() {
             </section>
 
             {/* Status distribution */}
-            <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6 lg:col-span-2">
+            <section className="min-w-0 rounded-2xl border border-charcoal/10 bg-neutral-soft p-6 lg:col-span-2">
               <h2 className="font-serif text-lg text-charcoal">Order status</h2>
               <ul className="mt-4 divide-y divide-charcoal/5">
                 {analytics.statusDistribution.map((item) => {

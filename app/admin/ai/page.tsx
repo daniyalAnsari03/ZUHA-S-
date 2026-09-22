@@ -54,10 +54,12 @@ export default async function AdminAIWorkplacePage() {
         </span>
       </header>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_24rem]">
-        <AdminAiWorkplacePanel initialConversationId={null} />
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_24rem]">
+        <div className="min-w-0">
+          <AdminAiWorkplacePanel initialConversationId={null} />
+        </div>
 
-        <aside className="flex flex-col gap-4">
+        <aside className="flex min-w-0 flex-col gap-4">
           <div className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-5">
             <h2 className="font-serif text-base text-charcoal">Your team</h2>
             <ul className="mt-3 space-y-3">
