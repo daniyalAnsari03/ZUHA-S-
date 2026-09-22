@@ -1,9 +1,12 @@
+import { revalidateTag } from "next/cache";
+
 import type { Role } from "@/lib/auth/roles";
 import {
   createClient as createSupabaseClient,
   createPublicClient,
 } from "@/lib/supabase/server";
 import type { Database, Json } from "@/lib/supabase/types";
+import { STORE_CACHE_PROFILE, STORE_CACHE_TAGS } from "@/lib/storefront/cache";
 import { assertRole, ServiceError } from "@/services/base";
 
 type SiteContentRow = Database["public"]["Tables"]["site_content"]["Row"];
@@ -93,6 +96,8 @@ export async function upsertCmsContent(
     throw new ServiceError("CMS_WRITE_FAILED", `Failed to save content: ${key}`);
   }
 
+  revalidateTag(STORE_CACHE_TAGS.cms, STORE_CACHE_PROFILE);
+
   return data;
 }
 
@@ -112,6 +117,8 @@ export async function deleteCmsContent(
   if (error) {
     throw new ServiceError("CMS_DELETE_FAILED", `Failed to delete content: ${key}`);
   }
+
+  revalidateTag(STORE_CACHE_TAGS.cms, STORE_CACHE_PROFILE);
 }
 
 /* ---------------------------------------------------------------------------

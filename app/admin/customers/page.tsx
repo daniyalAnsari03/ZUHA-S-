@@ -93,7 +93,7 @@ export default async function AdminCustomersPage({
       ) : (
         <div className="mt-6 overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-charcoal/10 bg-cream/40">
                   <th className="px-5 py-3 font-medium text-charcoal-muted">Customer</th>

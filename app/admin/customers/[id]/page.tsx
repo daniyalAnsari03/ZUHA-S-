@@ -126,8 +126,8 @@ export default async function AdminCustomerDetailPage({
             This customer has not placed any orders yet.
           </p>
         ) : (
-          <div className="mt-4 overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-x-auto rounded-xl border border-charcoal/10 bg-neutral-soft">
+            <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-charcoal/10 bg-cream/40">
                   <th className="px-5 py-3 font-medium text-charcoal-muted">Order</th>

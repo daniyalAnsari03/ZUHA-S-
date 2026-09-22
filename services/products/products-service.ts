@@ -1,9 +1,12 @@
+import { revalidateTag } from "next/cache";
+
 import type { Role } from "@/lib/auth/roles";
 import {
   createClient as createSupabaseClient,
   createPublicClient,
 } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { STORE_CACHE_PROFILE, STORE_CACHE_TAGS } from "@/lib/storefront/cache";
 import {
   productInputSchema,
   stockUpdateSchema,
@@ -333,6 +336,8 @@ export async function createProduct(
     throw new ServiceError("PRODUCT_CREATE_FAILED", "Failed to create product.");
   }
 
+  revalidateTag(STORE_CACHE_TAGS.products, STORE_CACHE_PROFILE);
+
   return withCategory(data);
 }
 
@@ -375,6 +380,8 @@ export async function updateProduct(
     throw new ServiceError("PRODUCT_UPDATE_FAILED", "Failed to update product.");
   }
 
+  revalidateTag(STORE_CACHE_TAGS.products, STORE_CACHE_PROFILE);
+
   return withCategory(data);
 }
 
@@ -402,6 +409,8 @@ export async function updateStock(
     throw new ServiceError("PRODUCT_UPDATE_FAILED", "Failed to update stock.");
   }
 
+  revalidateTag(STORE_CACHE_TAGS.products, STORE_CACHE_PROFILE);
+
   return withCategory(data);
 }
 
@@ -424,6 +433,8 @@ export async function setProductActive(
   if (error) {
     throw new ServiceError("PRODUCT_UPDATE_FAILED", "Failed to update product.");
   }
+
+  revalidateTag(STORE_CACHE_TAGS.products, STORE_CACHE_PROFILE);
 
   return withCategory(data);
 }
@@ -464,4 +475,6 @@ export async function deleteProduct(
       "Product deletion could not be verified.",
     );
   }
+
+  revalidateTag(STORE_CACHE_TAGS.products, STORE_CACHE_PROFILE);
 }

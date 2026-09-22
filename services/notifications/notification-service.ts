@@ -47,6 +47,28 @@ export async function listNotifications(
   return (data ?? []) as NotificationRow[];
 }
 
+/** Get a single notification for a user. RLS scopes the read to the caller
+ * (admins may also read any notification through their admin policy). */
+export async function getNotificationDetail(
+  userId: string,
+  notificationId: string,
+): Promise<NotificationRow | null> {
+  const supabase = await createSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("id", notificationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new ServiceError("NOTIFICATIONS_READ_FAILED", "Failed to load notification.", error);
+  }
+
+  return (data ?? null) as NotificationRow | null;
+}
+
 /** Get the count of unread notifications for a user. */
 export async function getUnreadCount(userId: string): Promise<number> {
   const supabase = await createSupabaseClient();

@@ -90,7 +90,12 @@ export default async function AdminNotificationsPage() {
                   {!n.is_read && (
                     <span className="h-2 w-2 shrink-0 rounded-full bg-plum" />
                   )}
-                  <p className="text-sm font-medium text-charcoal">{n.title}</p>
+                  <Link
+                    href={`/admin/notifications/${n.id}`}
+                    className="text-sm font-medium text-charcoal transition-colors hover:text-plum"
+                  >
+                    {n.title}
+                  </Link>
                   <span className="text-xs text-charcoal-muted">
                     {timeAgo(n.created_at)}
                   </span>

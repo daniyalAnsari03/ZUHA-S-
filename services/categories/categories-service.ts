@@ -1,9 +1,12 @@
+import { revalidateTag } from "next/cache";
+
 import type { Role } from "@/lib/auth/roles";
 import {
   createClient as createSupabaseClient,
   createPublicClient,
 } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { STORE_CACHE_PROFILE, STORE_CACHE_TAGS } from "@/lib/storefront/cache";
 import {
   categoryInputSchema,
   type CategoryInput,
@@ -126,6 +129,8 @@ export async function createCategory(
     throw new ServiceError("CATEGORY_CREATE_FAILED", "Failed to create category.");
   }
 
+  revalidateTag(STORE_CACHE_TAGS.categories, STORE_CACHE_PROFILE);
+
   return data;
 }
 
@@ -157,6 +162,8 @@ export async function updateCategory(
     throw new ServiceError("CATEGORY_UPDATE_FAILED", "Failed to update category.");
   }
 
+  revalidateTag(STORE_CACHE_TAGS.categories, STORE_CACHE_PROFILE);
+
   return data;
 }
 
@@ -179,6 +186,8 @@ export async function setCategoryActive(
   if (error) {
     throw new ServiceError("CATEGORY_UPDATE_FAILED", "Failed to update category.", error);
   }
+
+  revalidateTag(STORE_CACHE_TAGS.categories, STORE_CACHE_PROFILE);
 
   return data;
 }
@@ -234,4 +243,6 @@ export async function deleteCategory(
       "Category deletion could not be verified.",
     );
   }
+
+  revalidateTag(STORE_CACHE_TAGS.categories, STORE_CACHE_PROFILE);
 }

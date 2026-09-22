@@ -1,3 +1,9 @@
+import { unstable_cache } from "next/cache";
+
+import {
+  STORE_CACHE_TAGS,
+  STORE_CACHE_TTL_SECONDS,
+} from "./cache";
 import type {
   Announcement,
   Category,
@@ -51,21 +57,29 @@ const FALLBACK_ANNOUNCEMENTS: Announcement[] = [
   },
 ];
 
-export async function getActiveAnnouncements(): Promise<Announcement[]> {
-  try {
-    const { getAnnouncements } = await import("@/services/cms/cms-service");
-    const items = await getAnnouncements();
-    if (items.length > 0) {
-      return items
-        .filter((a) => a.active)
-        .sort((a, b) => a.order - b.order);
+const loadAnnouncements = unstable_cache(
+  async (): Promise<Announcement[]> => {
+    try {
+      const { getAnnouncements } = await import("@/services/cms/cms-service");
+      const items = await getAnnouncements();
+      if (items.length > 0) {
+        return items
+          .filter((a) => a.active)
+          .sort((a, b) => a.order - b.order);
+      }
+    } catch {
+      // CMS not available, use fallback
     }
-  } catch {
-    // CMS not available, use fallback
-  }
-  return FALLBACK_ANNOUNCEMENTS.filter((a) => a.active).sort(
-    (a, b) => a.order - b.order,
-  );
+    return FALLBACK_ANNOUNCEMENTS.filter((a) => a.active).sort(
+      (a, b) => a.order - b.order,
+    );
+  },
+  ["storefront-active-announcements"],
+  { tags: [STORE_CACHE_TAGS.cms], revalidate: STORE_CACHE_TTL_SECONDS },
+);
+
+export async function getActiveAnnouncements(): Promise<Announcement[]> {
+  return loadAnnouncements();
 }
 
 /* ---------------------------------------------------------------------------
@@ -85,17 +99,25 @@ const FALLBACK_HERO: HeroSlide = {
   order: 1,
 };
 
-export async function getActiveHeroSlides(): Promise<HeroSlide[]> {
-  try {
-    const { getHeroSlide } = await import("@/services/cms/cms-service");
-    const slide = await getHeroSlide();
-    if (slide && slide.heading) {
-      return [slide].filter((s) => s.active).sort((a, b) => a.order - b.order);
+const loadHeroSlides = unstable_cache(
+  async (): Promise<HeroSlide[]> => {
+    try {
+      const { getHeroSlide } = await import("@/services/cms/cms-service");
+      const slide = await getHeroSlide();
+      if (slide && slide.heading) {
+        return [slide].filter((s) => s.active).sort((a, b) => a.order - b.order);
+      }
+    } catch {
+      // CMS not available, use fallback
     }
-  } catch {
-    // CMS not available, use fallback
-  }
-  return [FALLBACK_HERO];
+    return [FALLBACK_HERO];
+  },
+  ["storefront-active-hero-slides"],
+  { tags: [STORE_CACHE_TAGS.cms], revalidate: STORE_CACHE_TTL_SECONDS },
+);
+
+export async function getActiveHeroSlides(): Promise<HeroSlide[]> {
+  return loadHeroSlides();
 }
 
 /* ---------------------------------------------------------------------------
@@ -198,105 +220,161 @@ export function isDbAvailable() {
   return lastReadFromDb;
 }
 
-export async function getActiveCategories(): Promise<Category[]> {
-  try {
-    const { listActiveCategories } = await import("@/services/categories/categories-service");
-    const rows = await listActiveCategories();
-    if (rows.length > 0) {
-      lastReadFromDb = true;
-      return rows.map(dbCategoryToStorefront);
+const loadCategories = unstable_cache(
+  async (): Promise<Category[]> => {
+    try {
+      const { listActiveCategories } = await import("@/services/categories/categories-service");
+      const rows = await listActiveCategories();
+      if (rows.length > 0) {
+        lastReadFromDb = true;
+        return rows.map(dbCategoryToStorefront);
+      }
+    } catch (e) {
+      console.warn("[storefront] categories DB read failed, falling back to static catalog:", e);
     }
-  } catch (e) {
-    console.warn("[storefront] categories DB read failed, falling back to static catalog:", e);
-  }
-  lastReadFromDb = false;
-  return FALLBACK_CATEGORIES.filter((c) => c.active).sort((a, b) => a.order - b.order);
+    lastReadFromDb = false;
+    return FALLBACK_CATEGORIES.filter((c) => c.active).sort((a, b) => a.order - b.order);
+  },
+  ["storefront-active-categories"],
+  { tags: [STORE_CACHE_TAGS.categories], revalidate: STORE_CACHE_TTL_SECONDS },
+);
+
+export async function getActiveCategories(): Promise<Category[]> {
+  return loadCategories();
 }
+
+const loadCategoryBySlug = unstable_cache(
+  async (slug: string): Promise<Category | null> => {
+    try {
+      const { getCategoryBySlug: fetchCategory } = await import("@/services/categories/categories-service");
+      const row = await fetchCategory(slug);
+      if (row) {
+        lastReadFromDb = true;
+        return dbCategoryToStorefront(row);
+      }
+    } catch (e) {
+      console.warn("[storefront] category slug DB read failed, falling back:", e);
+    }
+    return FALLBACK_CATEGORIES.find((c) => c.slug === slug && c.active) ?? null;
+  },
+  ["storefront-category-by-slug"],
+  { tags: [STORE_CACHE_TAGS.categories], revalidate: STORE_CACHE_TTL_SECONDS },
+);
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
-  try {
-    const { getCategoryBySlug: fetchCategory } = await import("@/services/categories/categories-service");
-    const row = await fetchCategory(slug);
-    if (row) {
-      lastReadFromDb = true;
-      return dbCategoryToStorefront(row);
-    }
-  } catch (e) {
-    console.warn("[storefront] category slug DB read failed, falling back:", e);
-  }
-  return FALLBACK_CATEGORIES.find((c) => c.slug === slug && c.active) ?? null;
+  return loadCategoryBySlug(slug);
 }
+
+const loadAllActiveProducts = unstable_cache(
+  async (): Promise<Product[]> => {
+    try {
+      const { listActiveProducts } = await import("@/services/products/products-service");
+      const rows = await listActiveProducts({ limit: 50 });
+      if (rows.length > 0) {
+        lastReadFromDb = true;
+        return rows.map((r) => dbProductToStorefront({ ...r, category_slug: r.category?.slug ?? null }));
+      }
+    } catch (e) {
+      console.warn("[storefront] products DB read failed, falling back to static catalog:", e);
+    }
+    lastReadFromDb = false;
+    return FALLBACK_PRODUCTS.filter((p) => p.active);
+  },
+  ["storefront-all-active-products"],
+  { tags: [STORE_CACHE_TAGS.products], revalidate: STORE_CACHE_TTL_SECONDS },
+);
 
 export async function getAllActiveProducts(): Promise<Product[]> {
-  try {
-    const { listActiveProducts } = await import("@/services/products/products-service");
-    const rows = await listActiveProducts({ limit: 50 });
-    if (rows.length > 0) {
-      lastReadFromDb = true;
-      return rows.map((r) => dbProductToStorefront({ ...r, category_slug: r.category?.slug ?? null }));
-    }
-  } catch (e) {
-    console.warn("[storefront] products DB read failed, falling back to static catalog:", e);
-  }
-  lastReadFromDb = false;
-  return FALLBACK_PRODUCTS.filter((p) => p.active);
+  return loadAllActiveProducts();
 }
+
+const loadProductsByCategory = unstable_cache(
+  async (slug: string): Promise<Product[]> => {
+    try {
+      const { listActiveProducts } = await import("@/services/products/products-service");
+      const rows = await listActiveProducts({ categorySlug: slug, limit: 50 });
+      if (rows.length > 0) {
+        lastReadFromDb = true;
+        return rows.map((r) => dbProductToStorefront({ ...r, category_slug: r.category?.slug ?? slug }));
+      }
+    } catch (e) {
+      console.warn("[storefront] category products DB read failed, falling back:", e);
+    }
+    return FALLBACK_PRODUCTS.filter((p) => p.categorySlug === slug && p.active);
+  },
+  ["storefront-products-by-category"],
+  { tags: [STORE_CACHE_TAGS.products], revalidate: STORE_CACHE_TTL_SECONDS },
+);
 
 export async function getProductsByCategory(slug: string): Promise<Product[]> {
-  try {
-    const { listActiveProducts } = await import("@/services/products/products-service");
-    const rows = await listActiveProducts({ categorySlug: slug, limit: 50 });
-    if (rows.length > 0) {
-      lastReadFromDb = true;
-      return rows.map((r) => dbProductToStorefront({ ...r, category_slug: r.category?.slug ?? slug }));
-    }
-  } catch (e) {
-    console.warn("[storefront] category products DB read failed, falling back:", e);
-  }
-  return FALLBACK_PRODUCTS.filter((p) => p.categorySlug === slug && p.active);
+  return loadProductsByCategory(slug);
 }
+
+const loadNewArrivals = unstable_cache(
+  async (limit = 4): Promise<Product[]> => {
+    try {
+      const { getNewArrivals: fetchNewArrivals } = await import("@/services/products/products-service");
+      const rows = await fetchNewArrivals(limit);
+      if (rows.length > 0) {
+        lastReadFromDb = true;
+        return rows.map((r) => dbProductToStorefront({ ...r, category_slug: r.category?.slug ?? null }));
+      }
+    } catch (e) {
+      console.warn("[storefront] new arrivals DB read failed, falling back:", e);
+    }
+    lastReadFromDb = false;
+    return FALLBACK_PRODUCTS.filter((p) => p.active).slice(0, limit);
+  },
+  ["storefront-new-arrivals"],
+  { tags: [STORE_CACHE_TAGS.products], revalidate: STORE_CACHE_TTL_SECONDS },
+);
 
 export async function getNewArrivals(limit = 4): Promise<Product[]> {
-  try {
-    const { getNewArrivals: fetchNewArrivals } = await import("@/services/products/products-service");
-    const rows = await fetchNewArrivals(limit);
-    if (rows.length > 0) {
-      lastReadFromDb = true;
-      return rows.map((r) => dbProductToStorefront({ ...r, category_slug: r.category?.slug ?? null }));
-    }
-  } catch (e) {
-    console.warn("[storefront] new arrivals DB read failed, falling back:", e);
-  }
-  lastReadFromDb = false;
-  return FALLBACK_PRODUCTS.filter((p) => p.active).slice(0, limit);
+  return loadNewArrivals(limit);
 }
+
+const loadProductById = unstable_cache(
+  async (id: string): Promise<Product | null> => {
+    try {
+      const { getProductById: fetchProduct } = await import("@/services/products/products-service");
+      const row = await fetchProduct(id);
+      if (row) {
+        lastReadFromDb = true;
+        return dbProductToStorefront({ ...row, category_slug: row.category?.slug ?? null });
+      }
+    } catch (e) {
+      console.warn("[storefront] product ID DB read failed, falling back:", e);
+    }
+    return FALLBACK_PRODUCTS.find((p) => p.id === id && p.active) ?? null;
+  },
+  ["storefront-product-by-id"],
+  { tags: [STORE_CACHE_TAGS.products], revalidate: STORE_CACHE_TTL_SECONDS },
+);
 
 export async function getProductById(id: string): Promise<Product | null> {
-  try {
-    const { getProductById: fetchProduct } = await import("@/services/products/products-service");
-    const row = await fetchProduct(id);
-    if (row) {
-      lastReadFromDb = true;
-      return dbProductToStorefront({ ...row, category_slug: row.category?.slug ?? null });
-    }
-  } catch (e) {
-    console.warn("[storefront] product ID DB read failed, falling back:", e);
-  }
-  return FALLBACK_PRODUCTS.find((p) => p.id === id && p.active) ?? null;
+  return loadProductById(id);
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | null> {
-  try {
-    const { getProductBySlug: fetchProduct } = await import("@/services/products/products-service");
-    const row = await fetchProduct(slug);
-    if (row) {
-      lastReadFromDb = true;
-      return dbProductToStorefront({ ...row, category_slug: row.category?.slug ?? null });
+const loadProductBySlug = unstable_cache(
+  async (slug: string): Promise<Product | null> => {
+    try {
+      const { getProductBySlug: fetchProduct } = await import("@/services/products/products-service");
+      const row = await fetchProduct(slug);
+      if (row) {
+        lastReadFromDb = true;
+        return dbProductToStorefront({ ...row, category_slug: row.category?.slug ?? null });
+      }
+    } catch (e) {
+      console.warn("[storefront] product slug DB read failed, falling back:", e);
     }
-  } catch (e) {
-    console.warn("[storefront] product slug DB read failed, falling back:", e);
-  }
-  return FALLBACK_PRODUCTS.find((p) => p.slug === slug && p.active) ?? null;
+    return FALLBACK_PRODUCTS.find((p) => p.slug === slug && p.active) ?? null;
+  },
+  ["storefront-product-by-slug"],
+  { tags: [STORE_CACHE_TAGS.products], revalidate: STORE_CACHE_TTL_SECONDS },
+);
+
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  return loadProductBySlug(slug);
 }
 
 export async function resolveProducts(

@@ -242,9 +242,26 @@ export const ChatNotificationBadge = forwardRef<ChatNotificationBadgeHandle, Pro
                             <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-plum" />
                           )}
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-charcoal">
+                            <Link
+                              href={`/notifications/${n.id}`}
+                              onClick={() => {
+                                void markNotificationReadAction(n.id);
+                                setNotifications((prev) =>
+                                  prev.map((m) =>
+                                    m.id === n.id
+                                      ? { ...m, is_read: true }
+                                      : m,
+                                  ),
+                                );
+                                setUnreadCount((prev) =>
+                                  Math.max(0, prev - 1),
+                                );
+                                setOpen(false);
+                              }}
+                              className="block text-sm font-medium text-charcoal transition-colors hover:text-plum"
+                            >
                               {n.title}
-                            </p>
+                            </Link>
                             <p className="mt-0.5 text-xs text-charcoal-muted line-clamp-2">
                               {n.message}
                             </p>

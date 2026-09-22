@@ -144,7 +144,16 @@ export function AdminNotificationBell({ unreadCount: initialUnread }: { unreadCo
                         <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-plum" />
                       )}
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-charcoal">{n.title}</p>
+                        <Link
+                          href={`/admin/notifications/${n.id}`}
+                          onClick={() => {
+                            void markRead(n.id);
+                            setOpen(false);
+                          }}
+                          className="block text-sm font-medium text-charcoal transition-colors hover:text-plum"
+                        >
+                          {n.title}
+                        </Link>
                         <p className="mt-0.5 text-xs text-charcoal-muted line-clamp-2">
                           {n.message}
                         </p>

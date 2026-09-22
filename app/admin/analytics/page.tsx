@@ -121,7 +121,8 @@ export default async function AdminAnalyticsPage() {
               <p className="text-xs text-charcoal-muted">
                 Daily revenue over the last {analytics.trendDays} days
               </p>
-              <div className="mt-6 flex h-48 items-end gap-1.5">
+              <div className="mt-6 overflow-x-auto pb-1">
+                <div className="flex h-48 min-w-full items-end gap-1.5">
                 {analytics.salesTrend.map((point) => (
                   <div
                     key={point.dateKey}
@@ -148,6 +149,7 @@ export default async function AdminAnalyticsPage() {
                     </div>
                   </div>
                 ))}
+                </div>
               </div>
             </section>
 
@@ -189,8 +191,8 @@ export default async function AdminAnalyticsPage() {
                 No product sales yet — paid orders will appear here.
               </p>
             ) : (
-              <div className="mt-4 overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft">
-                <table className="w-full text-left text-sm">
+              <div className="mt-4 overflow-x-auto rounded-xl border border-charcoal/10 bg-neutral-soft">
+                <table className="w-full min-w-[560px] text-left text-sm">
                   <thead>
                     <tr className="border-b border-charcoal/10 bg-cream/40">
                       <th className="px-5 py-3 font-medium text-charcoal-muted">Product</th>

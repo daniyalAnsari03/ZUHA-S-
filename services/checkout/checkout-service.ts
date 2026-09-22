@@ -1,3 +1,5 @@
+import { revalidateTag } from "next/cache";
+
 import {
   checkoutCustomerSchema,
   type CheckoutCustomerInput,
@@ -14,6 +16,7 @@ import {
   createNotificationAdmin,
   maybeAlertAdminOnStockCrossing,
 } from "@/services/notifications/notification-service";
+import { STORE_CACHE_PROFILE, STORE_CACHE_TAGS } from "@/lib/storefront/cache";
 import { ServiceError } from "@/services/base";
 
 /**
@@ -253,6 +256,9 @@ export async function initiateCheckout(
   // Create notifications (non-blocking, best-effort)
   createOrderStatusNotification(userId, order.id, order.order_number, "pending").catch(() => {});
   createAdminNewOrderNotificationForOrder(order.id, order.order_number, order.total).catch(() => {});
+
+  // Stock changed by this order — refresh the cached storefront availability.
+  revalidateTag(STORE_CACHE_TAGS.products, STORE_CACHE_PROFILE);
 
   return {
     state: provider === "cod" ? "success" : "pending",

@@ -76,7 +76,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       className={`flex ${isUser ? "justify-end" : "justify-start"}`}
     >
       <div
-        className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+        className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
           isUser
             ? "rounded-br-sm bg-gradient-to-br from-plum-dark via-plum to-plum-light text-white shadow-md shadow-plum/25 ring-1 ring-white/30"
             : "rounded-bl-sm bg-white text-charcoal shadow-sm shadow-charcoal/5 ring-1 ring-charcoal/5"
