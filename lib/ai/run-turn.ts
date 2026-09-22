@@ -16,6 +16,7 @@ import type { AgentContext } from "@/agents/context";
 import { streamRunToEvents, type AiStreamEvent } from "@/lib/ai/stream";
 import {
   buildInputItems,
+  conversationOwnedBy,
   createConversation,
   loadMessages,
   saveMessage,
@@ -206,27 +207,35 @@ export async function runChatTurn(
     if (isAuthenticated) {
       if (conversationId) {
         const loaded = await loadMessages(conversationId);
-        // RLS guarantees an unknown/unowned id resolves to zero rows.
-        if (loaded.length === 0) {
-          return {
-            ok: false,
-            status: 403,
-            message: "This conversation does not belong to you.",
-          };
+        if (loaded.length > 0) {
+          conversation = conversationId;
+          historyRows = loaded;
+        } else {
+          // The stored conversation id resolved to zero rows. This is normal
+          // when the browser holds a stale/foreign id (old DB, a previous
+          // account, or a guest thread). RLS already guarantees we never read
+          // someone else's messages, so recover on the user's behalf instead
+          // of blocking the turn:
+          //   1. Reuse the id when it's genuinely the user's (empty thread).
+          //   2. Otherwise start a fresh conversation for the user.
+          const owned = await conversationOwnedBy(conversationId, user!.id);
+          if (owned) {
+            conversation = conversationId;
+          } else {
+            conversation = await createConversation(user!.id, channel);
+          }
         }
-        conversation = conversationId;
-        historyRows = loaded;
       } else {
         conversation = await createConversation(user!.id, channel);
       }
       await saveMessage(conversation, "user", message);
     } else {
+      // Guests cannot persist conversations. Ignore any stale stored id — the
+      // thread is rebuilt from the bounded client-supplied history instead.
       if (conversationId) {
-        return {
-          ok: false,
-          status: 400,
-          message: "Guest conversations are not persisted. Start a new thread.",
-        };
+        console.warn(
+          "[ai] guest supplied a stored conversation id; treating as new thread.",
+        );
       }
       historyRows = (history ?? []).map((item) => ({
         id: "",

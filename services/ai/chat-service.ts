@@ -110,6 +110,34 @@ export async function listUserConversations(
 }
 
 /**
+ * Check whether a conversation exists and is owned by the given user. RLS
+ * guarantees an unowned or unknown id resolves to no rows.
+ */
+export async function conversationOwnedBy(
+  conversationId: string,
+  userId: string,
+): Promise<boolean> {
+  const supabase = await createSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("ai_conversations")
+    .select("id")
+    .eq("id", conversationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new ServiceError(
+      "AI_CONVERSATION_READ_FAILED",
+      "Failed to load conversation.",
+      error,
+    );
+  }
+
+  return Boolean(data);
+}
+
+/**
  * Load the message history for a conversation. RLS guarantees the caller can
  * only ever read their own conversations; an unowned or unknown id yields an
  * empty array.
