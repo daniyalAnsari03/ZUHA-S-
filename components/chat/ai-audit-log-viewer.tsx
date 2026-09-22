@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Shield, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 
 type AuditLog = {
   id: string;
@@ -16,22 +15,10 @@ type AuditLog = {
   created_at: string;
 };
 
-const RISK_ICONS: Record<string, typeof Shield> = {
-  low: CheckCircle,
-  medium: AlertTriangle,
-  high: XCircle,
-};
-
-const RISK_COLORS: Record<string, string> = {
-  low: "text-green-600 bg-green-50",
-  medium: "text-amber-600 bg-amber-50",
-  high: "text-red-600 bg-red-50",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  granted: "text-green-700",
-  denied: "text-red-600",
-  error: "text-amber-600",
+const STATUS_BADGES: Record<string, string> = {
+  granted: "bg-green-100 text-green-700",
+  denied: "bg-red-100 text-red-600",
+  error: "bg-amber-100 text-amber-700",
 };
 
 function timeAgo(dateStr: string): string {
@@ -71,70 +58,69 @@ export function AiAuditLogViewer() {
     return () => { cancelled = true; };
   }, []);
 
-  return (
-    <div className="rounded-2xl border border-charcoal/10 bg-white p-5">
-      <h2 className="font-serif text-base text-charcoal">AI Audit Trail</h2>
-      <p className="mt-1 text-xs text-charcoal-muted">
-        Recent AI actions — every tool call is authorized and logged.
+  if (loading) {
+    return (
+      <p className="px-4 py-10 text-center text-xs text-charcoal-muted">
+        Loading audit logs…
       </p>
+    );
+  }
 
-      <div className="mt-4 space-y-2">
-        {loading && (
-          <p className="py-4 text-center text-xs text-charcoal-muted">
-            Loading audit logs…
-          </p>
-        )}
+  if (error) {
+    return <p className="px-4 py-10 text-center text-xs text-red-600">{error}</p>;
+  }
 
-        {error && !loading && (
-          <p className="py-4 text-center text-xs text-red-600">{error}</p>
-        )}
+  if (logs.length === 0) {
+    return (
+      <p className="px-4 py-10 text-center text-xs text-charcoal-muted">
+        No AI activity yet.
+      </p>
+    );
+  }
 
-        {!loading && !error && logs.length === 0 && (
-          <p className="py-4 text-center text-xs text-charcoal-muted">
-            No AI activity yet.
-          </p>
-        )}
-
-        {logs.map((log) => {
-          const RiskIcon = RISK_ICONS[log.risk] ?? Shield;
-          return (
-            <div
-              key={log.id}
-              className="flex items-start gap-2.5 rounded-lg border border-charcoal/5 px-3 py-2"
-            >
-              <span
-                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${RISK_COLORS[log.risk]}`}
-              >
-                <RiskIcon className="h-3 w-3" aria-hidden="true" />
+  return (
+    <ul className="space-y-2">
+      {logs.map((log) => (
+        <li
+          key={log.id}
+          className="rounded-xl border border-charcoal/10 bg-white p-3 shadow-sm"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="min-w-0 truncate text-xs text-charcoal">
+              <span className="font-semibold">{log.agent_name}</span>
+              <span className="mx-1 text-charcoal-muted/50" aria-hidden="true">
+                →
               </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-xs font-medium text-charcoal">
-                    {log.agent_name}
-                  </span>
-                  {log.tool_name && (
-                    <span className="truncate text-[11px] text-charcoal-muted">
-                      → {log.tool_name}
-                    </span>
-                  )}
-                  <span
-                    className={`ml-auto shrink-0 text-[11px] font-medium ${STATUS_COLORS[log.status]}`}
-                  >
-                    {log.status}
-                  </span>
-                </div>
-                <p className="mt-0.5 truncate text-[11px] text-charcoal-muted">
-                  {log.action_type}
-                  {log.entity_type ? ` · ${log.entity_type}` : ""}
-                </p>
-                <p className="mt-0.5 text-[10px] text-charcoal-muted/70">
-                  {timeAgo(log.created_at)}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+              <span className="font-medium text-plum">
+                {log.tool_name ?? log.action_type}
+              </span>
+            </p>
+            <span
+              className={`flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${
+                STATUS_BADGES[log.status] ?? "bg-neutral-soft text-charcoal-muted"
+              }`}
+            >
+              {log.status}
+            </span>
+          </div>
+
+          <p className="mt-1.5 truncate text-[11px] text-charcoal-muted">
+            {log.action_type}
+            {log.entity_type ? (
+              <span className="text-charcoal-muted/60">
+                <span className="mx-1" aria-hidden="true">·</span>
+                {log.entity_type}
+              </span>
+            ) : null}
+          </p>
+
+          <div className="mt-1.5 flex justify-end">
+            <span className="text-[10px] text-charcoal-muted/70">
+              {timeAgo(log.created_at)}
+            </span>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

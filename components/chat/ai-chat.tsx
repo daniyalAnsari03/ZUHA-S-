@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -49,6 +49,12 @@ type AiChatProps = {
   variant: "panel" | "floating";
   theme?: "plum" | "gold";
   quickPrompts?: string[];
+  /** Extra controls rendered on the right of the header (e.g. history drawer opener). */
+  headerActions?: ReactNode;
+  /** When set, the chat loads that conversation's real message history into view. */
+  conversationToLoad?: string | null;
+  /** Called when the user starts a new conversation (so the caller can clear its selection). */
+  onReset?: () => void;
 };
 
 const ATTACH_RE = /\[Attached image:\s*([^\]]+)\]/g;
@@ -111,6 +117,9 @@ function ChatBody({
   fallbackAgent,
   theme = "plum",
   quickPrompts,
+  headerActions,
+  conversationToLoad,
+  onReset,
 }: AiChatProps) {
   const {
     messages,
@@ -124,6 +133,7 @@ function ChatBody({
     reset,
     attachedImage,
     setAttachedImage,
+    loadConversation,
   } = useAiChat(channel, storageKey);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -135,6 +145,12 @@ function ChatBody({
     const node = scrollRef.current;
     if (node) node.scrollTop = node.scrollHeight;
   }, [messages, isBusy, error]);
+
+  // Load a selected conversation's real messages into the chat view.
+  useEffect(() => {
+    if (!conversationToLoad) return;
+    void loadConversation(conversationToLoad);
+  }, [conversationToLoad, loadConversation]);
 
   const handleAttachFile = async (file: File | undefined) => {
     if (!file) return;
@@ -185,24 +201,30 @@ function ChatBody({
               )}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={reset}
-            title="Start a new conversation"
-            className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white/85 ring-1 ring-white/20 transition hover:bg-white/20"
-          >
-            {isGold ? (
-              <>
-                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                <span className="hidden sm:inline">New</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                <span className="hidden sm:inline">New</span>
-              </>
-            )}
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            {headerActions}
+            <button
+              type="button"
+              onClick={() => {
+                onReset?.();
+                reset();
+              }}
+              title="Start a new conversation"
+              className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white/85 ring-1 ring-white/20 transition hover:bg-white/20"
+            >
+              {isGold ? (
+                <>
+                  <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="hidden sm:inline">New</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="hidden sm:inline">New</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -367,7 +389,7 @@ function ChatBody({
             placeholder="Type your message…"
             maxLength={4000}
             disabled={isBusy}
-            className="flex-1 rounded-full border border-charcoal/15 bg-[#faf6f8] px-4 py-2.5 text-sm text-charcoal outline-none transition placeholder:text-charcoal-muted focus:border-plum/40 focus:bg-white disabled:opacity-60"
+            className="min-w-0 flex-1 rounded-full border border-charcoal/15 bg-[#faf6f8] px-4 py-2.5 text-sm text-charcoal outline-none transition placeholder:text-charcoal-muted focus:border-plum/40 focus:bg-white disabled:opacity-60"
           />
           <motion.button
             type="submit"

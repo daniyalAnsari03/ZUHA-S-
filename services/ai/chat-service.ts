@@ -62,7 +62,7 @@ export async function createConversation(
 export async function listUserConversations(
   userId: string,
   channel: AiChannel,
-): Promise<{ id: string; updatedAt: string }[]> {
+): Promise<{ id: string; updatedAt: string; preview: string }[]> {
   const supabase = await createSupabaseClient();
 
   const { data, error } = await supabase
@@ -81,9 +81,31 @@ export async function listUserConversations(
     );
   }
 
-  return (data ?? []).map((row) => ({
+  const conversations = (data ?? []).map((row) => ({
     id: row.id,
     updatedAt: row.updated_at,
+  }));
+
+  // First user message per conversation, used as a short human-readable
+  // label in the admin history browser. RLS keeps this scoped to the caller.
+  const previews = await Promise.all(
+    conversations.map(async (conversation) => {
+      const { data: firstUserMessage, error: previewError } = await supabase
+        .from("ai_messages")
+        .select("content")
+        .eq("conversation_id", conversation.id)
+        .eq("role", "user")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (previewError) return "";
+      return firstUserMessage?.content ?? "";
+    }),
+  );
+
+  return conversations.map((conversation, index) => ({
+    ...conversation,
+    preview: previews[index] ?? "",
   }));
 }
 

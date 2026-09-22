@@ -19,6 +19,11 @@ type SlideOverProps = {
   side?: "left" | "right";
   children: ReactNode;
   labelledById?: string;
+  /**
+   * Optional width/panel classes that replace the default
+   * `max-w-xs sm:max-w-sm` sizing (e.g. a wider admin drawer).
+   */
+  panelClassName?: string;
 };
 
 /**
@@ -44,6 +49,7 @@ export function SlideOver({
   side = "right",
   children,
   labelledById,
+  panelClassName,
 }: SlideOverProps) {
   const panelRef = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
@@ -106,10 +112,11 @@ export function SlideOver({
             aria-modal="true"
             aria-label={title}
             className={cn(
-              "absolute top-0 flex h-full w-full max-w-xs flex-col overflow-hidden border-plum-dark/15 bg-gradient-to-b from-ivory to-cream shadow-2xl sm:max-w-sm",
+              "absolute top-0 flex h-full flex-col overflow-hidden border-plum-dark/15 bg-gradient-to-b from-ivory to-cream shadow-2xl",
+              panelClassName ?? "w-full max-w-xs sm:max-w-sm",
               side === "right"
-                ? "right-0 rounded-l-3xl border-l"
-                : "left-0 rounded-r-3xl border-r",
+                ? "right-0 border-l sm:rounded-l-3xl"
+                : "left-0 border-r sm:rounded-r-3xl",
             )}
             initial="hidden"
             animate="visible"
