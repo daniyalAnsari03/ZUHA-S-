@@ -23,13 +23,25 @@ export const metadata: Metadata = {
  * string and are passed into the form so they render during server rendering.
  */
 type LoginPageProps = {
-  searchParams: Promise<{ error?: string | string[]; message?: string | string[] }>;
+  searchParams: Promise<{
+    error?: string | string[];
+    message?: string | string[];
+    next?: string | string[];
+  }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { error, message } = await searchParams;
+  const { error, message, next } = await searchParams;
   const rawError = Array.isArray(error) ? error[0] : error;
   const rawMessage = Array.isArray(message) ? message[0] : message;
+  // Only ever return the customer to a local path. Protocol-relative or
+  // external values are rejected so `?next=` cannot be used as an open
+  // redirect. The same rule is applied in `app/auth/callback/route.ts`.
+  const rawNext = Array.isArray(next) ? next[0] : next;
+  const safeNext =
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//")
+      ? rawNext
+      : "/";
 
   return (
     <main className="flex flex-1 bg-ivory">
@@ -52,7 +64,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </div>
 
         <div className="w-full max-w-md justify-self-center lg:justify-self-start">
-          <LoginForm initialError={rawError ?? null} initialMessage={rawMessage ?? null} />
+          <LoginForm
+            initialError={rawError ?? null}
+            initialMessage={rawMessage ?? null}
+            nextPath={safeNext}
+          />
 
           <p className="mt-6 text-sm text-charcoal-muted">
             Don&apos;t have an account?{" "}

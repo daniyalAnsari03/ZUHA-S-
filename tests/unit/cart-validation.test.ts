@@ -13,7 +13,10 @@ const ITEM_ID = "11111111-1111-4111-8111-111111111111";
 
 describe("addToCartSchema", () => {
   it("accepts a valid product id and quantity", () => {
-    const result = addToCartSchema.safeParse({ productId: PRODUCT_ID, quantity: 1 });
+    const result = addToCartSchema.safeParse({
+      productId: PRODUCT_ID,
+      quantity: 1,
+    });
     expect(result.success).toBe(true);
   });
 
@@ -22,31 +25,35 @@ describe("addToCartSchema", () => {
       addToCartSchema.safeParse({ productId: PRODUCT_ID, quantity: 0 }).success,
     ).toBe(false);
     expect(
-      addToCartSchema.safeParse({ productId: PRODUCT_ID, quantity: -2 }).success,
+      addToCartSchema.safeParse({ productId: PRODUCT_ID, quantity: -2 })
+        .success,
     ).toBe(false);
   });
 
   it("rejects a non-integer or unreasonably large quantity", () => {
     expect(
-      addToCartSchema.safeParse({ productId: PRODUCT_ID, quantity: 1.5 }).success,
+      addToCartSchema.safeParse({ productId: PRODUCT_ID, quantity: 1.5 })
+        .success,
     ).toBe(false);
     expect(
-      addToCartSchema.safeParse({ productId: PRODUCT_ID, quantity: 5000 }).success,
+      addToCartSchema.safeParse({ productId: PRODUCT_ID, quantity: 5000 })
+        .success,
     ).toBe(false);
   });
 
   it("rejects a malformed product id", () => {
     expect(
-      addToCartSchema.safeParse({ productId: "not-a-uuid", quantity: 1 }).success,
+      addToCartSchema.safeParse({ productId: "not-a-uuid", quantity: 1 })
+        .success,
     ).toBe(false);
   });
 });
 
 describe("updateCartItemSchema", () => {
   it("accepts a valid item id and quantity", () => {
-    expect(updateCartItemSchema.safeParse({ itemId: ITEM_ID, quantity: 3 }).success).toBe(
-      true,
-    );
+    expect(
+      updateCartItemSchema.safeParse({ itemId: ITEM_ID, quantity: 3 }).success,
+    ).toBe(true);
   });
 
   it("rejects an invalid quantity", () => {
@@ -64,10 +71,18 @@ describe("updateCartItemSchema", () => {
 
 describe("removeCartItemSchema / toggleWishlistSchema", () => {
   it("validates ids strictly", () => {
-    expect(removeCartItemSchema.safeParse({ itemId: ITEM_ID }).success).toBe(true);
-    expect(removeCartItemSchema.safeParse({ itemId: "bad" }).success).toBe(false);
-    expect(toggleWishlistSchema.safeParse({ productId: PRODUCT_ID }).success).toBe(true);
-    expect(toggleWishlistSchema.safeParse({ productId: "bad" }).success).toBe(false);
+    expect(removeCartItemSchema.safeParse({ itemId: ITEM_ID }).success).toBe(
+      true,
+    );
+    expect(removeCartItemSchema.safeParse({ itemId: "bad" }).success).toBe(
+      false,
+    );
+    expect(
+      toggleWishlistSchema.safeParse({ productId: PRODUCT_ID }).success,
+    ).toBe(true);
+    expect(toggleWishlistSchema.safeParse({ productId: "bad" }).success).toBe(
+      false,
+    );
   });
 });
 
@@ -86,12 +101,16 @@ describe("checkoutCustomerSchema", () => {
 
   it("accepts +92 and 03 phone prefixes", () => {
     expect(
-      checkoutCustomerSchema.safeParse({ ...validCustomer, phone: "+923001234567" })
-        .success,
+      checkoutCustomerSchema.safeParse({
+        ...validCustomer,
+        phone: "+923001234567",
+      }).success,
     ).toBe(true);
     expect(
-      checkoutCustomerSchema.safeParse({ ...validCustomer, phone: "03451234567" })
-        .success,
+      checkoutCustomerSchema.safeParse({
+        ...validCustomer,
+        phone: "03451234567",
+      }).success,
     ).toBe(true);
   });
 
@@ -102,12 +121,7 @@ describe("checkoutCustomerSchema", () => {
   });
 
   it("rejects an invalid Pakistani phone number", () => {
-    for (const phone of [
-      "12345",
-      "0300123456",
-      "991234567890",
-      "abc",
-    ]) {
+    for (const phone of ["12345", "0300123456", "991234567890", "abc"]) {
       expect(
         checkoutCustomerSchema.safeParse({ ...validCustomer, phone }).success,
       ).toBe(false);
@@ -116,14 +130,17 @@ describe("checkoutCustomerSchema", () => {
 
   it("rejects an invalid email", () => {
     expect(
-      checkoutCustomerSchema.safeParse({ ...validCustomer, email: "nope" }).success,
+      checkoutCustomerSchema.safeParse({ ...validCustomer, email: "nope" })
+        .success,
     ).toBe(false);
   });
 
   it("rejects a missing shipping address or city", () => {
     expect(
-      checkoutCustomerSchema.safeParse({ ...validCustomer, shippingAddress: "" })
-        .success,
+      checkoutCustomerSchema.safeParse({
+        ...validCustomer,
+        shippingAddress: "",
+      }).success,
     ).toBe(false);
     expect(
       checkoutCustomerSchema.safeParse({ ...validCustomer, city: "" }).success,

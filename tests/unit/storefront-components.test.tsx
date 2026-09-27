@@ -22,6 +22,7 @@ vi.mock("@/components/storefront/storefront-provider", () => ({
       wishlistCount: 0,
       subtotal: 0,
       ready: true,
+      signedIn: true,
       addToCart: mocks.addToCart,
       updateCartItem: async () => null,
       removeCartItem: async () => null,

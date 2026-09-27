@@ -14,6 +14,7 @@ type AiStreamEvent =
   | { type: "agent"; name: string }
   | { type: "tool"; name: string; state: "start" | "end" }
   | { type: "text"; delta: string }
+  | { type: "products"; products: { id: string; name: string; slug: string }[] }
   | { type: "done"; output: string }
   | { type: "error"; message: string };
 
@@ -24,7 +25,9 @@ function isAiStreamEvent(value: unknown): value is AiStreamEvent {
 
   switch (obj.type) {
     case "meta":
-      return typeof obj.conversationId === "string" || obj.conversationId === null;
+      return (
+        typeof obj.conversationId === "string" || obj.conversationId === null
+      );
     case "start":
       return true;
     case "agent":
@@ -36,6 +39,16 @@ function isAiStreamEvent(value: unknown): value is AiStreamEvent {
       );
     case "text":
       return typeof obj.delta === "string";
+    case "products":
+      return (
+        Array.isArray(obj.products) &&
+        obj.products.every(
+          (product) =>
+            product &&
+            typeof product === "object" &&
+            typeof (product as Record<string, unknown>).name === "string",
+        )
+      );
     case "done":
       return typeof obj.output === "string";
     case "error":
@@ -60,20 +73,47 @@ describe("AiStreamEvent type validation", () => {
   });
 
   it("accepts valid tool events", () => {
-    expect(isAiStreamEvent({ type: "tool", name: "list_products", state: "start" })).toBe(true);
-    expect(isAiStreamEvent({ type: "tool", name: "list_products", state: "end" })).toBe(true);
+    expect(
+      isAiStreamEvent({ type: "tool", name: "list_products", state: "start" }),
+    ).toBe(true);
+    expect(
+      isAiStreamEvent({ type: "tool", name: "list_products", state: "end" }),
+    ).toBe(true);
   });
 
   it("accepts valid text event", () => {
     expect(isAiStreamEvent({ type: "text", delta: "Hello" })).toBe(true);
   });
 
+  it("accepts valid products event", () => {
+    expect(
+      isAiStreamEvent({
+        type: "products",
+        products: [
+          { id: "p1", name: "Kurta", slug: "kurta", price: "PKR 5,000" },
+        ],
+      }),
+    ).toBe(true);
+    expect(isAiStreamEvent({ type: "products", products: [] })).toBe(true);
+  });
+
+  it("rejects products event without product rows", () => {
+    expect(isAiStreamEvent({ type: "products", products: "nope" })).toBe(false);
+    expect(
+      isAiStreamEvent({ type: "products", products: [{ foo: "bar" }] }),
+    ).toBe(false);
+  });
+
   it("accepts valid done event", () => {
-    expect(isAiStreamEvent({ type: "done", output: "Full response" })).toBe(true);
+    expect(isAiStreamEvent({ type: "done", output: "Full response" })).toBe(
+      true,
+    );
   });
 
   it("accepts valid error event", () => {
-    expect(isAiStreamEvent({ type: "error", message: "Something failed" })).toBe(true);
+    expect(
+      isAiStreamEvent({ type: "error", message: "Something failed" }),
+    ).toBe(true);
   });
 
   it("rejects invalid event types", () => {
@@ -86,9 +126,9 @@ describe("AiStreamEvent type validation", () => {
   });
 
   it("rejects tool event with invalid state", () => {
-    expect(
-      isAiStreamEvent({ type: "tool", name: "x", state: "running" }),
-    ).toBe(false);
+    expect(isAiStreamEvent({ type: "tool", name: "x", state: "running" })).toBe(
+      false,
+    );
   });
 
   it("rejects events with wrong field types", () => {

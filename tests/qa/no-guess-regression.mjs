@@ -161,8 +161,7 @@ try {
     s1Mutated.length === 0 && !s1DbChanged,
     {
       tools: r1.tools,
-      evidence:
-        `dbStock ${before.stock}→${s1After.stock}, mutating=[${s1Mutated.join(",") || "none"}]`,
+      evidence: `dbStock ${before.stock}→${s1After.stock}, mutating=[${s1Mutated.join(",") || "none"}]`,
       mismatch:
         s1Mutated.length > 0
           ? `mutating tool fired WITHOUT a product name: ${s1Mutated.join(", ")}`
@@ -208,8 +207,7 @@ try {
     s2Mutated.length === 0 && !s2DbChanged,
     {
       tools: r2.tools,
-      evidence:
-        `focused-product dbStock ${before.stock}→${s2After.stock}, mutating=[${s2Mutated.join(",") || "none"}]`,
+      evidence: `focused-product dbStock ${before.stock}→${s2After.stock}, mutating=[${s2Mutated.join(",") || "none"}]`,
       mismatch:
         s2Mutated.length > 0
           ? `mutating tool fired without the current message naming a product: ${s2Mutated.join(", ")}`

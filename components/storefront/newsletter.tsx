@@ -1,22 +1,10 @@
 "use client";
 
 import { Send } from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useState, type FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { validate } from "@/lib/validation/validate";
-
-const newsletterSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Please enter your email address.")
-    .email("Please enter a valid email address."),
-});
-
-type NewsletterFormValues = z.infer<typeof newsletterSchema>;
 
 type NewsletterProps = {
   eyebrow?: string;
@@ -28,6 +16,10 @@ type NewsletterProps = {
 /**
  * Newsletter entry point. Validation is live but subscription persistence is
  * not — this UI never claims that a subscription was saved.
+ *
+ * The schema is loaded on demand. This component renders on every storefront
+ * page, so pulling the validation library in eagerly put a large, almost
+ * entirely unused dependency into the first-load bundle of the whole store.
  */
 export function Newsletter({
   eyebrow = "Join the list",
@@ -35,31 +27,36 @@ export function Newsletter({
   description = "Be the first to know about fresh drops, limited pieces and private previews.",
   ctaLabel = "Subscribe",
 }: NewsletterProps) {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { isSubmitting },
-  } = useForm<NewsletterFormValues>();
-
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const onSubmit = handleSubmit((values) => {
-    const result = validate(newsletterSchema, values);
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (submitting) return;
 
-    if (!result.success) {
+    setSubmitting(true);
+    setError(null);
+    setNotice(null);
+
+    const { validateNewsletterEmail } = await import(
+      "@/lib/validation/newsletter"
+    );
+    const result = validateNewsletterEmail(email);
+
+    if (!result.ok) {
       setError(result.error);
-      setNotice(null);
+      setSubmitting(false);
       return;
     }
 
-    setError(null);
     setNotice(
       "Thanks — newsletter sign-up goes live in a later phase. Nothing was saved yet.",
     );
-    reset();
-  });
+    setEmail("");
+    setSubmitting(false);
+  };
 
   return (
     <section
@@ -95,15 +92,19 @@ export function Newsletter({
             inputMode="email"
             autoComplete="email"
             placeholder="Your email address"
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              if (error) setError(null);
+            }}
             aria-invalid={error ? true : undefined}
-            {...register("email")}
             className="h-12 w-full rounded-full border border-white/20 bg-white/10 px-5 text-sm text-white placeholder:text-white/50 focus:border-gold-soft focus:outline-none focus:ring-2 focus:ring-gold-muted/30"
           />
           <Button
             type="submit"
             variant="gold"
             size="md"
-            disabled={isSubmitting}
+            disabled={submitting}
             className="shrink-0"
           >
             <Send className="h-4 w-4" aria-hidden="true" />

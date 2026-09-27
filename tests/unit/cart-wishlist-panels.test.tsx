@@ -1,7 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { CartDetailsPayload, WishlistDetailsPayload } from "@/app/storefront/actions";
+import type {
+  CartDetailsPayload,
+  WishlistDetailsPayload,
+} from "@/app/storefront/actions";
 import { CartPanel } from "@/components/storefront/cart-panel";
 import { WishlistPanel } from "@/components/storefront/wishlist-panel";
 import type { StorefrontState } from "@/components/storefront/storefront-provider";
@@ -25,6 +28,7 @@ vi.mock("@/components/storefront/storefront-provider", () => ({
       wishlistCount: 0,
       subtotal: 0,
       ready: true,
+      signedIn: true,
       addToCart: async () => null,
       updateCartItem: async () => null,
       removeCartItem: async () => null,
@@ -54,9 +58,7 @@ describe("CartPanel", () => {
 
     render(<CartPanel />);
 
-    expect(
-      await screen.findByText("Your bag is empty"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Your bag is empty")).toBeInTheDocument();
   });
 
   it("renders items with price and quantity from trusted data", async () => {
@@ -88,15 +90,33 @@ describe("CartPanel", () => {
     expect(await screen.findByText("Khirke Jamawar")).toBeInTheDocument();
     expect(screen.getByText("PKR 34,500")).toBeInTheDocument();
     expect(screen.getByText(/Subtotal \(2 items\)/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /checkout/i })).toBeInTheDocument();
+  });
+
+  it("offers sign-in instead of an error when the visitor is signed out", async () => {
+    mocks.getCartDetails.mockResolvedValue({
+      ok: false,
+      error: "Please sign in to view your bag.",
+    });
+
+    render(<CartPanel />);
+
+    expect(await screen.findByText("Your bag is waiting")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /checkout/i }),
-    ).toBeInTheDocument();
+      screen.queryByText("Unable to load your bag"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /sign in/i }),
+    ).toHaveAttribute("href", "/login?next=/cart");
   });
 });
 
 describe("WishlistPanel", () => {
   it("shows a clear empty-wishlist state", async () => {
-    mocks.getWishlistDetails.mockResolvedValue({ ok: true, payload: emptyWishlist });
+    mocks.getWishlistDetails.mockResolvedValue({
+      ok: true,
+      payload: emptyWishlist,
+    });
 
     render(<WishlistPanel />);
 
@@ -133,5 +153,24 @@ describe("WishlistPanel", () => {
     expect(
       screen.getByRole("button", { name: /move to bag/i }),
     ).toBeInTheDocument();
+  });
+
+  it("offers sign-in instead of an error when the visitor is signed out", async () => {
+    mocks.getWishlistDetails.mockResolvedValue({
+      ok: false,
+      error: "Please sign in to view your wishlist.",
+    });
+
+    render(<WishlistPanel />);
+
+    expect(
+      await screen.findByText("Your wishlist is waiting"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Unable to load your wishlist"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /sign in/i }),
+    ).toHaveAttribute("href", "/login?next=/wishlist");
   });
 });

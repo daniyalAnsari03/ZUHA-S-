@@ -21,7 +21,9 @@ describe("getCartSummaryIfExists resilience", () => {
     );
 
     // The calling code should catch and treat as null
-    const result = await mocks.getCartSummaryIfExists("user-1").catch(() => null);
+    const result = await mocks
+      .getCartSummaryIfExists("user-1")
+      .catch(() => null);
     expect(result).toBeNull();
   });
 
@@ -37,8 +39,30 @@ describe("getCartSummaryIfExists resilience", () => {
       itemCount: 2,
       subtotal: 5000,
       items: [
-        { id: "item-1", productId: "p-1", quantity: 1, name: "Shirt", slug: "shirt", price: 2500, image: null, fabric: null, stock: 10, subtotal: 2500 },
-        { id: "item-2", productId: "p-2", quantity: 1, name: "Kameez", slug: "kameez", price: 2500, image: null, fabric: null, stock: 5, subtotal: 2500 },
+        {
+          id: "item-1",
+          productId: "p-1",
+          quantity: 1,
+          name: "Shirt",
+          slug: "shirt",
+          price: 2500,
+          image: null,
+          fabric: null,
+          stock: 10,
+          subtotal: 2500,
+        },
+        {
+          id: "item-2",
+          productId: "p-2",
+          quantity: 1,
+          name: "Kameez",
+          slug: "kameez",
+          price: 2500,
+          image: null,
+          fabric: null,
+          stock: 5,
+          subtotal: 2500,
+        },
       ],
     };
     mocks.getCartSummaryIfExists.mockResolvedValue(summary);

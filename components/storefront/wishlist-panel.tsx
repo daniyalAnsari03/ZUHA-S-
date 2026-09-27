@@ -14,6 +14,9 @@ import {
 } from "@/app/storefront/actions";
 import { useStorefront } from "./storefront-provider";
 
+/** Error text that means "you are signed out", not "something broke". */
+const NEEDS_AUTH = /sign in/i;
+
 /**
  * Functional wishlist panel shown in the navbar slide-over. Users can open a
  * product, move it to their bag or remove it. State always reconciles with the
@@ -84,7 +87,8 @@ export function WishlistPanel() {
   };
 
   const removeItem = async (itemId: string) => {
-    const { removeWishlistItemAction } = await import("@/app/storefront/actions");
+    const { removeWishlistItemAction } =
+      await import("@/app/storefront/actions");
     const result = await removeWishlistItemAction(itemId);
     if (!result.ok) setActionError(result.error);
   };
@@ -101,6 +105,17 @@ export function WishlistPanel() {
   }
 
   if (state.status === "error") {
+    // A signed-out visitor is not a failure: their wishlist lives behind the
+    // account, so show the sign-in path instead of an error heading.
+    if (NEEDS_AUTH.test(state.error ?? "")) {
+      return (
+        <EmptyState
+          heading="Your wishlist is waiting"
+          body="Sign in to see the pieces you have saved."
+          cta={{ href: "/login?next=/wishlist", label: "Sign in" }}
+        />
+      );
+    }
     return (
       <EmptyState
         heading="Unable to load your wishlist"
@@ -213,7 +228,9 @@ function EmptyState({
         <Heart className="h-6 w-6" aria-hidden="true" />
       </span>
       <h3 className="font-serif text-xl text-charcoal">{heading}</h3>
-      <p className="max-w-xs text-sm leading-relaxed text-charcoal-muted">{body}</p>
+      <p className="max-w-xs text-sm leading-relaxed text-charcoal-muted">
+        {body}
+      </p>
       {cta ? (
         <Link href={cta.href} className="mt-2">
           <Button variant="primary">{cta.label}</Button>

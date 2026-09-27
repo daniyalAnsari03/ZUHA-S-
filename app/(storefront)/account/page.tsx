@@ -110,7 +110,9 @@ export default async function AccountPage() {
 
           <aside className="space-y-6">
             <article className="rounded-xl border border-charcoal/10 bg-neutral-soft p-6 sm:p-8">
-              <h2 className="font-serif text-lg text-charcoal">Quick Actions</h2>
+              <h2 className="font-serif text-lg text-charcoal">
+                Quick Actions
+              </h2>
               <div className="mt-4 space-y-3">
                 <Link
                   href="/shop"

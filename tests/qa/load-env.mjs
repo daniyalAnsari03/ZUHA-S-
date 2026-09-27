@@ -12,7 +12,7 @@ const envTestPath = path.resolve(here, "..", "..", ".env.test");
 function loadEnvTest() {
   if (!existsSync(envTestPath)) {
     throw new Error(
-      `Missing ${envTestPath}. Copy .env.test.example to .env.test and fill in the real QA credentials.`
+      `Missing ${envTestPath}. Copy .env.test.example to .env.test and fill in the real QA credentials.`,
     );
   }
   const raw = readFileSync(envTestPath, "utf8");
@@ -20,7 +20,7 @@ function loadEnvTest() {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
     const match = trimmed.match(
-      /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/
+      /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/,
     );
     if (!match) continue;
     const key = match[1];

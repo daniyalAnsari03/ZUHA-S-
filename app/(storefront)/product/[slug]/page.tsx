@@ -23,7 +23,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: product.name,
     description:
-      product.description || `${product.name} — premium Pakistani fashion by DINS by Daniyal.`,
+      product.description ||
+      `${product.name} — premium Pakistani fashion by DINS by Daniyal.`,
     openGraph: {
       type: "website",
       title: product.name,
@@ -37,14 +38,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+
+  const [product, user] = await Promise.all([
+    getProductBySlug(slug),
+    getAuthUser(),
+  ]);
 
   if (!product) notFound();
 
-  const inStockStatus =
-    product.stockQuantity > 0 ? "In Stock" : "Out of Stock";
+  const inStockStatus = product.stockQuantity > 0 ? "In Stock" : "Out of Stock";
 
-  const user = await getAuthUser();
   const initialWishlisted = user
     ? await isProductWishlisted(user.id, product.id).catch(() => false)
     : false;
@@ -80,12 +83,21 @@ export default async function ProductDetailPage({ params }: Props) {
           <div className="relative overflow-hidden rounded-2xl border border-charcoal/10 bg-cream">
             <div className="relative aspect-[4/5] w-full overflow-hidden">
               <Image
-                src={resolveImageUrl(product.image) || "/images/placeholders/product-placeholder.svg"}
+                src={
+                  resolveImageUrl(product.image) ||
+                  "/images/placeholders/product-placeholder.svg"
+                }
                 alt={product.name}
                 width={1200}
                 height={1500}
                 sizes="(min-width: 1024px) 50vw, 100vw"
                 priority
+                // This single image was 222KB of the page's 571KB mobile total
+                // (w=828 at the default quality 75), so it alone kept the PDP's
+                // LCP flat while every other page improved. The source photos are
+                // phone-camera JPEGs rendered at ~380px wide on a phone, where
+                // quality 60 is visually indistinguishable and materially smaller.
+                quality={60}
                 className="h-full w-full object-cover"
               />
             </div>
@@ -139,9 +151,7 @@ export default async function ProductDetailPage({ params }: Props) {
               Availability:{" "}
               <span
                 className={
-                  product.stockQuantity > 0
-                    ? "text-green-700"
-                    : "text-red-600"
+                  product.stockQuantity > 0 ? "text-green-700" : "text-red-600"
                 }
               >
                 {inStockStatus}

@@ -14,11 +14,17 @@ import { describe, expect, it } from "vitest";
 // Since the tools are defined with `tool()` from @openai/agents, we can
 // access the schema through the tool's parameters property.
 
-import { generateProductMarketingCopy, generateSocialPost, generateAdCopy } from "@/tools/marketing";
+import {
+  generateProductMarketingCopy,
+  generateSocialPost,
+  generateAdCopy,
+} from "@/tools/marketing";
 
 describe("generateProductMarketingCopy tool", () => {
   it("is defined with correct name", () => {
-    expect(generateProductMarketingCopy.name).toBe("generate_product_marketing_copy");
+    expect(generateProductMarketingCopy.name).toBe(
+      "generate_product_marketing_copy",
+    );
   });
 
   it("has a description", () => {

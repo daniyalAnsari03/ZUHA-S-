@@ -85,7 +85,10 @@ export default async function AdminCustomersPage({
 
       {result.customers.length === 0 ? (
         <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center">
-          <Users className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
+          <Users
+            className="mx-auto h-10 w-10 text-charcoal-muted/40"
+            aria-hidden="true"
+          />
           <p className="mt-3 text-sm text-charcoal-muted">
             {search ? "No customers match your search." : "No customers yet."}
           </p>
@@ -96,23 +99,38 @@ export default async function AdminCustomersPage({
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-charcoal/10 bg-cream/40">
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Customer</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Orders</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Total spend</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Last order</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Joined</th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Customer
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Orders
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Total spend
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Last order
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Joined
+                  </th>
                   <th className="px-5 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-charcoal/5">
                 {result.customers.map((customer) => (
-                  <tr key={customer.id} className="transition-colors hover:bg-cream/30">
+                  <tr
+                    key={customer.id}
+                    className="transition-colors hover:bg-cream/30"
+                  >
                     <td className="px-5 py-3.5">
                       <p className="font-medium text-charcoal">
                         {customer.fullName ?? "Unnamed customer"}
                       </p>
                       <p className="text-xs text-charcoal-muted">
-                        {[customer.phone, customer.city].filter(Boolean).join(" · ") || "No contact info"}
+                        {[customer.phone, customer.city]
+                          .filter(Boolean)
+                          .join(" · ") || "No contact info"}
                       </p>
                     </td>
                     <td className="px-5 py-3.5 tabular-nums text-charcoal-muted">

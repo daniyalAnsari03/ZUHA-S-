@@ -40,10 +40,7 @@ const EMPTY_VALUES: CategoryFormValues = {
   sortOrder: 0,
 };
 
-export function CategoryForm({
-  defaultValues,
-  categoryId,
-}: CategoryFormProps) {
+export function CategoryForm({ defaultValues, categoryId }: CategoryFormProps) {
   const action = categoryId
     ? updateCategoryAction.bind(null, categoryId)
     : createCategoryAction;
@@ -120,7 +117,11 @@ export function CategoryForm({
           disabled={pending}
           className="rounded-full bg-plum px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-plum-dark disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending ? "Saving…" : categoryId ? "Save changes" : "Create category"}
+          {pending
+            ? "Saving…"
+            : categoryId
+              ? "Save changes"
+              : "Create category"}
         </button>
         <Link
           href="/admin/categories"

@@ -39,7 +39,10 @@ async function fillValidCheckout(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/full name/i), "Ali Raza");
   await user.type(screen.getByLabelText(/phone number/i), "03001234567");
   await user.type(screen.getByLabelText(/email/i), "ali@example.com");
-  await user.type(screen.getByLabelText(/street address/i), "House 44, Main Boulevard");
+  await user.type(
+    screen.getByLabelText(/street address/i),
+    "House 44, Main Boulevard",
+  );
   await user.type(screen.getByLabelText(/city/i), "Lahore");
 }
 
@@ -49,7 +52,9 @@ describe("CheckoutForm", () => {
 
     expect(screen.getByText("Order summary")).toBeInTheDocument();
     expect(screen.getAllByText("PKR 69,000").length).toBeGreaterThan(0);
-    expect(screen.getByText(/Totals are verified on the server/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Totals are verified on the server/i),
+    ).toBeInTheDocument();
   });
 
   it("rejects an invalid Pakistani phone without submitting", async () => {
@@ -73,7 +78,8 @@ describe("CheckoutForm", () => {
       ok: true,
       state: "unavailable",
       reference: "CHK-123",
-      message: "Payment is not configured yet. Your bag and details are validated, but no order was created.",
+      message:
+        "Payment is not configured yet. Your bag and details are validated, but no order was created.",
       totals: { itemCount: 2, subtotal: 69000, shipping: 0, total: 69000 },
     });
 
@@ -87,13 +93,17 @@ describe("CheckoutForm", () => {
     expect(
       await screen.findByText(/payment is not configured yet/i),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/no order was created/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/no order was created/i).length).toBeGreaterThan(
+      0,
+    );
   });
 
   it("shows a server-rejected state when validation fails upstream", async () => {
     mocks.initiateCheckout.mockResolvedValue({
       ok: false,
-      errors: ["Only 5 of Sitara Cut-Dana are available. Please adjust your quantity."],
+      errors: [
+        "Only 5 of Sitara Cut-Dana are available. Please adjust your quantity.",
+      ],
     });
 
     const user = userEvent.setup();

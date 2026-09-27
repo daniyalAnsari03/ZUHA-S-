@@ -6,7 +6,13 @@ import { categoryHref } from "@/lib/storefront/format";
 import type { Category } from "@/lib/storefront/types";
 import { getHomepageContent } from "@/services/cms/cms-service";
 
-const comingSoon = ["Shipping & Returns", "Size Guide", "Order Tracking", "Privacy Policy", "Terms of Service"];
+const comingSoon = [
+  "Shipping & Returns",
+  "Size Guide",
+  "Order Tracking",
+  "Privacy Policy",
+  "Terms of Service",
+];
 
 type FooterProps = {
   categories: Category[];
@@ -63,7 +69,10 @@ export async function Footer({ categories }: FooterProps) {
             </h3>
             <ul className="mt-4 space-y-2.5 text-sm">
               <li>
-                <Link href="/shop" className="text-charcoal-muted hover:text-plum">
+                <Link
+                  href="/shop"
+                  className="text-charcoal-muted hover:text-plum"
+                >
                   Shop All
                 </Link>
               </li>
@@ -103,7 +112,10 @@ export async function Footer({ categories }: FooterProps) {
               </li>
               {comingSoon.map((item) => (
                 <li key={item} className="text-charcoal-muted/70">
-                  {item} <span className="text-[10px] uppercase tracking-wider text-gold-muted">· soon</span>
+                  {item}{" "}
+                  <span className="text-[10px] uppercase tracking-wider text-gold-muted">
+                    · soon
+                  </span>
                 </li>
               ))}
             </ul>
@@ -115,12 +127,18 @@ export async function Footer({ categories }: FooterProps) {
             </h3>
             <ul className="mt-4 space-y-2.5 text-sm">
               <li>
-                <Link href="/#brand-story" className="text-charcoal-muted hover:text-plum">
+                <Link
+                  href="/#brand-story"
+                  className="text-charcoal-muted hover:text-plum"
+                >
                   Our Story
                 </Link>
               </li>
               <li>
-                <Link href="/#newsletter" className="text-charcoal-muted hover:text-plum">
+                <Link
+                  href="/#newsletter"
+                  className="text-charcoal-muted hover:text-plum"
+                >
                   Newsletter
                 </Link>
               </li>
@@ -130,7 +148,9 @@ export async function Footer({ categories }: FooterProps) {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-charcoal/10 pt-6 text-xs text-charcoal-muted sm:flex-row">
-          <p>© {new Date().getFullYear()} DINS by Daniyal. {copyright}</p>
+          <p>
+            © {new Date().getFullYear()} DINS by Daniyal. {copyright}
+          </p>
           <p>{tagline}</p>
         </div>
       </Container>

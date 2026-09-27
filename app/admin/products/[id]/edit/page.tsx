@@ -6,7 +6,10 @@ import { getAuthUser } from "@/lib/auth/session";
 import type { Database } from "@/lib/supabase/types";
 import { listAllCategories } from "@/services/categories/categories-service";
 import { getProductById } from "@/services/products/products-service";
-import { ProductForm, type ProductFormValues } from "@/app/admin/components/product-form";
+import {
+  ProductForm,
+  type ProductFormValues,
+} from "@/app/admin/components/product-form";
 
 type Props = { params: Promise<{ id: string }> };
 

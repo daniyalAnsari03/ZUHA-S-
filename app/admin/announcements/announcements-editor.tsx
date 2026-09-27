@@ -41,9 +41,7 @@ export function AnnouncementsEditor({
     value: string | boolean | number,
   ) => {
     setItems((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item,
-      ),
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
     );
   };
 
@@ -173,7 +171,7 @@ export function AnnouncementsEditor({
                     </label>
                   </div>
 
-                  <label className="flex items-center gap-2">
+                  <label className="flex min-h-11 items-center gap-2 py-1.5">
                     <input
                       type="checkbox"
                       checked={item.active}

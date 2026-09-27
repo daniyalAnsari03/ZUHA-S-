@@ -56,7 +56,9 @@ export type CartSummary = {
  * on RLS so the requester's session is authoritative. Product data is joined
  * live so prices/stock are never stale.
  */
-export async function getOrCreateActiveCart(userId: string): Promise<CartWithItems> {
+export async function getOrCreateActiveCart(
+  userId: string,
+): Promise<CartWithItems> {
   const supabase = await createSupabaseClient();
 
   const { data: existing, error: readError } = await supabase
@@ -67,7 +69,11 @@ export async function getOrCreateActiveCart(userId: string): Promise<CartWithIte
     .maybeSingle();
 
   if (readError) {
-    throw new ServiceError("CART_READ_FAILED", "Failed to load your cart.", readError);
+    throw new ServiceError(
+      "CART_READ_FAILED",
+      "Failed to load your cart.",
+      readError,
+    );
   }
 
   if (existing) {
@@ -81,7 +87,11 @@ export async function getOrCreateActiveCart(userId: string): Promise<CartWithIte
     .single();
 
   if (insertError) {
-    throw new ServiceError("CART_CREATE_FAILED", "Failed to create your cart.", insertError);
+    throw new ServiceError(
+      "CART_CREATE_FAILED",
+      "Failed to create your cart.",
+      insertError,
+    );
   }
 
   return loadCartWithItems(created);
@@ -110,7 +120,11 @@ async function loadCartWithItems(cart: CartRow): Promise<CartWithItems> {
         hint: error.hint,
       });
     }
-    throw new ServiceError("CART_ITEMS_READ_FAILED", "Failed to load cart items.", error);
+    throw new ServiceError(
+      "CART_ITEMS_READ_FAILED",
+      "Failed to load cart items.",
+      error,
+    );
   }
 
   return { ...cart, items: (data ?? []) as unknown as CartItemWithProduct[] };
@@ -147,7 +161,11 @@ export async function addToCart(
   });
 
   if (error) {
-    throw new ServiceError("CART_ADD_FAILED", "Failed to add item to your cart.", error);
+    throw new ServiceError(
+      "CART_ADD_FAILED",
+      "Failed to add item to your cart.",
+      error,
+    );
   }
 
   const refreshed = await getOrCreateActiveCart(userId);
@@ -166,7 +184,10 @@ export async function updateCartItem(
 
   const item = cart.items.find((i) => i.id === parsed.itemId);
   if (!item) {
-    throw new ServiceError("CART_ITEM_NOT_FOUND", "That cart item no longer exists.");
+    throw new ServiceError(
+      "CART_ITEM_NOT_FOUND",
+      "That cart item no longer exists.",
+    );
   }
 
   const product = await fetchTrustedProduct(item.product_id);
@@ -185,7 +206,10 @@ export async function removeCartItem(
 
   const item = cart.items.find((i) => i.id === parsed.itemId);
   if (!item) {
-    throw new ServiceError("CART_ITEM_NOT_FOUND", "That cart item no longer exists.");
+    throw new ServiceError(
+      "CART_ITEM_NOT_FOUND",
+      "That cart item no longer exists.",
+    );
   }
 
   const supabase = await createSupabaseClient();
@@ -196,7 +220,11 @@ export async function removeCartItem(
     .eq("cart_id", cart.id);
 
   if (error) {
-    throw new ServiceError("CART_REMOVE_FAILED", "Failed to remove item from your cart.", error);
+    throw new ServiceError(
+      "CART_REMOVE_FAILED",
+      "Failed to remove item from your cart.",
+      error,
+    );
   }
 
   const refreshed = await getOrCreateActiveCart(userId);
@@ -208,10 +236,17 @@ export async function clearCart(userId: string): Promise<CartSummary> {
   const cart = await getOrCreateActiveCart(userId);
 
   const supabase = await createSupabaseClient();
-  const { error } = await supabase.from("cart_items").delete().eq("cart_id", cart.id);
+  const { error } = await supabase
+    .from("cart_items")
+    .delete()
+    .eq("cart_id", cart.id);
 
   if (error) {
-    throw new ServiceError("CART_CLEAR_FAILED", "Failed to clear your cart.", error);
+    throw new ServiceError(
+      "CART_CLEAR_FAILED",
+      "Failed to clear your cart.",
+      error,
+    );
   }
 
   const refreshed = await getOrCreateActiveCart(userId);
@@ -231,7 +266,9 @@ export async function getCartSummary(userId: string): Promise<CartSummary> {
  * Returns null when no cart exists. Throws when a database/read error occurs
  * so callers can distinguish "no cart" from a failed query.
  */
-export async function getCartSummaryIfExists(userId: string): Promise<CartSummary | null> {
+export async function getCartSummaryIfExists(
+  userId: string,
+): Promise<CartSummary | null> {
   const supabase = await createSupabaseClient();
 
   const { data: cart, error: cartError } = await supabase
@@ -242,7 +279,11 @@ export async function getCartSummaryIfExists(userId: string): Promise<CartSummar
     .maybeSingle();
 
   if (cartError) {
-    throw new ServiceError("CART_READ_FAILED", "Failed to load your cart.", cartError);
+    throw new ServiceError(
+      "CART_READ_FAILED",
+      "Failed to load your cart.",
+      cartError,
+    );
   }
 
   if (!cart) return null;
@@ -280,7 +321,11 @@ export async function validateCart(
         .eq("id", item.id)
         .eq("cart_id", cart.id);
       if (error) {
-        throw new ServiceError("CART_VALIDATE_FAILED", "Failed to reconcile your cart.", error);
+        throw new ServiceError(
+          "CART_VALIDATE_FAILED",
+          "Failed to reconcile your cart.",
+          error,
+        );
       }
       changed = true;
       continue;
@@ -293,7 +338,11 @@ export async function validateCart(
         .eq("id", item.id)
         .eq("cart_id", cart.id);
       if (error) {
-        throw new ServiceError("CART_VALIDATE_FAILED", "Failed to reconcile your cart.", error);
+        throw new ServiceError(
+          "CART_VALIDATE_FAILED",
+          "Failed to reconcile your cart.",
+          error,
+        );
       }
       changed = true;
       issues.push(
@@ -320,7 +369,11 @@ export async function verifyCheckoutCart(
   const errors: string[] = [];
 
   if (cart.items.length === 0) {
-    return { ok: false, summary: summarizeCart(cart), errors: ["Your cart is empty."] };
+    return {
+      ok: false,
+      summary: summarizeCart(cart),
+      errors: ["Your cart is empty."],
+    };
   }
 
   for (const item of cart.items) {
@@ -357,11 +410,18 @@ async function fetchTrustedProduct(productId: string): Promise<ProductRow> {
     .maybeSingle();
 
   if (error) {
-    throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load product.", error);
+    throw new ServiceError(
+      "PRODUCT_READ_FAILED",
+      "Failed to load product.",
+      error,
+    );
   }
 
   if (!data) {
-    throw new ServiceError("PRODUCT_NOT_FOUND", "That product no longer exists.");
+    throw new ServiceError(
+      "PRODUCT_NOT_FOUND",
+      "That product no longer exists.",
+    );
   }
 
   return data;
@@ -369,10 +429,16 @@ async function fetchTrustedProduct(productId: string): Promise<ProductRow> {
 
 function assertStock(product: ProductRow, quantity: number): void {
   if (!product.is_active) {
-    throw new ServiceError("PRODUCT_INACTIVE", "This product is no longer available.");
+    throw new ServiceError(
+      "PRODUCT_INACTIVE",
+      "This product is no longer available.",
+    );
   }
   if (product.stock_quantity <= 0) {
-    throw new ServiceError("PRODUCT_OUT_OF_STOCK", "This product is currently out of stock.");
+    throw new ServiceError(
+      "PRODUCT_OUT_OF_STOCK",
+      "This product is currently out of stock.",
+    );
   }
   if (quantity > product.stock_quantity) {
     throw new ServiceError(
@@ -395,12 +461,16 @@ async function updateItemQuantity(
     .eq("cart_id", cartId);
 
   if (error) {
-    throw new ServiceError("CART_UPDATE_FAILED", "Failed to update your cart.", error);
+    throw new ServiceError(
+      "CART_UPDATE_FAILED",
+      "Failed to update your cart.",
+      error,
+    );
   }
 
   const cart = await getOrCreateActiveCart(
-    (await supabase.from("carts").select("user_id").eq("id", cartId).single()).data
-      ?.user_id ?? "",
+    (await supabase.from("carts").select("user_id").eq("id", cartId).single())
+      .data?.user_id ?? "",
   );
   return summarizeCart(cart);
 }

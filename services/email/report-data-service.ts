@@ -83,9 +83,7 @@ export type MonthlySalesSummary = {
 };
 
 export type ReportSummary =
-  | DailySalesSummary
-  | WeeklySalesSummary
-  | MonthlySalesSummary;
+  DailySalesSummary | WeeklySalesSummary | MonthlySalesSummary;
 
 export type ReportSnapshot = {
   orders: OrderRow[];
@@ -135,9 +133,7 @@ function toReportProducts(
 
 function lowStockItems(products: ProductRow[]): ReportLowStockItem[] {
   return products
-    .filter(
-      (p) => p.is_active && p.stock_quantity <= p.low_stock_threshold,
-    )
+    .filter((p) => p.is_active && p.stock_quantity <= p.low_stock_threshold)
     .sort((a, b) => a.stock_quantity - b.stock_quantity)
     .map((p) => ({
       id: p.id,
@@ -271,7 +267,8 @@ export async function buildDailySalesSummary(): Promise<DailySalesSummary> {
 
   const orderById = new Map(snapshot.orders.map((o) => [o.id, o]));
   const todayItems = snapshot.items.filter(
-    (item) => pktDateKey(orderById.get(item.order_id)?.created_at ?? "") === today,
+    (item) =>
+      pktDateKey(orderById.get(item.order_id)?.created_at ?? "") === today,
   );
 
   const topProducts = toReportProducts(todayItems, orderById, 3);
@@ -312,10 +309,7 @@ export async function buildWeeklySalesSummary(): Promise<WeeklySalesSummary> {
   );
 
   const revenue = currentOrders.reduce((sum, o) => sum + o.total, 0);
-  const previousRevenue = previousOrders.reduce(
-    (sum, o) => sum + o.total,
-    0,
-  );
+  const previousRevenue = previousOrders.reduce((sum, o) => sum + o.total, 0);
 
   const orderById = new Map(snapshot.orders.map((o) => [o.id, o]));
   const currentItems = snapshot.items.filter((item) => {
@@ -358,8 +352,7 @@ export async function buildMonthlySalesSummary(): Promise<MonthlySalesSummary> {
   const monthKey = pktCurrentMonth();
   const previousMonthKey = shiftMonthKey(monthKey, -1);
 
-  const inMonth = (iso: string, key: string) =>
-    pktDateKey(iso).startsWith(key);
+  const inMonth = (iso: string, key: string) => pktDateKey(iso).startsWith(key);
 
   const currentOrders = snapshot.orders.filter(
     (o) => countsAsRevenue(o) && inMonth(o.created_at, monthKey),
@@ -369,10 +362,7 @@ export async function buildMonthlySalesSummary(): Promise<MonthlySalesSummary> {
   );
 
   const revenue = currentOrders.reduce((sum, o) => sum + o.total, 0);
-  const previousRevenue = previousOrders.reduce(
-    (sum, o) => sum + o.total,
-    0,
-  );
+  const previousRevenue = previousOrders.reduce((sum, o) => sum + o.total, 0);
 
   const orderById = new Map(snapshot.orders.map((o) => [o.id, o]));
   const currentItems = snapshot.items.filter((item) => {

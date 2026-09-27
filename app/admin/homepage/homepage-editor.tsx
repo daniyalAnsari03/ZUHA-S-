@@ -59,7 +59,10 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
   const [heroData, setHeroData] = useState<HeroData>(hero);
   const [homeData, setHomeData] = useState<HomepageData>(homepage);
 
-  const updateHero = (field: keyof HeroData, value: string | boolean | number) => {
+  const updateHero = (
+    field: keyof HeroData,
+    value: string | boolean | number,
+  ) => {
     setHeroData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -164,7 +167,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
             </label>
 
             <div className="flex items-end gap-4">
-              <label className="flex items-center gap-2">
+              <label className="flex min-h-11 items-center gap-2 py-1.5">
                 <input
                   type="checkbox"
                   checked={heroData.active}
@@ -201,7 +204,8 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
       <section className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-6">
         <h2 className="font-serif text-lg text-charcoal">Homepage Content</h2>
         <p className="mt-1 text-sm text-charcoal-muted">
-          Edit headings, brand story, social section, newsletter, and footer text.
+          Edit headings, brand story, social section, newsletter, and footer
+          text.
         </p>
 
         <form
@@ -259,9 +263,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
 
           {/* Brand Story */}
           <div className="rounded-xl border border-charcoal/10 bg-ivory/50 p-4">
-            <h3 className="text-sm font-semibold text-charcoal">
-              Brand Story
-            </h3>
+            <h3 className="text-sm font-semibold text-charcoal">Brand Story</h3>
             <div className="mt-3 space-y-4">
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-charcoal-muted">
@@ -282,9 +284,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                 </span>
                 <textarea
                   value={homeData.brandStoryBody}
-                  onChange={(e) =>
-                    updateHome("brandStoryBody", e.target.value)
-                  }
+                  onChange={(e) => updateHome("brandStoryBody", e.target.value)}
                   rows={4}
                   className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
@@ -296,9 +296,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                 <input
                   type="text"
                   value={homeData.brandStoryCta}
-                  onChange={(e) =>
-                    updateHome("brandStoryCta", e.target.value)
-                  }
+                  onChange={(e) => updateHome("brandStoryCta", e.target.value)}
                   className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
@@ -325,9 +323,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                 <input
                   type="text"
                   value={homeData.socialEyebrow}
-                  onChange={(e) =>
-                    updateHome("socialEyebrow", e.target.value)
-                  }
+                  onChange={(e) => updateHome("socialEyebrow", e.target.value)}
                   className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
@@ -338,9 +334,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                 <input
                   type="text"
                   value={homeData.socialHeading}
-                  onChange={(e) =>
-                    updateHome("socialHeading", e.target.value)
-                  }
+                  onChange={(e) => updateHome("socialHeading", e.target.value)}
                   className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                 />
               </label>
@@ -364,9 +358,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                 <input
                   type="text"
                   value={homeData.socialHandle}
-                  onChange={(e) =>
-                    updateHome("socialHandle", e.target.value)
-                  }
+                  onChange={(e) => updateHome("socialHandle", e.target.value)}
                   className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm text-charcoal outline-none focus:border-plum focus:ring-2 focus:ring-plum/10"
                   placeholder="@dinsbydaniyal"
                 />
@@ -386,9 +378,14 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
                     label={`Image ${index + 1}`}
                     hint={`Social gallery image ${index + 1}`}
                     onChange={(path) => {
-                      const newImages = [...(homeData.socialImages || ["", "", "", "", "", ""])];
+                      const newImages = [
+                        ...(homeData.socialImages || ["", "", "", "", "", ""]),
+                      ];
                       newImages[index] = path;
-                      setHomeData((prev) => ({ ...prev, socialImages: newImages }));
+                      setHomeData((prev) => ({
+                        ...prev,
+                        socialImages: newImages,
+                      }));
                     }}
                   />
                 ))}
@@ -398,9 +395,7 @@ export function HomepageEditor({ hero, homepage }: HomepageEditorProps) {
 
           {/* Newsletter */}
           <div className="rounded-xl border border-charcoal/10 bg-ivory/50 p-4">
-            <h3 className="text-sm font-semibold text-charcoal">
-              Newsletter
-            </h3>
+            <h3 className="text-sm font-semibold text-charcoal">Newsletter</h3>
             <div className="mt-3 grid gap-4 sm:grid-cols-2">
               <label className="block">
                 <span className="mb-1 block text-xs font-medium text-charcoal-muted">

@@ -36,7 +36,9 @@ export function AdminOrderActions({
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | "">("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(
+    null,
+  );
 
   const allowed = VALID_TRANSITIONS[currentStatus] ?? [];
 
@@ -45,7 +47,11 @@ export function AdminOrderActions({
     setLoading(true);
     setResult(null);
 
-    const res = await updateOrderStatusAction(orderId, selectedStatus, note || undefined);
+    const res = await updateOrderStatusAction(
+      orderId,
+      selectedStatus,
+      note || undefined,
+    );
     setResult({ ok: res.ok, message: res.ok ? res.message : res.error });
 
     if (res.ok) {
@@ -62,7 +68,8 @@ export function AdminOrderActions({
 
       {allowed.length === 0 ? (
         <p className="mt-3 text-sm text-charcoal-muted">
-          This order is in a final state. No further status changes are possible.
+          This order is in a final state. No further status changes are
+          possible.
         </p>
       ) : (
         <div className="mt-4 space-y-4">
@@ -109,7 +116,9 @@ export function AdminOrderActions({
                 disabled={loading}
                 onClick={handleUpdate}
               >
-                {loading ? "Updating…" : `Update to ${STATUS_LABELS[selectedStatus]}`}
+                {loading
+                  ? "Updating…"
+                  : `Update to ${STATUS_LABELS[selectedStatus]}`}
               </Button>
             </>
           )}

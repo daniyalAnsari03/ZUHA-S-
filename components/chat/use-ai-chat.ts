@@ -2,10 +2,22 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+export type ProductReference = {
+  id: string;
+  name: string;
+  slug: string;
+  price: string;
+  imageUrl: string | null;
+  fabric: string | null;
+  category: string | null;
+  availability?: string;
+};
+
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  products?: ProductReference[];
 };
 
 type AiStreamEvent =
@@ -14,8 +26,53 @@ type AiStreamEvent =
   | { type: "agent"; name: string }
   | { type: "tool"; name: string; state: "start" | "end" }
   | { type: "text"; delta: string }
+  | { type: "products"; products: ProductReference[] }
   | { type: "done"; output: string }
   | { type: "error"; message: string };
+
+/**
+ * Per-word reveal delay. The chat intentionally types the AI reply out word by
+ * word so long reports stay readable instead of snapping in at full burst
+ * speed. Keep this clearly named and exported so the reveal pace is a single,
+ * obvious constant.
+ */
+export const REVEAL_WORD_MS = 85;
+
+/**
+ * Split an incoming streaming text delta into reveal tokens that, when
+ * concatenated in order, reproduce the ORIGINAL text with exactly the same
+ * spacing — never more, never less.
+ *
+ * Splitting on a per-chunk regex of "non-whitespace run + optional trailing
+ * space" drops leading whitespace when a chunk starts with a space/newline
+ * (e.g. a word split across chunks followed by a space-boundary) and drops
+ * pure-whitespace chunks entirely, which is what made streamed words render
+ * concatenated ("foxjumps") until the final text snapped in. Here whitespace
+ * is always re-attached in front of the following word (or appended to the
+ * trailing token when the chunk ends in whitespace), so every original
+ * space/newline survives in the exact right position no matter how the
+ * network splits the response.
+ */
+export function splitRevealTokens(delta: string): string[] {
+  if (!delta) return [];
+  const parts = delta.split(/(\s+)/);
+  const tokens: string[] = [];
+  let whitespace = "";
+  for (const part of parts) {
+    if (!part) continue;
+    if (/^\s+$/.test(part)) {
+      whitespace += part;
+      continue;
+    }
+    tokens.push(whitespace + part);
+    whitespace = "";
+  }
+  if (whitespace) {
+    if (tokens.length > 0) tokens[tokens.length - 1] += whitespace;
+    else tokens.push(whitespace);
+  }
+  return tokens;
+}
 
 function newId(): string {
   if (typeof globalThis.crypto?.randomUUID === "function") {
@@ -24,10 +81,7 @@ function newId(): string {
   return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export function useAiChat(
-  channel: "admin" | "salesman",
-  storageKey: string,
-) {
+export function useAiChat(channel: "admin" | "salesman", storageKey: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isBusy, setIsBusy] = useState(false);
@@ -37,6 +91,10 @@ export function useAiChat(
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const busyRef = useRef(false);
+  const wordQueueRef = useRef<string[]>([]);
+  const displayedTextRef = useRef("");
+  const productsRef = useRef<ProductReference[]>([]);
+  const finalizePendingRef = useRef<{ content: string | null } | null>(null);
 
   useEffect(() => {
     try {
@@ -63,19 +121,41 @@ export function useAiChat(
     [storageKey],
   );
 
-  const finalizeLastMessage = useCallback(
-    (content: string | null) => {
-      setMessages((prev) => {
-        const next = [...prev];
-        const last = next[next.length - 1];
-        if (last && last.role === "assistant") {
-          last.content = content ?? last.content;
-        }
-        return next;
-      });
-    },
-    [],
-  );
+  const finalizeLastMessage = useCallback((content: string | null) => {
+    setMessages((prev) => {
+      const next = [...prev];
+      const last = next[next.length - 1];
+      if (last && last.role === "assistant") {
+        last.content = content ?? last.content;
+        last.products = [...productsRef.current];
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      const item = wordQueueRef.current.shift();
+      if (item !== undefined) {
+        displayedTextRef.current += item;
+        setMessages((prev) => {
+          const next = [...prev];
+          const last = next[next.length - 1];
+          if (last && last.role === "assistant") {
+            last.content = displayedTextRef.current;
+          }
+          return next;
+        });
+        return;
+      }
+      const pending = finalizePendingRef.current;
+      if (pending) {
+        finalizePendingRef.current = null;
+        finalizeLastMessage(pending.content);
+      }
+    }, REVEAL_WORD_MS);
+    return () => window.clearInterval(id);
+  }, [finalizeLastMessage]);
 
   const send = useCallback(async () => {
     const body = input.trim();
@@ -99,16 +179,29 @@ export function useAiChat(
     setActiveTools([]);
     setIsBusy(true);
     busyRef.current = true;
+    wordQueueRef.current = [];
+    displayedTextRef.current = "";
+    productsRef.current = [];
+    finalizePendingRef.current = null;
 
     const userMessage: ChatMessage = { id: newId(), role: "user", content };
-    const assistantMessage: ChatMessage = { id: newId(), role: "assistant", content: "" };
+    const assistantMessage: ChatMessage = {
+      id: newId(),
+      role: "assistant",
+      content: "",
+      products: [],
+    };
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
 
     try {
       const res = await fetch(`/api/ai/${channel}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: content, conversationId: currentId, history }),
+        body: JSON.stringify({
+          message: content,
+          conversationId: currentId,
+          history,
+        }),
       });
 
       if (!res.ok) {
@@ -134,7 +227,6 @@ export function useAiChat(
 
       const decoder = new TextDecoder();
       let buffer = "";
-      let accumulated = "";
 
       const handleEvent = (event: AiStreamEvent) => {
         switch (event.type) {
@@ -158,26 +250,33 @@ export function useAiChat(
             }
             break;
           case "text":
-            accumulated += event.delta;
+            wordQueueRef.current.push(...splitRevealTokens(event.delta));
+            break;
+          case "products":
+            for (const product of event.products) {
+              if (
+                product.id &&
+                !productsRef.current.some((existing) => existing.id === product.id)
+              ) {
+                productsRef.current.push(product);
+              }
+            }
             setMessages((prev) => {
               const next = [...prev];
               const last = next[next.length - 1];
               if (last && last.role === "assistant") {
-                last.content = accumulated;
+                last.products = [...productsRef.current];
               }
               return next;
             });
             break;
           case "done":
-            if (event.output) {
-              finalizeLastMessage(event.output);
-            } else {
-              finalizeLastMessage(null);
-            }
+            finalizePendingRef.current = { content: event.output ?? null };
             break;
           case "error":
             setError(event.message);
-            finalizeLastMessage(event.message);
+            wordQueueRef.current = [];
+            finalizePendingRef.current = { content: event.message };
             break;
         }
       };
@@ -200,7 +299,10 @@ export function useAiChat(
       }
     } catch {
       setError("Could not reach the assistant. Please try again.");
-      finalizeLastMessage("I couldn't connect. Please try again.");
+      wordQueueRef.current = [];
+      finalizePendingRef.current = {
+        content: "I couldn't connect. Please try again.",
+      };
     } finally {
       setIsBusy(false);
       busyRef.current = false;
@@ -226,6 +328,10 @@ export function useAiChat(
       setActiveTools([]);
       setError(null);
       setAttachedImage(null);
+      wordQueueRef.current = [];
+      displayedTextRef.current = "";
+      productsRef.current = [];
+      finalizePendingRef.current = null;
 
       try {
         const res = await fetch(`/api/ai/conversations/${id}/messages`);
@@ -254,6 +360,10 @@ export function useAiChat(
     setActiveTools([]);
     setError(null);
     setAttachedImage(null);
+    wordQueueRef.current = [];
+    displayedTextRef.current = "";
+    productsRef.current = [];
+    finalizePendingRef.current = null;
     persistConversationId(null);
   }, [persistConversationId]);
 

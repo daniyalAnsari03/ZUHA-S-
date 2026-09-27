@@ -124,7 +124,9 @@ export default async function AdminInventoryPage({
 
       {/* Search */}
       <form className="mt-4" action="/admin/inventory" method="get">
-        {category ? <input type="hidden" name="category" value={category} /> : null}
+        {category ? (
+          <input type="hidden" name="category" value={category} />
+        ) : null}
         {status ? <input type="hidden" name="status" value={status} /> : null}
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -151,7 +153,10 @@ export default async function AdminInventoryPage({
 
       {filtered.length === 0 ? (
         <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center">
-          <Boxes className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
+          <Boxes
+            className="mx-auto h-10 w-10 text-charcoal-muted/40"
+            aria-hidden="true"
+          />
           <p className="mt-3 text-sm text-charcoal-muted">
             No products match the current filters.
           </p>
@@ -162,11 +167,21 @@ export default async function AdminInventoryPage({
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-charcoal/10 bg-cream/40">
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Product</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">SKU</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Category</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Stock</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Status</th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Product
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    SKU
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Category
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Stock
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Status
+                  </th>
                   <th className="px-5 py-3 text-right font-medium text-charcoal-muted">
                     Actions
                   </th>
@@ -174,7 +189,8 @@ export default async function AdminInventoryPage({
               </thead>
               <tbody className="divide-y divide-charcoal/5">
                 {filtered.map((product) => {
-                  const low = product.stock_quantity <= product.low_stock_threshold;
+                  const low =
+                    product.stock_quantity <= product.low_stock_threshold;
                   return (
                     <tr key={product.id} className="hover:bg-cream/30">
                       <td className="px-5 py-3.5">

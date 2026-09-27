@@ -46,7 +46,7 @@ export function AdminWorkspaceInfoAccordion() {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-charcoal/10 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-2xl border border-charcoal/10 bg-neutral-soft">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -80,8 +80,10 @@ export function AdminWorkspaceInfoAccordion() {
             className="overflow-hidden border-t border-charcoal/5"
           >
             <div className="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
-              <div className="rounded-2xl bg-neutral-soft p-5">
-                <h3 className="font-serif text-base text-charcoal">Your team</h3>
+              <div className="rounded-2xl bg-ivory p-5">
+                <h3 className="font-serif text-base text-charcoal">
+                  Your team
+                </h3>
                 <ul className="mt-3 space-y-3">
                   {TEAM.map((member) => (
                     <li key={member.label} className="flex items-start gap-3">

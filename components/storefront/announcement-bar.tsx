@@ -1,8 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { useMemo } from "react";
-
 import type { Announcement } from "@/lib/storefront/types";
 
 type AnnouncementBarProps = {
@@ -16,20 +11,18 @@ const SEPARATOR = "   •   ";
  * right-to-left (like a news headline ticker) in a seamless loop. In Phase 2
  * the messages come from the storefront config; admin-controlled messaging
  * arrives in a later phase.
+ *
+ * The loop is a plain CSS transform animation. This is a first-viewport
+ * element that animates forever, so it deliberately avoids a JS animation
+ * runtime, which keeps the animation library out of the critical bundle.
  */
 export function AnnouncementBar({ announcements }: AnnouncementBarProps) {
-  const active = useMemo(
-    () =>
-      announcements
-        .filter((a) => a.active)
-        .sort((a, b) => a.order - b.order),
-    [announcements],
-  );
+  const active = announcements
+    .filter((a) => a.active)
+    .sort((a, b) => a.order - b.order);
 
-  const content = useMemo(() => {
-    const text = active.map((a) => a.message.trim()).join(SEPARATOR);
-    return text ? `${text}${SEPARATOR}` : "";
-  }, [active]);
+  const text = active.map((a) => a.message.trim()).join(SEPARATOR);
+  const content = text ? `${text}${SEPARATOR}` : "";
 
   if (!content) return null;
 
@@ -39,18 +32,16 @@ export function AnnouncementBar({ announcements }: AnnouncementBarProps) {
       aria-label="Announcements"
       className="relative overflow-hidden bg-plum-dark text-ivory"
     >
-      <motion.div
-        className="flex whitespace-nowrap will-change-transform"
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: 35, ease: "linear", repeat: Infinity }}
-      >
+      <div className="announcement-ticker flex whitespace-nowrap">
         <span className="shrink-0 py-2.5 pl-5 text-[9px] font-medium uppercase tracking-[0.2em] sm:text-[10px]">
           {content}
         </span>
-        <span className="shrink-0 py-2.5 pl-5 text-[9px] font-medium uppercase tracking-[0.2em] sm:text-[10px]">
+        <span
+          aria-hidden="true"
+          className="shrink-0 py-2.5 pl-5 text-[9px] font-medium uppercase tracking-[0.2em] sm:text-[10px]">
           {content}
         </span>
-      </motion.div>
+      </div>
     </div>
   );
 }

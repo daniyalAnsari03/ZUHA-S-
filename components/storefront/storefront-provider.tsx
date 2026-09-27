@@ -26,6 +26,8 @@ type StorefrontState = {
   wishlistCount: number;
   subtotal: number;
   ready: boolean;
+  /** False while signed out. Resolved once the initial state has been read. */
+  signedIn: boolean;
   addToCart: (productId: string, quantity?: number) => Promise<string | null>;
   updateCartItem: (itemId: string, quantity: number) => Promise<string | null>;
   removeCartItem: (itemId: string) => Promise<string | null>;
@@ -51,6 +53,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
   const [wishlistCount, setWishlistCount] = useState(0);
   const [subtotal, setSubtotal] = useState(0);
   const [ready, setReady] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
 
   const initialApplied = useRef(false);
   const cartActionApplied = useRef(false);
@@ -60,6 +63,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
 
     getStorefrontInitialStateAction().then((state) => {
       if (!active || initialApplied.current) return;
+      setSignedIn(state.signedIn);
       if (!cartActionApplied.current) {
         setCartCount(state.cartCount);
         setWishlistCount(state.wishlistCount);
@@ -142,6 +146,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
       wishlistCount,
       subtotal,
       ready,
+      signedIn,
       addToCart,
       updateCartItem,
       removeCartItem,
@@ -154,6 +159,7 @@ export function StorefrontProvider({ children }: { children: ReactNode }) {
       wishlistCount,
       subtotal,
       ready,
+      signedIn,
       addToCart,
       updateCartItem,
       removeCartItem,

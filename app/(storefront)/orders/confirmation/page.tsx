@@ -45,8 +45,18 @@ export default async function OrderConfirmationPage({
     <main className="flex-1 bg-ivory">
       <Container size="md" className="py-20 text-center sm:py-28">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-          <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          <svg
+            className="h-8 w-8 text-green-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 13l4 4L19 7"
+            />
           </svg>
         </div>
         <h1 className="mt-6 font-serif text-2xl text-charcoal sm:text-3xl">

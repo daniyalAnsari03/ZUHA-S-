@@ -13,8 +13,7 @@ import {
   supportAgent,
 } from "./employees";
 
-export type AiAgent =
-  Agent<AgentContext, TextOutput> & { name: string };
+export type AiAgent = Agent<AgentContext, TextOutput> & { name: string };
 
 export const AGENTS = {
   manager: managerAgent,

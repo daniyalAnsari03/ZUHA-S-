@@ -46,9 +46,7 @@ export default async function AdminNotificationsPage() {
           <h1 className="font-serif text-3xl text-charcoal">Notifications</h1>
           <p className="mt-1 text-sm text-charcoal-muted">
             {unreadCount} unread{" "}
-            {notifications.length > 0
-              ? `· ${notifications.length} total`
-              : ""}
+            {notifications.length > 0 ? `· ${notifications.length} total` : ""}
           </p>
         </div>
         {unreadCount > 0 && (
@@ -70,7 +68,10 @@ export default async function AdminNotificationsPage() {
         </div>
       ) : notifications.length === 0 ? (
         <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center">
-          <Bell className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
+          <Bell
+            className="mx-auto h-10 w-10 text-charcoal-muted/40"
+            aria-hidden="true"
+          />
           <p className="mt-3 text-sm text-charcoal-muted">
             No notifications yet. New orders and low-stock alerts will appear
             here.
@@ -100,7 +101,9 @@ export default async function AdminNotificationsPage() {
                     {timeAgo(n.created_at)}
                   </span>
                 </div>
-                <p className="mt-0.5 text-sm text-charcoal-muted">{n.message}</p>
+                <p className="mt-0.5 text-sm text-charcoal-muted">
+                  {n.message}
+                </p>
                 {n.order_id && (
                   <Link
                     href={`/admin/orders/${n.order_id}`}

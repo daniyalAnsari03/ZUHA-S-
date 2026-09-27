@@ -19,7 +19,9 @@ import {
 const { ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
 
 function assertStream(events, { textEvents, doneEvents, text }) {
-  const deltas = events.filter((e) => e?.type === "text").map((e) => e.delta ?? "");
+  const deltas = events
+    .filter((e) => e?.type === "text")
+    .map((e) => e.delta ?? "");
   const concatenated = deltas.join("").trim();
   const done = events.findLast?.((e) => e?.type === "done") ?? null;
   const ok =
@@ -33,7 +35,8 @@ function assertStream(events, { textEvents, doneEvents, text }) {
     doneEvents,
     deltaCount: events.filter((e) => e?.type === "text").length,
     concatenatedLength: concatenated.length,
-    matches: concatenated.length > 0 && (done?.output ?? "").trim() === concatenated,
+    matches:
+      concatenated.length > 0 && (done?.output ?? "").trim() === concatenated,
   };
 }
 
@@ -71,7 +74,11 @@ async function runChannel(label, channel, message, cookie) {
       boundary = buffer.indexOf("\n");
       if (!line.trim()) continue;
       let ev;
-      try { ev = JSON.parse(line); } catch { continue; }
+      try {
+        ev = JSON.parse(line);
+      } catch {
+        continue;
+      }
       events.push(ev);
       if (ev?.type === "text") {
         if (firstTextAt === null) firstTextAt = Date.now();
@@ -143,10 +150,15 @@ async function main() {
       `${verdict}  ${r.label}  [http ${r.status}] textEvents=${r.textEvents} doneEvents=${r.doneEvents} tools=${r.toolEvents} agents=${r.agentEvents} deltaSpan=${r.deltaSpanMs}ms total=${r.totalMs}ms bytes=${r.networkBytes} concat=${r.concatenatedLength} matchesDoneOutput=${r.matches}`,
     );
   }
-  console.log(`Total: ${summary.length} | PASS: ${summary.length - fails} | FAIL: ${fails}`);
+  console.log(
+    `Total: ${summary.length} | PASS: ${summary.length - fails} | FAIL: ${fails}`,
+  );
   if (fails > 0) process.exitCode = 1;
 
   await deleteDisposableCustomer(cust.userId).catch(() => {});
 }
 
-main().catch((e) => { console.error("streaming-qa failed:", e); process.exit(1); });
+main().catch((e) => {
+  console.error("streaming-qa failed:", e);
+  process.exit(1);
+});

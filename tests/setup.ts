@@ -5,6 +5,6 @@ import { vi } from "vitest";
 // throws "incrementalCache missing". Identity-wrap it so unit tests exercise
 // the real cache-less data path.
 vi.mock("next/cache", () => ({
-  unstable_cache: <T,>(cb: () => Promise<T>) => cb,
+  unstable_cache: <T>(cb: () => Promise<T>) => cb,
   revalidateTag: () => {},
 }));

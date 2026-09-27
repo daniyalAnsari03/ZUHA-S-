@@ -49,9 +49,8 @@ export async function generateReportInsight(
       context,
       maxTurns: 1,
     });
-    const insight = typeof result.finalOutput === "string"
-      ? result.finalOutput.trim()
-      : "";
+    const insight =
+      typeof result.finalOutput === "string" ? result.finalOutput.trim() : "";
 
     if (!insight) {
       throw new ServiceError(

@@ -33,7 +33,11 @@ export async function updateOwnProfile(
     .single();
 
   if (error) {
-    throw new ServiceError("PROFILE_UPDATE_FAILED", "Failed to update your profile.", error);
+    throw new ServiceError(
+      "PROFILE_UPDATE_FAILED",
+      "Failed to update your profile.",
+      error,
+    );
   }
 
   return data as ProfileRow;
@@ -50,7 +54,11 @@ export async function getProfile(userId: string): Promise<ProfileRow | null> {
     .maybeSingle();
 
   if (error) {
-    throw new ServiceError("PROFILE_READ_FAILED", "Failed to load profile.", error);
+    throw new ServiceError(
+      "PROFILE_READ_FAILED",
+      "Failed to load profile.",
+      error,
+    );
   }
 
   return data as ProfileRow | null;

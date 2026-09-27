@@ -22,10 +22,22 @@ export default async function HomePage() {
   ]);
 
   const newsletter = {
-    eyebrow: "newsletterEyebrow" in homepageContent ? homepageContent.newsletterEyebrow : undefined,
-    heading: "newsletterHeading" in homepageContent ? homepageContent.newsletterHeading : undefined,
-    description: "newsletterDescription" in homepageContent ? homepageContent.newsletterDescription : undefined,
-    ctaLabel: "newsletterCtaLabel" in homepageContent ? homepageContent.newsletterCtaLabel : undefined,
+    eyebrow:
+      "newsletterEyebrow" in homepageContent
+        ? homepageContent.newsletterEyebrow
+        : undefined,
+    heading:
+      "newsletterHeading" in homepageContent
+        ? homepageContent.newsletterHeading
+        : undefined,
+    description:
+      "newsletterDescription" in homepageContent
+        ? homepageContent.newsletterDescription
+        : undefined,
+    ctaLabel:
+      "newsletterCtaLabel" in homepageContent
+        ? homepageContent.newsletterCtaLabel
+        : undefined,
   };
 
   return (

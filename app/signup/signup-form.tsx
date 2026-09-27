@@ -18,12 +18,8 @@ const signupSchema = z
       .min(1, "Email is required.")
       .toLowerCase()
       .email("Enter a valid email address."),
-    password: z
-      .string()
-      .min(6, "Password must be at least 6 characters."),
-    confirmPassword: z
-      .string()
-      .min(1, "Please confirm your password."),
+    password: z.string().min(6, "Password must be at least 6 characters."),
+    confirmPassword: z.string().min(1, "Please confirm your password."),
   })
   .refine((values) => values.password === values.confirmPassword, {
     path: ["confirmPassword"],
@@ -41,7 +37,10 @@ type FormState = "idle" | "submitting";
 
 function friendlySignupError(message: string): string {
   const lower = message.toLowerCase();
-  if (lower.includes("already registered") || lower.includes("already been registered")) {
+  if (
+    lower.includes("already registered") ||
+    lower.includes("already been registered")
+  ) {
     return "An account with this email already exists. Please sign in instead.";
   }
   if (lower.includes("password")) {
@@ -135,7 +134,10 @@ export function SignupForm({ initialError = null }: SignupFormProps) {
         return;
       }
 
-      router.replace("/login?message=" + encodeURIComponent("Account created successfully. Please sign in."));
+      router.replace(
+        "/login?message=" +
+          encodeURIComponent("Account created successfully. Please sign in."),
+      );
       return;
     } catch {
       setError("We could not create your account. Please try again.");
@@ -197,11 +199,7 @@ export function SignupForm({ initialError = null }: SignupFormProps) {
         <span className="h-px flex-1 bg-charcoal/10" />
       </div>
 
-      <form
-        onSubmit={onSubmit}
-        className="flex flex-col gap-4"
-        noValidate
-      >
+      <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
         <div>
           <label
             htmlFor="email"

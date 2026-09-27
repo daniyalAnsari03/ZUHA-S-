@@ -42,6 +42,12 @@ export type AgentContext = {
    */
   pendingDraft?: PendingDraft | null;
   /**
+   * True for the very first message of a brand-new conversation only. Used by
+   * the customer channel to open with one warm welcome before addressing the
+   * actual request — never on any later turn.
+   */
+  firstMessage?: boolean;
+  /**
    * Stamped by the tool role guardrail before a guarded tool executes.
    * Tools use this for audit attribution when per-tool execution context
    * does not expose the invoking agent directly.

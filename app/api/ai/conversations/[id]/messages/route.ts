@@ -16,10 +16,10 @@ export async function GET(
   const user = await getAuthUser();
 
   if (!user) {
-    return new Response(
-      JSON.stringify({ error: "Sign in required." }),
-      { status: 401, headers: { "content-type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: "Sign in required." }), {
+      status: 401,
+      headers: { "content-type": "application/json" },
+    });
   }
 
   const { id } = await params;
@@ -39,9 +39,9 @@ export async function GET(
     });
   } catch (error) {
     console.error("[ai-messages-api] failed:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to load messages." }),
-      { status: 500, headers: { "content-type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: "Failed to load messages." }), {
+      status: 500,
+      headers: { "content-type": "application/json" },
+    });
   }
 }

@@ -31,10 +31,13 @@ export function ProductOrderControls({
 
   const [quantity, setQuantity] = useState(1);
   const [busy, setBusy] = useState<"add" | "buy" | null>(null);
-  const [message, setMessage] = useState<{ text: string; tone: "ok" | "error" } | null>(
+  const [message, setMessage] = useState<{
+    text: string;
+    tone: "ok" | "error";
+  } | null>(null);
+  const [timing, setTiming] = useState<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  const [timing, setTiming] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
     () => () => {
@@ -118,22 +121,33 @@ export function ProductOrderControls({
         </div>
       </div>
 
+      {/*
+        The two actions stack on mobile and sit side by side from `sm` up. The
+        `flex-1` is deliberately `sm:`-scoped: inside this column flex container
+        `flex-1` sets `flex-basis: 0%` on the *vertical* main axis, which beat
+        the button's own `h-12` and collapsed both actions to their bare text
+        height (24px) on phones — well under the 44px minimum tap target.
+      */}
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button
           type="button"
           variant="primary"
           size="lg"
-          className="flex-1"
+          className="sm:flex-1"
           onClick={() => run("add")}
           disabled={unavailable || busy !== null}
         >
-          {busy === "add" ? "Adding…" : unavailable ? "Out of Stock" : "ADD TO BAG"}
+          {busy === "add"
+            ? "Adding…"
+            : unavailable
+              ? "Out of Stock"
+              : "ADD TO BAG"}
         </Button>
         <Button
           type="button"
           variant="outline"
           size="lg"
-          className="flex-1"
+          className="sm:flex-1"
           onClick={() => run("buy")}
           disabled={unavailable || busy !== null}
         >

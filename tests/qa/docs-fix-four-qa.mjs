@@ -85,9 +85,7 @@ async function realTopSellingProduct() {
   if (!Array.isArray(orders) || !Array.isArray(items)) return null;
 
   const excluded = (status, payment) =>
-    status === "cancelled" ||
-    payment === "failed" ||
-    payment === "refunded";
+    status === "cancelled" || payment === "failed" || payment === "refunded";
 
   const orderById = new Map(
     orders.map((o) => [
@@ -126,9 +124,21 @@ function logExchange(label, message, res) {
 }
 
 // ── Setup: disposable products (item 2 → X; item 3 → A must survive, B dies) ─
-const targetX = await createDisposableProduct({ token: uniqueToken(), hint: "FIXX", stock: 7 });
-const targetA = await createDisposableProduct({ token: uniqueToken(), hint: "FIXA", stock: 8 });
-const targetB = await createDisposableProduct({ token: uniqueToken(), hint: "FIXB", stock: 9 });
+const targetX = await createDisposableProduct({
+  token: uniqueToken(),
+  hint: "FIXX",
+  stock: 7,
+});
+const targetA = await createDisposableProduct({
+  token: uniqueToken(),
+  hint: "FIXA",
+  stock: 8,
+});
+const targetB = await createDisposableProduct({
+  token: uniqueToken(),
+  hint: "FIXB",
+  stock: 9,
+});
 console.log(
   "[setup] disposable products:",
   `X="${targetX.name}"`,
@@ -250,9 +260,7 @@ try {
     "search_products_admin",
   ]);
   const stockProxyPhrase =
-    /(only|sirf|kam) .{0,20}(left|stock|reh|gya|giay)|low stock/i.test(
-      r4.text,
-    );
+    /(only|sirf|kam) .{0,20}(left|stock|reh|gya|giay)|low stock/i.test(r4.text);
   const realTop = await realTopSellingProduct();
   const f4MentionsRealTop =
     realTop && realTop.name

@@ -32,7 +32,9 @@ export default async function CartPage() {
     summary = null;
   }
   const items = summary?.items ?? [];
-  const totals = summary ? computeTotals(summary) : { subtotal: 0, shipping: 0, total: 0, itemCount: 0 };
+  const totals = summary
+    ? computeTotals(summary)
+    : { subtotal: 0, shipping: 0, total: 0, itemCount: 0 };
 
   return (
     <main className="flex-1 bg-ivory">
@@ -76,6 +78,7 @@ export default async function CartPage() {
                           alt={item.name}
                           width={160}
                           height={200}
+                          sizes="80px"
                           className="h-full w-full object-cover"
                         />
                       ) : null}
@@ -104,50 +107,86 @@ export default async function CartPage() {
                           <form
                             action={async (formData: FormData) => {
                               "use server";
-                              const { updateCartItemAction } = await import(
-                                "@/app/storefront/actions"
-                              );
+                              const { updateCartItemAction } =
+                                await import("@/app/storefront/actions");
                               const itemId = formData.get("itemId") as string;
-                              const quantity = parseInt(formData.get("quantity") as string, 10);
+                              const quantity = parseInt(
+                                formData.get("quantity") as string,
+                                10,
+                              );
                               await updateCartItemAction(itemId, quantity);
                             }}
                             className="flex items-center gap-1"
                           >
-                            <input type="hidden" name="itemId" value={item.id} />
-                            <input type="hidden" name="quantity" value={Math.max(1, item.quantity - 1)} />
+                            <input
+                              type="hidden"
+                              name="itemId"
+                              value={item.id}
+                            />
+                            <input
+                              type="hidden"
+                              name="quantity"
+                              value={Math.max(1, item.quantity - 1)}
+                            />
                             <button
                               type="submit"
                               disabled={item.quantity <= 1}
                               className="inline-flex h-10 w-10 items-center justify-center text-charcoal transition-colors hover:text-plum disabled:opacity-40"
                               aria-label="Decrease quantity"
                             >
-                              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                              <svg
+                                className="h-3.5 w-3.5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                aria-hidden="true"
+                              >
                                 <line x1="5" y1="12" x2="19" y2="12" />
                               </svg>
                             </button>
                           </form>
-                          <span className="w-10 text-center text-sm font-medium text-charcoal">{item.quantity}</span>
+                          <span className="w-10 text-center text-sm font-medium text-charcoal">
+                            {item.quantity}
+                          </span>
                           <form
                             action={async (formData: FormData) => {
                               "use server";
-                              const { updateCartItemAction } = await import(
-                                "@/app/storefront/actions"
-                              );
+                              const { updateCartItemAction } =
+                                await import("@/app/storefront/actions");
                               const itemId = formData.get("itemId") as string;
-                              const quantity = parseInt(formData.get("quantity") as string, 10);
+                              const quantity = parseInt(
+                                formData.get("quantity") as string,
+                                10,
+                              );
                               await updateCartItemAction(itemId, quantity);
                             }}
                             className="flex items-center gap-1"
                           >
-                            <input type="hidden" name="itemId" value={item.id} />
-                            <input type="hidden" name="quantity" value={item.quantity + 1} />
+                            <input
+                              type="hidden"
+                              name="itemId"
+                              value={item.id}
+                            />
+                            <input
+                              type="hidden"
+                              name="quantity"
+                              value={item.quantity + 1}
+                            />
                             <button
                               type="submit"
                               disabled={item.quantity >= item.stock}
                               className="inline-flex h-10 w-10 items-center justify-center text-charcoal transition-colors hover:text-plum disabled:opacity-40"
                               aria-label="Increase quantity"
                             >
-                              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                              <svg
+                                className="h-3.5 w-3.5"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                aria-hidden="true"
+                              >
                                 <line x1="12" y1="5" x2="12" y2="19" />
                                 <line x1="5" y1="12" x2="19" y2="12" />
                               </svg>
@@ -156,15 +195,16 @@ export default async function CartPage() {
                         </div>
 
                         {item.quantity >= item.stock ? (
-                          <p className="text-[11px] text-red-600">Only {item.stock} available</p>
+                          <p className="text-[11px] text-red-600">
+                            Only {item.stock} available
+                          </p>
                         ) : null}
 
                         <form
                           action={async (formData: FormData) => {
                             "use server";
-                            const { removeCartItemAction } = await import(
-                              "@/app/storefront/actions"
-                            );
+                            const { removeCartItemAction } =
+                              await import("@/app/storefront/actions");
                             const itemId = formData.get("itemId") as string;
                             await removeCartItemAction(itemId);
                           }}
@@ -176,7 +216,14 @@ export default async function CartPage() {
                             className="inline-flex h-10 w-10 items-center justify-center rounded text-charcoal-muted transition-colors hover:text-red-600"
                             aria-label={`Remove ${item.name} from bag`}
                           >
-                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                            <svg
+                              className="h-4 w-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              aria-hidden="true"
+                            >
                               <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                             </svg>
                           </button>
@@ -191,15 +238,20 @@ export default async function CartPage() {
             <div className="mt-8 rounded-xl border border-charcoal/10 bg-white p-6 sm:p-8">
               <div className="flex items-center justify-between text-sm text-charcoal">
                 <span>
-                  Subtotal ({totals.itemCount} item{totals.itemCount === 1 ? "" : "s"})
+                  Subtotal ({totals.itemCount} item
+                  {totals.itemCount === 1 ? "" : "s"})
                 </span>
-                <span className="font-medium">{formatPrice(totals.subtotal)}</span>
+                <span className="font-medium">
+                  {formatPrice(totals.subtotal)}
+                </span>
               </div>
 
               <div className="mt-3 flex items-center justify-between text-sm text-charcoal">
                 <span>Shipping</span>
                 <span className="font-medium">
-                  {totals.shipping === 0 ? "Complimentary" : formatPrice(totals.shipping)}
+                  {totals.shipping === 0
+                    ? "Complimentary"
+                    : formatPrice(totals.shipping)}
                 </span>
               </div>
 
@@ -209,7 +261,10 @@ export default async function CartPage() {
               </div>
 
               <Link href="/checkout" className="mt-6 block">
-                <button type="button" className="w-full rounded-lg bg-plum px-6 py-3 text-sm font-medium uppercase tracking-[0.14em] text-white transition-colors hover:bg-plum-dark">
+                <button
+                  type="button"
+                  className="w-full rounded-lg bg-plum px-6 py-3 text-sm font-medium uppercase tracking-[0.14em] text-white transition-colors hover:bg-plum-dark"
+                >
                   PROCEED TO CHECKOUT
                 </button>
               </Link>
@@ -217,7 +272,8 @@ export default async function CartPage() {
               <form
                 action={async () => {
                   "use server";
-                  const { clearCartAction } = await import("@/app/storefront/actions");
+                  const { clearCartAction } =
+                    await import("@/app/storefront/actions");
                   await clearCartAction();
                 }}
                 className="mt-4"

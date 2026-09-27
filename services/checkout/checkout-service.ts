@@ -10,7 +10,10 @@ import {
   verifyCheckoutCart,
   type CartSummary,
 } from "@/services/cart/cart-service";
-import { createOrder, type CreateOrderInput } from "@/services/orders/order-service";
+import {
+  createOrder,
+  type CreateOrderInput,
+} from "@/services/orders/order-service";
 import {
   createNotification,
   createNotificationAdmin,
@@ -73,7 +76,10 @@ export async function validateCheckout(
   const parsed = checkoutCustomerSchema.safeParse(customerInput);
   if (!parsed.success) {
     const first = parsed.error.issues[0];
-    return { ok: false, errors: [first?.message ?? "Please check your details."] };
+    return {
+      ok: false,
+      errors: [first?.message ?? "Please check your details."],
+    };
   }
 
   // 4. Compute total from trusted server data.
@@ -114,7 +120,12 @@ export type PaymentRequest = {
 };
 
 export type PaymentResult =
-  | { ok: true; provider: PaymentProviderId; reference: string; requiresWebhook: boolean }
+  | {
+      ok: true;
+      provider: PaymentProviderId;
+      reference: string;
+      requiresWebhook: boolean;
+    }
   | { ok: false; provider: PaymentProviderId; error: string };
 
 export type CheckoutHandoff =
@@ -188,7 +199,10 @@ export async function initiateCheckout(
   try {
     for (const item of result.summary.items) {
       await deductStock(item.productId, item.quantity);
-      deductedItems.push({ productId: item.productId, quantity: item.quantity });
+      deductedItems.push({
+        productId: item.productId,
+        quantity: item.quantity,
+      });
     }
   } catch (error) {
     // Restore already-deducted stock
@@ -198,7 +212,10 @@ export async function initiateCheckout(
     if (error instanceof ServiceError) {
       return { state: "rejected", errors: [error.message] };
     }
-    return { state: "rejected", errors: ["Failed to reserve stock. Please try again."] };
+    return {
+      state: "rejected",
+      errors: ["Failed to reserve stock. Please try again."],
+    };
   }
 
   // Generate a unique order number
@@ -210,7 +227,10 @@ export async function initiateCheckout(
     for (const di of deductedItems) {
       await restoreStock(di.productId, di.quantity).catch(() => {});
     }
-    return { state: "rejected", errors: ["Failed to generate order number. Please try again."] };
+    return {
+      state: "rejected",
+      errors: ["Failed to generate order number. Please try again."],
+    };
   }
 
   // Build the order input from the trusted summary
@@ -247,15 +267,27 @@ export async function initiateCheckout(
     for (const di of deductedItems) {
       await restoreStock(di.productId, di.quantity).catch(() => {});
     }
-    return { state: "rejected", errors: ["Failed to create your order. Please try again."] };
+    return {
+      state: "rejected",
+      errors: ["Failed to create your order. Please try again."],
+    };
   }
 
   // Convert the cart
   await convertCart(userId).catch(() => {});
 
   // Create notifications (non-blocking, best-effort)
-  createOrderStatusNotification(userId, order.id, order.order_number, "pending").catch(() => {});
-  createAdminNewOrderNotificationForOrder(order.id, order.order_number, order.total).catch(() => {});
+  createOrderStatusNotification(
+    userId,
+    order.id,
+    order.order_number,
+    "pending",
+  ).catch(() => {});
+  createAdminNewOrderNotificationForOrder(
+    order.id,
+    order.order_number,
+    order.total,
+  ).catch(() => {});
 
   // Stock changed by this order — refresh the cached storefront availability.
   revalidateTag(STORE_CACHE_TAGS.products, STORE_CACHE_PROFILE);
@@ -296,11 +328,17 @@ async function deductStock(productId: string, quantity: number): Promise<void> {
     .maybeSingle();
 
   if (fetchError) {
-    throw new ServiceError("STOCK_READ_FAILED", "Failed to verify stock. Please try again.");
+    throw new ServiceError(
+      "STOCK_READ_FAILED",
+      "Failed to verify stock. Please try again.",
+    );
   }
 
   if (!product) {
-    throw new ServiceError("PRODUCT_NOT_FOUND", "A product in your cart is no longer available.");
+    throw new ServiceError(
+      "PRODUCT_NOT_FOUND",
+      "A product in your cart is no longer available.",
+    );
   }
 
   if (product.stock_quantity < quantity) {
@@ -318,7 +356,10 @@ async function deductStock(productId: string, quantity: number): Promise<void> {
     .eq("stock_quantity", product.stock_quantity);
 
   if (updateError) {
-    throw new ServiceError("STOCK_DEDUCTION_FAILED", "Failed to reserve stock. Please try again.");
+    throw new ServiceError(
+      "STOCK_DEDUCTION_FAILED",
+      "Failed to reserve stock. Please try again.",
+    );
   }
 
   // Best-effort: alert admins when this deduction crosses into low stock.
@@ -332,7 +373,10 @@ async function deductStock(productId: string, quantity: number): Promise<void> {
 }
 
 /** Restore stock (e.g., on order creation failure or cancellation). */
-async function restoreStock(productId: string, quantity: number): Promise<void> {
+async function restoreStock(
+  productId: string,
+  quantity: number,
+): Promise<void> {
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const supabase = createAdminClient();
 
@@ -352,9 +396,7 @@ async function restoreStock(productId: string, quantity: number): Promise<void> 
 
 /** Mark the cart as converted (no longer active). */
 async function convertCart(userId: string): Promise<void> {
-  const supabase = await (
-    await import("@/lib/supabase/server")
-  ).createClient();
+  const supabase = await (await import("@/lib/supabase/server")).createClient();
 
   await supabase
     .from("carts")
@@ -375,7 +417,7 @@ async function generateOrderNumber(): Promise<string> {
     const now = new Date();
     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
     const rand = Math.floor(1000 + Math.random() * 9000);
-    return `DIN-${dateStr}-${rand}`;
+    return `DINS-${dateStr}-${rand}`;
   }
 
   return data;
@@ -388,7 +430,10 @@ async function createOrderStatusNotification(
   orderNumber: string,
   status: string,
 ): Promise<void> {
-  const templates: Record<string, { type: string; title: string; message: string }> = {
+  const templates: Record<
+    string,
+    { type: string; title: string; message: string }
+  > = {
     pending: {
       type: "order_placed",
       title: "Order Placed",
@@ -445,7 +490,9 @@ async function createAdminNewOrderNotificationForOrder(
 }
 
 /** Helper to ensure cart persistence is safe before checkout proceeds. */
-export async function ensureCheckoutCartValid(userId: string): Promise<CheckoutTotals> {
+export async function ensureCheckoutCartValid(
+  userId: string,
+): Promise<CheckoutTotals> {
   const cart = await getOrCreateActiveCart(userId);
   const summary = summarizeCart(cart);
   return computeTotals(summary);

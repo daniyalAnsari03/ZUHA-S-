@@ -70,7 +70,10 @@ export default async function AdminEmailReportsPage() {
           </div>
         ) : logs.length === 0 ? (
           <div className="mt-4 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center">
-            <FileText className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
+            <FileText
+              className="mx-auto h-10 w-10 text-charcoal-muted/40"
+              aria-hidden="true"
+            />
             <p className="mt-3 text-sm text-charcoal-muted">
               No report emails sent yet. Send one above or wait for the daily
               cron schedule.
@@ -94,8 +97,12 @@ export default async function AdminEmailReportsPage() {
                     {log.sent_at ? ` · sent ${timeAgo(log.sent_at)}` : ""}
                   </span>
                 </div>
-                <p className="mt-1.5 text-sm font-medium text-charcoal">{log.subject}</p>
-                <p className="text-xs text-charcoal-muted">{log.recipient_email}</p>
+                <p className="mt-1.5 text-sm font-medium text-charcoal">
+                  {log.subject}
+                </p>
+                <p className="text-xs text-charcoal-muted">
+                  {log.recipient_email}
+                </p>
                 {log.ai_summary && (
                   <p className="mt-2 line-clamp-2 text-sm text-charcoal-muted">
                     {log.ai_summary}

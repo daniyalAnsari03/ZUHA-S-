@@ -124,7 +124,10 @@ export function CheckboxField({
   defaultChecked?: boolean;
 }) {
   return (
-    <label className="flex cursor-pointer items-start gap-2.5">
+    // `min-h-11` makes the whole row (not just the 16px checkbox) a 44px touch
+    // target, and `has-[:focus-visible]` gives the label the focus ring the
+    // checkbox cannot show for itself.
+    <label className="flex min-h-11 cursor-pointer items-start gap-2.5 py-1.5 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-plum">
       <input
         type="checkbox"
         name={name}

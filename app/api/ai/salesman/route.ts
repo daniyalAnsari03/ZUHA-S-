@@ -17,10 +17,10 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return new Response(
-      JSON.stringify({ error: "Invalid JSON body." }),
-      { status: 400, headers: { "content-type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: "Invalid JSON body." }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
+    });
   }
 
   const result = await runChatTurn({

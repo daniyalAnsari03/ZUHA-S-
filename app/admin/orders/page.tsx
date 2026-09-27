@@ -39,7 +39,8 @@ export default async function AdminOrdersPage({
   if (!user || user.role !== "admin") redirect("/login");
 
   const params = await searchParams;
-  const status = params.status as import("@/lib/supabase/types").OrderStatus | undefined;
+  const status = params.status as
+    import("@/lib/supabase/types").OrderStatus | undefined;
   const search = params.search;
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
   const perPage = 20;
@@ -72,18 +73,29 @@ export default async function AdminOrdersPage({
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
           href="/admin/orders"
-          className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
-            !status ? "bg-plum text-white" : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
+          className={`inline-flex min-h-11 items-center rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
+            !status
+              ? "bg-plum text-white"
+              : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
           }`}
         >
           All
         </Link>
-        {["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"].map((s) => (
+        {[
+          "pending",
+          "confirmed",
+          "processing",
+          "shipped",
+          "delivered",
+          "cancelled",
+        ].map((s) => (
           <Link
             key={s}
             href={`/admin/orders?status=${s}`}
-            className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium capitalize transition-colors ${
-              status === s ? "bg-plum text-white" : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
+            className={`inline-flex min-h-11 items-center rounded-full px-4 py-1.5 text-xs font-medium capitalize transition-colors ${
+              status === s
+                ? "bg-plum text-white"
+                : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
             }`}
           >
             {s}
@@ -114,7 +126,10 @@ export default async function AdminOrdersPage({
       {/* Orders list */}
       {result.orders.length === 0 ? (
         <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center">
-          <Package className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
+          <Package
+            className="mx-auto h-10 w-10 text-charcoal-muted/40"
+            aria-hidden="true"
+          />
           <p className="mt-3 text-sm text-charcoal-muted">No orders found.</p>
         </div>
       ) : (
@@ -123,18 +138,33 @@ export default async function AdminOrdersPage({
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-charcoal/10 bg-cream/40">
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Order</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Customer</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Items</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Total</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Status</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Date</th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Order
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Customer
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Items
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Total
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Status
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Date
+                  </th>
                   <th className="px-5 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-charcoal/5">
                 {result.orders.map((order) => (
-                  <tr key={order.id} className="transition-colors hover:bg-cream/30">
+                  <tr
+                    key={order.id}
+                    className="transition-colors hover:bg-cream/30"
+                  >
                     <td className="px-5 py-3.5">
                       <p className="font-mono text-xs font-medium text-charcoal">
                         {order.order_number}
@@ -147,7 +177,9 @@ export default async function AdminOrdersPage({
                       >
                         {order.customer_name}
                       </Link>
-                      <p className="text-xs text-charcoal-muted">{order.customer_email}</p>
+                      <p className="text-xs text-charcoal-muted">
+                        {order.customer_email}
+                      </p>
                     </td>
                     <td className="px-5 py-3.5 text-charcoal-muted">
                       {order.items.length}

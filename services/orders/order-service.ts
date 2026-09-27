@@ -4,7 +4,8 @@ import { ServiceError, assertRole } from "@/services/base";
 
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderItemRow = Database["public"]["Tables"]["order_items"]["Row"];
-type OrderStatusHistoryRow = Database["public"]["Tables"]["order_status_history"]["Row"];
+type OrderStatusHistoryRow =
+  Database["public"]["Tables"]["order_status_history"]["Row"];
 
 export type OrderWithItems = OrderRow & {
   items: OrderItemRow[];
@@ -33,19 +34,23 @@ const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
  * --------------------------------------------------------------------- */
 
 /** Get a customer's own orders, newest first. */
-export async function listCustomerOrders(userId: string): Promise<OrderListItem[]> {
+export async function listCustomerOrders(
+  userId: string,
+): Promise<OrderListItem[]> {
   const supabase = await createSupabaseClient();
 
   const { data, error } = await supabase
     .from("orders")
-    .select(
-      "*, items:order_items(product_name, quantity, product_image)",
-    )
+    .select("*, items:order_items(product_name, quantity, product_image)")
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new ServiceError("ORDERS_READ_FAILED", "Failed to load your orders.", error);
+    throw new ServiceError(
+      "ORDERS_READ_FAILED",
+      "Failed to load your orders.",
+      error,
+    );
   }
 
   return (data ?? []) as unknown as OrderListItem[];
@@ -66,7 +71,11 @@ export async function getOrderDetail(
     .maybeSingle();
 
   if (orderError) {
-    throw new ServiceError("ORDER_READ_FAILED", "Failed to load order.", orderError);
+    throw new ServiceError(
+      "ORDER_READ_FAILED",
+      "Failed to load order.",
+      orderError,
+    );
   }
 
   if (!order) {
@@ -87,11 +96,19 @@ export async function getOrderDetail(
   ]);
 
   if (itemsResult.error) {
-    throw new ServiceError("ORDER_ITEMS_READ_FAILED", "Failed to load order items.", itemsResult.error);
+    throw new ServiceError(
+      "ORDER_ITEMS_READ_FAILED",
+      "Failed to load order items.",
+      itemsResult.error,
+    );
   }
 
   if (historyResult.error) {
-    throw new ServiceError("ORDER_HISTORY_READ_FAILED", "Failed to load order history.", historyResult.error);
+    throw new ServiceError(
+      "ORDER_HISTORY_READ_FAILED",
+      "Failed to load order history.",
+      historyResult.error,
+    );
   }
 
   return {
@@ -108,7 +125,12 @@ export async function getOrderDetail(
 /** List all orders with optional search and status filter. */
 export async function listAllOrders(
   actor: { id: string; role: string },
-  options?: { status?: OrderStatus; search?: string; limit?: number; offset?: number },
+  options?: {
+    status?: OrderStatus;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  },
 ): Promise<{ orders: OrderListItem[]; total: number }> {
   assertRole(actor.role as "admin" | "customer", ["admin"]);
 
@@ -118,10 +140,9 @@ export async function listAllOrders(
 
   let query = supabase
     .from("orders")
-    .select(
-      "*, items:order_items(product_name, quantity, product_image)",
-      { count: "exact" },
-    );
+    .select("*, items:order_items(product_name, quantity, product_image)", {
+      count: "exact",
+    });
 
   if (options?.status) {
     query = query.eq("status", options.status);
@@ -139,7 +160,11 @@ export async function listAllOrders(
     .range(offset, offset + limit - 1);
 
   if (error) {
-    throw new ServiceError("ORDERS_READ_FAILED", "Failed to load orders.", error);
+    throw new ServiceError(
+      "ORDERS_READ_FAILED",
+      "Failed to load orders.",
+      error,
+    );
   }
 
   return {
@@ -164,7 +189,11 @@ export async function getAdminOrderDetail(
     .maybeSingle();
 
   if (orderError) {
-    throw new ServiceError("ORDER_READ_FAILED", "Failed to load order.", orderError);
+    throw new ServiceError(
+      "ORDER_READ_FAILED",
+      "Failed to load order.",
+      orderError,
+    );
   }
 
   if (!order) {
@@ -185,11 +214,19 @@ export async function getAdminOrderDetail(
   ]);
 
   if (itemsResult.error) {
-    throw new ServiceError("ORDER_ITEMS_READ_FAILED", "Failed to load order items.", itemsResult.error);
+    throw new ServiceError(
+      "ORDER_ITEMS_READ_FAILED",
+      "Failed to load order items.",
+      itemsResult.error,
+    );
   }
 
   if (historyResult.error) {
-    throw new ServiceError("ORDER_HISTORY_READ_FAILED", "Failed to load order history.", historyResult.error);
+    throw new ServiceError(
+      "ORDER_HISTORY_READ_FAILED",
+      "Failed to load order history.",
+      historyResult.error,
+    );
   }
 
   return {
@@ -199,7 +236,7 @@ export async function getAdminOrderDetail(
   };
 }
 
-/** Resolve an admin order by its human-facing order number (e.g. DIN-2026-xxxx). */
+/** Resolve an admin order by its human-facing order number (e.g. DINS-2026-xxxx). */
 export async function getAdminOrderIdByNumber(
   actor: { id: string; role: string },
   orderNumber: string,
@@ -217,7 +254,10 @@ export async function getAdminOrderIdByNumber(
     throw new ServiceError("ORDER_READ_FAILED", "Failed to load order.", error);
   }
   if (!order) {
-    throw new ServiceError("ORDER_NOT_FOUND", `No order found with number ${orderNumber}.`);
+    throw new ServiceError(
+      "ORDER_NOT_FOUND",
+      `No order found with number ${orderNumber}.`,
+    );
   }
   return order.id;
 }
@@ -241,7 +281,11 @@ export async function updateOrderStatus(
     .maybeSingle();
 
   if (fetchError) {
-    throw new ServiceError("ORDER_READ_FAILED", "Failed to load order.", fetchError);
+    throw new ServiceError(
+      "ORDER_READ_FAILED",
+      "Failed to load order.",
+      fetchError,
+    );
   }
 
   if (!order) {
@@ -266,7 +310,11 @@ export async function updateOrderStatus(
     .eq("id", orderId);
 
   if (updateError) {
-    throw new ServiceError("ORDER_UPDATE_FAILED", "Failed to update order status.", updateError);
+    throw new ServiceError(
+      "ORDER_UPDATE_FAILED",
+      "Failed to update order status.",
+      updateError,
+    );
   }
 
   // Record status history
@@ -281,7 +329,11 @@ export async function updateOrderStatus(
     });
 
   if (historyError) {
-    throw new ServiceError("ORDER_HISTORY_WRITE_FAILED", "Failed to record status history.", historyError);
+    throw new ServiceError(
+      "ORDER_HISTORY_WRITE_FAILED",
+      "Failed to record status history.",
+      historyError,
+    );
   }
 }
 
@@ -328,7 +380,11 @@ export async function advanceOrderStatus(
     .maybeSingle();
 
   if (fetchError) {
-    throw new ServiceError("ORDER_READ_FAILED", "Failed to load order.", fetchError);
+    throw new ServiceError(
+      "ORDER_READ_FAILED",
+      "Failed to load order.",
+      fetchError,
+    );
   }
 
   if (!order) {
@@ -368,7 +424,11 @@ export async function advanceOrderStatus(
       .maybeSingle();
 
     if (updateError) {
-      throw new ServiceError("ORDER_UPDATE_FAILED", "Failed to update order status.", updateError);
+      throw new ServiceError(
+        "ORDER_UPDATE_FAILED",
+        "Failed to update order status.",
+        updateError,
+      );
     }
 
     if (!updated) {
@@ -389,12 +449,16 @@ export async function advanceOrderStatus(
             ? `Advance request (${stepsApplied.length + 1}/${steps.length}): ${
                 note ?? "Advance via valid transitions."
               }`
-            : note ?? null,
+            : (note ?? null),
         created_by: actor.id,
       });
 
     if (historyError) {
-      throw new ServiceError("ORDER_HISTORY_WRITE_FAILED", "Failed to record status history.", historyError);
+      throw new ServiceError(
+        "ORDER_HISTORY_WRITE_FAILED",
+        "Failed to record status history.",
+        historyError,
+      );
     }
 
     stepsApplied.push(step);
@@ -481,7 +545,11 @@ export async function createOrder(input: CreateOrderInput): Promise<OrderRow> {
     .single();
 
   if (orderError) {
-    throw new ServiceError("ORDER_CREATE_FAILED", "Failed to create your order.", orderError);
+    throw new ServiceError(
+      "ORDER_CREATE_FAILED",
+      "Failed to create your order.",
+      orderError,
+    );
   }
 
   // Insert order items
@@ -495,10 +563,16 @@ export async function createOrder(input: CreateOrderInput): Promise<OrderRow> {
     subtotal: item.subtotal,
   }));
 
-  const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+  const { error: itemsError } = await supabase
+    .from("order_items")
+    .insert(orderItems);
 
   if (itemsError) {
-    throw new ServiceError("ORDER_ITEMS_CREATE_FAILED", "Failed to create order items.", itemsError);
+    throw new ServiceError(
+      "ORDER_ITEMS_CREATE_FAILED",
+      "Failed to create order items.",
+      itemsError,
+    );
   }
 
   // Record initial status history
@@ -515,7 +589,10 @@ export async function createOrder(input: CreateOrderInput): Promise<OrderRow> {
   if (historyError) {
     // Non-fatal — log but don't fail the order
     if (process.env.NODE_ENV === "development") {
-      console.error("[createOrder] Failed to write status history:", historyError);
+      console.error(
+        "[createOrder] Failed to write status history:",
+        historyError,
+      );
     }
   }
 
@@ -523,7 +600,9 @@ export async function createOrder(input: CreateOrderInput): Promise<OrderRow> {
 }
 
 /** Get the count of unread notifications for a user. */
-export async function getUnreadNotificationCount(userId: string): Promise<number> {
+export async function getUnreadNotificationCount(
+  userId: string,
+): Promise<number> {
   const supabase = await createSupabaseClient();
 
   const { count, error } = await supabase
@@ -533,7 +612,11 @@ export async function getUnreadNotificationCount(userId: string): Promise<number
     .eq("is_read", false);
 
   if (error) {
-    throw new ServiceError("NOTIFICATION_COUNT_FAILED", "Failed to load notifications.", error);
+    throw new ServiceError(
+      "NOTIFICATION_COUNT_FAILED",
+      "Failed to load notifications.",
+      error,
+    );
   }
 
   return count ?? 0;

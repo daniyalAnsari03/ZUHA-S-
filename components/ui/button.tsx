@@ -15,10 +15,8 @@ const variantClasses: Record<ButtonVariant, string> = {
     "bg-plum text-white hover:bg-plum-dark focus-visible:outline-plum disabled:opacity-50",
   outline:
     "border border-charcoal/20 bg-transparent text-charcoal hover:border-plum hover:text-plum disabled:opacity-50",
-  ghost:
-    "bg-transparent text-charcoal hover:bg-plum/5 disabled:opacity-50",
-  gold:
-    "bg-gold-muted text-white hover:bg-gold-soft hover:text-charcoal disabled:opacity-50",
+  ghost: "bg-transparent text-charcoal hover:bg-plum/5 disabled:opacity-50",
+  gold: "bg-gold-muted text-white hover:bg-gold-soft hover:text-charcoal disabled:opacity-50",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

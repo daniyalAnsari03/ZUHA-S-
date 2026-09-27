@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Bot,
@@ -16,7 +17,11 @@ import {
 } from "lucide-react";
 
 import { WidgetErrorBoundary } from "@/components/ui/widget-error-boundary";
-import { useAiChat, type ChatMessage } from "@/components/chat/use-ai-chat";
+import {
+  useAiChat,
+  type ChatMessage,
+  type ProductReference,
+} from "@/components/chat/use-ai-chat";
 import {
   ChatNotificationBadge,
   type ChatNotificationBadgeHandle,
@@ -55,6 +60,12 @@ type AiChatProps = {
   conversationToLoad?: string | null;
   /** Called when the user starts a new conversation (so the caller can clear its selection). */
   onReset?: () => void;
+  /**
+   * Floating variant only: start with the panel already open. Used when the
+   * lightweight trigger has just been clicked, so the conversation module can
+   * be fetched lazily without the customer having to click a second time.
+   */
+  initialOpen?: boolean;
 };
 
 const ATTACH_RE = /\[Attached image:\s*([^\]]+)\]/g;
@@ -67,11 +78,68 @@ function extractAttachment(
   return { full: match[0], path: match[1].trim() };
 }
 
+/**
+ * Compact product card for the chat. Renders the REAL product image from the
+ * database (never a text description of it) with the real name and price,
+ * reusing the storefront card's premium visual language. Tapping navigates to
+ * the product page.
+ */
+function ChatProductCard({ product }: { product: ProductReference }) {
+  const href = `/product/${encodeURIComponent(product.slug || product.id)}`;
+  return (
+    <Link
+      href={href}
+      className="group flex flex-col overflow-hidden rounded-xl border border-charcoal/10 bg-white ring-1 ring-charcoal/5 transition hover:border-plum/30 hover:shadow-sm"
+      aria-label={`View ${product.name || "product"}`}
+    >
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#f6efe6]">
+        <Image
+          src={
+            resolveImageUrl(product.imageUrl) ||
+            "/images/placeholders/product-placeholder.svg"
+          }
+          alt={product.name || "Product"}
+          fill
+          sizes="(max-width: 640px) 45vw, 180px"
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+        />
+      </div>
+      <div className="flex flex-col gap-0.5 px-2.5 py-2">
+        <span className="line-clamp-2 font-serif text-xs leading-snug text-charcoal">
+          {product.name || "Product"}
+        </span>
+        {product.fabric ? (
+          <span className="text-[9px] uppercase tracking-[0.16em] text-charcoal-muted">
+            {product.fabric}
+          </span>
+        ) : null}
+        <span className="mt-0.5 text-xs font-semibold text-plum">
+          {product.price || "—"}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+function ProductCards({ products }: { products: ProductReference[] }) {
+  if (!products || products.length === 0) return null;
+  return (
+    <div className="mt-2 grid max-w-[20rem] grid-cols-2 gap-2 sm:max-w-[22rem]">
+      {products.map((product) => (
+        <ChatProductCard key={product.id || product.slug} product={product} />
+      ))}
+    </div>
+  );
+}
+
 function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
   const attachment = extractAttachment(message.content);
   const bodyText = attachment
-    ? message.content.replace(ATTACH_RE, "").replace(/\n{3,}/g, "\n\n").trim()
+    ? message.content
+        .replace(ATTACH_RE, "")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim()
     : message.content;
 
   return (
@@ -82,28 +150,35 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       className={`flex ${isUser ? "justify-end" : "justify-start"}`}
     >
       <div
-        className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-          isUser
-            ? "rounded-br-sm bg-gradient-to-br from-plum-dark via-plum to-plum-light text-white shadow-md shadow-plum/25 ring-1 ring-white/30"
-            : "rounded-bl-sm bg-white text-charcoal shadow-sm shadow-charcoal/5 ring-1 ring-charcoal/5"
-        }`}
+        className={`flex max-w-[85%] flex-col ${isUser ? "items-end" : "items-start"}`}
       >
-        {attachment && (
-          <div
-            className={`relative mb-2 h-24 w-24 overflow-hidden rounded-xl ring-1 ${
-              isUser ? "ring-white/30" : "ring-charcoal/10"
-            }`}
-          >
-            <Image
-              src={resolveImageUrl(attachment.path) || ""}
-              alt="Attached image"
-              fill
-              sizes="96px"
-              className="object-cover"
-            />
-          </div>
+        <div
+          className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+            isUser
+              ? "rounded-br-sm bg-gradient-to-br from-plum-dark via-plum to-plum-light text-white shadow-md shadow-plum/25 ring-1 ring-plum-light/30"
+              : "rounded-bl-sm bg-white text-charcoal shadow-sm shadow-charcoal/5 ring-1 ring-charcoal/5"
+          }`}
+        >
+          {attachment && (
+            <div
+              className={`relative mb-2 h-24 w-24 overflow-hidden rounded-xl ring-1 ${
+                isUser ? "ring-plum-light/30" : "ring-charcoal/10"
+              }`}
+            >
+              <Image
+                src={resolveImageUrl(attachment.path) || ""}
+                alt="Attached image"
+                fill
+                sizes="96px"
+                className="object-cover"
+              />
+            </div>
+          )}
+          {bodyText || "\u00A0"}
+        </div>
+        {!isUser && (
+          <ProductCards products={message.products ?? []} />
         )}
-        {bodyText || "\u00A0"}
       </div>
     </motion.div>
   );
@@ -120,6 +195,7 @@ function ChatBody({
   headerActions,
   conversationToLoad,
   onReset,
+  variant,
 }: AiChatProps) {
   const {
     messages,
@@ -176,8 +252,16 @@ function ChatBody({
 
   const busyLabel = labelFor(activeAgent, fallbackAgent);
 
+  const isFloating = variant === "floating";
+
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-3xl shadow-xl shadow-plum/10 ring-1 ring-white/40">
+    <div
+      className={`flex h-full flex-col overflow-hidden ${
+        isFloating
+          ? "rounded-none shadow-2xl shadow-plum/30 ring-1 ring-plum/10"
+          : "rounded-3xl shadow-xl shadow-plum/10 ring-1 ring-white/40"
+      }`}
+    >
       {/* Premium gradient header: rich plum, dark → gradually lighter */}
       <header className="relative bg-gradient-to-b from-plum-dark via-plum to-plum-light px-4 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_24px_-14px_rgba(74,32,64,0.55)] sm:px-5">
         {/* Premium gold hairline: subtle, muted, never bright */}
@@ -187,7 +271,7 @@ function ChatBody({
         />
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-plum-light/30">
               {isGold ? (
                 <UserRound className="h-5 w-5 text-white" aria-hidden="true" />
               ) : (
@@ -210,7 +294,7 @@ function ChatBody({
                 reset();
               }}
               title="Start a new conversation"
-              className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white/85 ring-1 ring-white/20 transition hover:bg-white/20"
+              className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white/85 ring-1 ring-gold-muted/30 transition hover:bg-white/20"
             >
               {isGold ? (
                 <>
@@ -252,7 +336,10 @@ function ChatBody({
                   />
                 ) : (
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-plum/10">
-                    <Sparkles className="h-6 w-6 text-plum" aria-hidden="true" />
+                    <Sparkles
+                      className="h-6 w-6 text-plum"
+                      aria-hidden="true"
+                    />
                   </span>
                 )}
               </motion.div>
@@ -354,7 +441,9 @@ function ChatBody({
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
-                onChange={(event) => void handleAttachFile(event.target.files?.[0])}
+                onChange={(event) =>
+                  void handleAttachFile(event.target.files?.[0])
+                }
                 className="hidden"
                 aria-hidden="true"
                 tabIndex={-1}
@@ -424,7 +513,7 @@ export function AiChat(props: AiChatProps) {
 }
 
 function FloatingChat(props: AiChatProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(props.initialOpen ?? false);
   const notifRef = useRef<ChatNotificationBadgeHandle>(null);
 
   return (
@@ -432,17 +521,21 @@ function FloatingChat(props: AiChatProps) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: 24, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 24, scale: 0.96 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-            className="fixed inset-x-2 bottom-20 z-[60] h-[min(38rem,calc(100dvh-5.5rem))] sm:inset-x-auto sm:right-5 sm:bottom-24 sm:h-[34rem] sm:w-[24rem]"
+            initial={{ opacity: 0, y: 72 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 56 }}
+            transition={{
+              y: { type: "spring", stiffness: 150, damping: 26, mass: 1 },
+              opacity: { duration: 0.45, ease: "easeOut" },
+            }}
+            style={{ willChange: "transform, opacity" }}
+            className="fixed inset-x-0 bottom-24 z-[60] mx-auto h-[min(38rem,calc(100dvh-8.5rem))] w-[min(26rem,calc(100%-1.5rem))] sm:inset-x-auto sm:bottom-5 sm:right-[5.75rem] sm:mx-0 sm:h-[min(34rem,calc(100dvh-8.5rem))] sm:w-[24rem]"
           >
             <div className="relative h-full">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="absolute -top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-plum text-white shadow-md ring-4 ring-white/70 transition hover:bg-plum-dark"
+                className="absolute -top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-plum text-white shadow-lg shadow-plum-dark/30 transition hover:bg-plum-dark"
                 aria-label="Close chat"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
@@ -454,14 +547,16 @@ function FloatingChat(props: AiChatProps) {
       </AnimatePresence>
 
       <div className="fixed bottom-5 right-5 z-[60]">
-        <WidgetErrorBoundary fallback={null}>
-          <ChatNotificationBadge
-            ref={notifRef}
-            onOpenChange={(isOpen) => {
-              if (isOpen) setOpen(false);
-            }}
-          />
-        </WidgetErrorBoundary>
+        <div className={open ? "hidden" : undefined}>
+          <WidgetErrorBoundary fallback={null}>
+            <ChatNotificationBadge
+              ref={notifRef}
+              onOpenChange={(isOpen) => {
+                if (isOpen) setOpen(false);
+              }}
+            />
+          </WidgetErrorBoundary>
+        </div>
         <motion.button
           type="button"
           onClick={() => {
@@ -471,14 +566,36 @@ function FloatingChat(props: AiChatProps) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-plum-dark via-plum to-plum-light text-white shadow-xl shadow-plum/30 ring-1 ring-white/40 transition hover:scale-105"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
+          className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-plum-dark via-plum to-plum-light text-white shadow-xl shadow-plum/30 ring-1 ring-plum-light/40"
           aria-label={open ? "Close AI Salesman" : "Open AI Salesman"}
         >
-          {open ? (
-            <X className="h-6 w-6" aria-hidden="true" />
-          ) : (
-            <MessageCircle className="h-6 w-6" aria-hidden="true" />
-          )}
+          <AnimatePresence mode="wait" initial={false}>
+            {open ? (
+              <motion.span
+                key="close"
+                initial={{ rotate: -90, opacity: 0, scale: 0.6 }}
+                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                exit={{ rotate: 90, opacity: 0, scale: 0.6 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="flex"
+              >
+                <X className="h-6 w-6" aria-hidden="true" />
+              </motion.span>
+            ) : (
+              <motion.span
+                key="chat"
+                initial={{ rotate: 90, opacity: 0, scale: 0.6 }}
+                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                exit={{ rotate: -90, opacity: 0, scale: 0.6 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="flex"
+              >
+                <MessageCircle className="h-6 w-6" aria-hidden="true" />
+              </motion.span>
+            )}
+          </AnimatePresence>
         </motion.button>
       </div>
     </>

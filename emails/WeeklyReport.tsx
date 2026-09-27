@@ -11,11 +11,7 @@ import {
   Text,
 } from "@react-email/components";
 
-import {
-  BRAND_COLORS,
-  BRAND_NAME,
-  formatPrice,
-} from "./shared";
+import { BRAND_COLORS, BRAND_NAME, formatPrice } from "./shared";
 
 export type TopProductEmailRow = {
   name: string;
@@ -104,8 +100,7 @@ export default function WeeklyReportEmail({
           margin: 0,
           padding: 0,
           backgroundColor: ivory,
-          fontFamily:
-            "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'Georgia', 'Times New Roman', serif",
         }}
       >
         <Container
@@ -196,7 +191,7 @@ export default function WeeklyReportEmail({
             {statBlock("Orders", String(orderCount))}
             {statBlock(
               "Orders vs Previous Week",
-              `${previousOrderCount > 0 ? ((orderCount - previousOrderCount) / previousOrderCount) * 100 >= 0 ? "+" : "" : "+"}${previousOrderCount > 0 ? Number(((orderCount - previousOrderCount) / previousOrderCount) * 100).toFixed(0) : (orderCount > 0 ? "100" : "0")}%`,
+              `${previousOrderCount > 0 ? (((orderCount - previousOrderCount) / previousOrderCount) * 100 >= 0 ? "+" : "") : "+"}${previousOrderCount > 0 ? Number(((orderCount - previousOrderCount) / previousOrderCount) * 100).toFixed(0) : orderCount > 0 ? "100" : "0"}%`,
             )}
           </Section>
 

@@ -39,7 +39,9 @@ describe("revenue rule", () => {
   it("excludes failed and refunded payment states", () => {
     expect(isExcludedFromRevenue("delivered", "failed")).toBe(true);
     expect(isExcludedFromRevenue("delivered", "refunded")).toBe(true);
-    expect(computeRevenue([{ ...baseOrder, payment_status: "failed" }])).toBe(0);
+    expect(computeRevenue([{ ...baseOrder, payment_status: "failed" }])).toBe(
+      0,
+    );
   });
 
   it("sums only qualifying orders", () => {
@@ -85,7 +87,9 @@ describe("computeSalesTrend", () => {
   it("zero-fills a full window of requested days", () => {
     const trend = computeSalesTrend([], 7);
     expect(trend).toHaveLength(7);
-    expect(trend.every((p) => p.revenue === 0 && p.orderCount === 0)).toBe(true);
+    expect(trend.every((p) => p.revenue === 0 && p.orderCount === 0)).toBe(
+      true,
+    );
   });
 
   it("buckets revenue by local calendar day", () => {
@@ -127,14 +131,20 @@ describe("computeTopProducts", () => {
         product_name: "Jamawar",
         quantity: 2,
         subtotal: 2000,
-        order: { status: "delivered" as const, payment_status: "paid" as const },
+        order: {
+          status: "delivered" as const,
+          payment_status: "paid" as const,
+        },
       },
       {
         product_id: "p1",
         product_name: "Jamawar",
         quantity: 1,
         subtotal: 1000,
-        order: { status: "delivered" as const, payment_status: "paid" as const },
+        order: {
+          status: "delivered" as const,
+          payment_status: "paid" as const,
+        },
       },
     ];
     const top = computeTopProducts(items);
@@ -150,7 +160,10 @@ describe("computeTopProducts", () => {
         product_name: "Jamawar",
         quantity: 2,
         subtotal: 2000,
-        order: { status: "cancelled" as const, payment_status: "paid" as const },
+        order: {
+          status: "cancelled" as const,
+          payment_status: "paid" as const,
+        },
       },
     ];
     expect(computeTopProducts(items)).toHaveLength(0);

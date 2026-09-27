@@ -5,7 +5,6 @@ import { LockKeyhole } from "lucide-react";
 import { AdminShell } from "@/app/admin/admin-shell";
 import { Container } from "@/components/ui/container";
 import { getAuthUser } from "@/lib/auth/session";
-import { getUnreadCount } from "@/services/notifications/notification-service";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +32,7 @@ export default async function AdminLayout({
           </p>
           <Link
             href="/"
-            className="mt-8 inline-block rounded-full bg-plum px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-plum-dark"
+            className="mt-8 inline-block rounded-full bg-plum px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-plum-dark"
           >
             Back to the storefront
           </Link>
@@ -42,10 +41,13 @@ export default async function AdminLayout({
     );
   }
 
-  const unreadCount = await getUnreadCount(user.id).catch(() => 0);
-
+  // The unread badge is deliberately NOT resolved here. It used to add a
+  // blocking `notifications` count query to the server render of *every* admin
+  // route, which put a database round trip in front of the page's own content.
+  // `AdminNotificationBell` already refreshes itself, so the shell starts at 0
+  // and the real count arrives with its first client fetch.
   return (
-    <AdminShell userEmail={user.email} unreadCount={unreadCount}>
+    <AdminShell userEmail={user.email} unreadCount={0}>
       {children}
     </AdminShell>
   );

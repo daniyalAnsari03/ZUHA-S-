@@ -19,7 +19,8 @@ export async function SocialGallery() {
   let handle = FALLBACK_HANDLE;
   let heading = `Follow ${FALLBACK_HANDLE}`;
   let eyebrow = "On Instagram";
-  let description = "A closer look at the studio, the craft and the collection.";
+  let description =
+    "A closer look at the studio, the craft and the collection.";
   let tiles = FALLBACK_TILES;
 
   try {

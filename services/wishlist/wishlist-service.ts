@@ -52,7 +52,9 @@ export type WishlistSummary = {
  * Get the current user's wishlist, creating one on first access. Reads rely
  * on RLS so the requester's session is authoritative.
  */
-export async function getOrCreateWishlist(userId: string): Promise<WishlistWithItems> {
+export async function getOrCreateWishlist(
+  userId: string,
+): Promise<WishlistWithItems> {
   const supabase = await createSupabaseClient();
 
   const { data: existing, error: readError } = await supabase
@@ -62,7 +64,11 @@ export async function getOrCreateWishlist(userId: string): Promise<WishlistWithI
     .maybeSingle();
 
   if (readError) {
-    throw new ServiceError("WISHLIST_READ_FAILED", "Failed to load your wishlist.", readError);
+    throw new ServiceError(
+      "WISHLIST_READ_FAILED",
+      "Failed to load your wishlist.",
+      readError,
+    );
   }
 
   if (existing) {
@@ -76,28 +82,73 @@ export async function getOrCreateWishlist(userId: string): Promise<WishlistWithI
     .single();
 
   if (insertError) {
-    throw new ServiceError("WISHLIST_CREATE_FAILED", "Failed to create your wishlist.", insertError);
+    throw new ServiceError(
+      "WISHLIST_CREATE_FAILED",
+      "Failed to create your wishlist.",
+      insertError,
+    );
   }
 
   return loadWishlistWithItems(created);
 }
 
-async function loadWishlistWithItems(wishlist: WishlistRow): Promise<WishlistWithItems> {
+async function loadWishlistWithItems(
+  wishlist: WishlistRow,
+): Promise<WishlistWithItems> {
   const supabase = await createSupabaseClient();
 
   const { data, error } = await supabase
     .from("wishlist_items")
     .select(
-      "*, products(id, name, slug, price, stock_quantity, image_url, fabric, is_active)",
+      // `product:products(...)` aliases the embedded resource. Without the
+      // alias PostgREST returns the to-one embed under the *table* name
+      // (`products`), so every `item.product` read below was `undefined` and
+      // the whole wishlist was filtered out — items appeared to save but never
+      // appeared on /wishlist. This matches the alias used by the cart service.
+      "*, product:products(id, name, slug, price, stock_quantity, image_url, fabric, is_active)",
     )
     .eq("wishlist_id", wishlist.id)
     .order("created_at", { ascending: true });
 
   if (error) {
-    throw new ServiceError("WISHLIST_ITEMS_READ_FAILED", "Failed to load wishlist items.", error);
+    throw new ServiceError(
+      "WISHLIST_ITEMS_READ_FAILED",
+      "Failed to load wishlist items.",
+      error,
+    );
   }
 
-  return { ...wishlist, items: data as unknown as WishlistItemWithProduct[] };
+  return {
+    ...wishlist,
+    items: normalizeWishlistItems(data),
+  };
+}
+
+/**
+ * Normalize embedded wishlist rows.
+ *
+ * The generated `Database` types carry no relationship metadata
+ * (`Relationships: []`), so supabase-js cannot type the embed and every read
+ * here has to be asserted by hand. A missing/renamed embed key would then be
+ * invisible to the compiler and silently drop every item, so the embedded
+ * product is read from whichever key PostgREST actually used and a row without
+ * a usable product is dropped explicitly rather than by accident.
+ */
+function normalizeWishlistItems(
+  rows: unknown,
+): WishlistItemWithProduct[] {
+  if (!Array.isArray(rows)) return [];
+
+  return rows.flatMap((row) => {
+    if (!row || typeof row !== "object") return [];
+    const item = row as WishlistItemWithProduct & { products?: unknown };
+    const embedded =
+      item.product ??
+      (item.products as WishlistItemWithProduct["product"] | undefined) ??
+      null;
+    if (!embedded || typeof embedded !== "object") return [];
+    return [{ ...item, product: embedded }];
+  });
 }
 
 /** Add a product to the wishlist. Duplicates are prevented by a DB constraint. */
@@ -110,7 +161,9 @@ export async function addToWishlist(
 
   const wishlist = await getOrCreateWishlist(userId);
 
-  const alreadySaved = wishlist.items.some((i) => i.product_id === parsed.productId);
+  const alreadySaved = wishlist.items.some(
+    (i) => i.product_id === parsed.productId,
+  );
   if (alreadySaved) {
     return summarizeWishlist(wishlist);
   }
@@ -122,7 +175,11 @@ export async function addToWishlist(
   });
 
   if (error) {
-    throw new ServiceError("WISHLIST_ADD_FAILED", "Failed to save item to your wishlist.", error);
+    throw new ServiceError(
+      "WISHLIST_ADD_FAILED",
+      "Failed to save item to your wishlist.",
+      error,
+    );
   }
 
   const refreshed = await getOrCreateWishlist(userId);
@@ -139,7 +196,10 @@ export async function removeWishlistItem(
 
   const item = wishlist.items.find((i) => i.id === parsed.itemId);
   if (!item) {
-    throw new ServiceError("WISHLIST_ITEM_NOT_FOUND", "That wishlist item no longer exists.");
+    throw new ServiceError(
+      "WISHLIST_ITEM_NOT_FOUND",
+      "That wishlist item no longer exists.",
+    );
   }
 
   const supabase = await createSupabaseClient();
@@ -150,7 +210,11 @@ export async function removeWishlistItem(
     .eq("wishlist_id", wishlist.id);
 
   if (error) {
-    throw new ServiceError("WISHLIST_REMOVE_FAILED", "Failed to remove item from your wishlist.", error);
+    throw new ServiceError(
+      "WISHLIST_REMOVE_FAILED",
+      "Failed to remove item from your wishlist.",
+      error,
+    );
   }
 
   const refreshed = await getOrCreateWishlist(userId);
@@ -183,7 +247,9 @@ export async function toggleWishlist(
   const parsed = toggleWishlistSchema.parse(input);
   const wishlist = await getOrCreateWishlist(userId);
 
-  const existing = wishlist.items.find((i) => i.product_id === parsed.productId);
+  const existing = wishlist.items.find(
+    (i) => i.product_id === parsed.productId,
+  );
   if (existing) {
     const summary = await removeWishlistItem(userId, { itemId: existing.id });
     return { saved: false, summary };
@@ -194,7 +260,9 @@ export async function toggleWishlist(
 }
 
 /** Return a safe summary of the user's wishlist. */
-export async function getWishlistSummary(userId: string): Promise<WishlistSummary> {
+export async function getWishlistSummary(
+  userId: string,
+): Promise<WishlistSummary> {
   const wishlist = await getOrCreateWishlist(userId);
   return summarizeWishlist(wishlist);
 }
@@ -215,7 +283,10 @@ export async function getWishlistSummaryIfExists(
     .maybeSingle();
 
   if (error) {
-    throw new ServiceError("WISHLIST_READ_FAILED", "Failed to load your wishlist.");
+    throw new ServiceError(
+      "WISHLIST_READ_FAILED",
+      "Failed to load your wishlist.",
+    );
   }
 
   if (!wishlist) return null;
@@ -225,7 +296,10 @@ export async function getWishlistSummaryIfExists(
 }
 
 /** True if the given product is already saved in the user's wishlist. */
-export async function isWishlisted(userId: string, productId: string): Promise<boolean> {
+export async function isWishlisted(
+  userId: string,
+  productId: string,
+): Promise<boolean> {
   const wishlist = await getOrCreateWishlist(userId);
   return wishlist.items.some((i) => i.product_id === productId);
 }
@@ -249,23 +323,40 @@ async function assertActiveProduct(productId: string): Promise<void> {
     .maybeSingle();
 
   if (error) {
-    throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load product.", error);
+    throw new ServiceError(
+      "PRODUCT_READ_FAILED",
+      "Failed to load product.",
+      error,
+    );
   }
   if (!data) {
-    throw new ServiceError("PRODUCT_NOT_FOUND", "That product no longer exists.");
+    throw new ServiceError(
+      "PRODUCT_NOT_FOUND",
+      "That product no longer exists.",
+    );
   }
   if (!data.is_active) {
-    throw new ServiceError("PRODUCT_INACTIVE", "This product is no longer available.");
+    throw new ServiceError(
+      "PRODUCT_INACTIVE",
+      "This product is no longer available.",
+    );
   }
 }
 
 export function summarizeWishlist(
   wishlist: WishlistWithItems,
 ): WishlistSummary {
-  const items = wishlist.items
-    .filter((i) => i.product && i.product.is_active)
+  const items = (wishlist.items ?? [])
+    // A row without a usable embedded product is dropped explicitly. This is
+    // the single choke point every wishlist read goes through, so a missing
+    // embed can never quietly turn a populated wishlist into an empty page.
+    .filter(
+      (i): i is WishlistItemWithProduct & {
+        product: NonNullable<WishlistItemWithProduct["product"]>;
+      } => !!i?.product?.is_active,
+    )
     .map((i) => {
-      const product = i.product as NonNullable<WishlistItemWithProduct["product"]>;
+      const product = i.product;
       return {
         id: i.id,
         productId: product.id,

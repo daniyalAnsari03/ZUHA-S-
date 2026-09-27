@@ -2,7 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Pencil, Plus } from "lucide-react";
 
-import { deleteCategoryAction, toggleCategoryActiveAction } from "@/app/admin/actions";
+import {
+  deleteCategoryAction,
+  toggleCategoryActiveAction,
+} from "@/app/admin/actions";
 import { ConfirmDelete } from "@/app/admin/components/confirm-delete";
 import { getAuthUser } from "@/lib/auth/session";
 import { listAllCategories } from "@/services/categories/categories-service";
@@ -20,7 +23,8 @@ export default async function AdminCategoriesPage() {
         <div>
           <h1 className="font-serif text-3xl text-charcoal">Categories</h1>
           <p className="mt-1 text-sm text-charcoal-muted">
-            {categories.length} total ({categories.filter((c) => c.is_active).length} active)
+            {categories.length} total (
+            {categories.filter((c) => c.is_active).length} active)
           </p>
         </div>
         <Link
@@ -45,7 +49,10 @@ export default async function AdminCategoriesPage() {
           </thead>
           <tbody className="divide-y divide-charcoal/5">
             {categories.map((category) => (
-              <tr key={category.id} className="transition-colors hover:bg-cream/50">
+              <tr
+                key={category.id}
+                className="transition-colors hover:bg-cream/50"
+              >
                 <td className="px-5 py-3">
                   <Link
                     href={`/admin/categories/${category.id}/edit`}
@@ -67,7 +74,11 @@ export default async function AdminCategoriesPage() {
                 </td>
                 <td className="px-5 py-3">
                   <form
-                    action={toggleCategoryActiveAction.bind(null, category.id, !category.is_active)}
+                    action={toggleCategoryActiveAction.bind(
+                      null,
+                      category.id,
+                      !category.is_active,
+                    )}
                   >
                     <button
                       type="submit"

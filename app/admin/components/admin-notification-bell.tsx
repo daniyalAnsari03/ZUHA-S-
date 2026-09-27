@@ -4,7 +4,10 @@ import Link from "next/link";
 import { Bell } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getAdminNotificationsAction, markAdminNotificationReadAction } from "@/app/admin/actions";
+import {
+  getAdminNotificationsAction,
+  markAdminNotificationReadAction,
+} from "@/app/admin/actions";
 
 type Notification = {
   id: string;
@@ -34,7 +37,11 @@ const ICON_TYPES: Record<string, string> = {
   order_status_updated: "Order",
 };
 
-export function AdminNotificationBell({ unreadCount: initialUnread }: { unreadCount: number }) {
+export function AdminNotificationBell({
+  unreadCount: initialUnread,
+}: {
+  unreadCount: number;
+}) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(initialUnread);
@@ -52,10 +59,18 @@ export function AdminNotificationBell({ unreadCount: initialUnread }: { unreadCo
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      void loadNotifications();
-    }, 30000);
-    return () => clearInterval(interval);
+    // Populate the badge as soon as the shell hydrates — the admin layout no
+    // longer resolves the count during the server render, so this first fetch
+    // is what fills the badge in. It is deferred by a tick so a purely
+    // decorative badge never competes with hydration for the main thread.
+    const refresh = () => void loadNotifications();
+
+    const initial = setTimeout(refresh, 0);
+    const interval = setInterval(refresh, 30000);
+    return () => {
+      clearTimeout(initial);
+      clearInterval(interval);
+    };
   }, [loadNotifications]);
 
   useEffect(() => {
@@ -97,8 +112,8 @@ export function AdminNotificationBell({ unreadCount: initialUnread }: { unreadCo
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
-        className={`relative inline-flex items-center justify-center rounded-lg p-2.5 text-charcoal-muted transition-colors hover:bg-cream hover:text-plum ${
-          open ? "bg-cream text-plum" : ""
+        className={`relative inline-flex items-center justify-center rounded-lg p-2.5 text-white/85 transition-colors hover:bg-white/10 hover:text-white ${
+          open ? "bg-white/15 text-white" : ""
         }`}
       >
         <Bell className="h-5 w-5" aria-hidden="true" />
@@ -115,7 +130,9 @@ export function AdminNotificationBell({ unreadCount: initialUnread }: { unreadCo
           className="absolute right-0 top-full z-50 mt-2 w-[min(24rem,calc(100vw-2rem))] max-h-[480px] overflow-hidden rounded-xl border border-charcoal/10 bg-neutral-soft shadow-lg"
         >
           <div className="flex items-center justify-between border-b border-charcoal/10 px-4 py-3">
-            <h3 className="font-serif text-sm text-charcoal">Admin notifications</h3>
+            <h3 className="font-serif text-sm text-charcoal">
+              Admin notifications
+            </h3>
             <Link
               href="/admin/notifications"
               onClick={() => setOpen(false)}

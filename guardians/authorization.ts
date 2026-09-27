@@ -11,8 +11,7 @@ export const CUSTOMER_ROLE = "customer" as const;
 export type AgentRole = typeof ADMIN_ROLE | typeof CUSTOMER_ROLE;
 
 export type RoleCheck =
-  | { ok: true; role: AgentRole }
-  | { ok: false; message: string };
+  { ok: true; role: AgentRole } | { ok: false; message: string };
 
 /**
  * Fail-closed role check. Tools never proceed without a verified application

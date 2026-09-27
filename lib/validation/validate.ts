@@ -1,14 +1,16 @@
 import { ZodError, type ZodSchema } from "zod";
 
 export type ValidationResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+  { success: true; data: T } | { success: false; error: string };
 
 /**
  * Parse untrusted input against a Zod schema, returning a discriminated
  * result so callers never operate on unvalidated data.
  */
-export function validate<T>(schema: ZodSchema<T>, input: unknown): ValidationResult<T> {
+export function validate<T>(
+  schema: ZodSchema<T>,
+  input: unknown,
+): ValidationResult<T> {
   const result = schema.safeParse(input);
 
   if (result.success) {

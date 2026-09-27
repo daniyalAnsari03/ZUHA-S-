@@ -41,19 +41,17 @@ export type ProductListOptions = {
 export async function listActiveProducts(
   options: ProductListOptions = {},
 ): Promise<ProductWithCategory[]> {
-  const {
-    limit,
-    offset = 0,
-    categorySlug,
-    featured,
-    search,
-  } = options;
+  const { limit, offset = 0, categorySlug, featured, search } = options;
 
   const supabase = createPublicClient();
 
   let query = supabase
     .from("products")
-    .select(categorySlug ? "*, category:categories!inner(slug, name)" : "*, category:categories(slug, name)")
+    .select(
+      categorySlug
+        ? "*, category:categories!inner(slug, name)"
+        : "*, category:categories(slug, name)",
+    )
     .eq("is_active", true);
 
   if (categorySlug) {
@@ -66,7 +64,9 @@ export async function listActiveProducts(
 
   if (search?.trim()) {
     const term = search.trim();
-    query = query.or(`name.ilike.%${term}%,description.ilike.%${term}%,fabric.ilike.%${term}%,sku.ilike.%${term}%`);
+    query = query.or(
+      `name.ilike.%${term}%,description.ilike.%${term}%,fabric.ilike.%${term}%,sku.ilike.%${term}%`,
+    );
   }
 
   if (limit) {
@@ -182,7 +182,10 @@ export async function getNewArrivals(
     .limit(limit);
 
   if (error) {
-    throw new ServiceError("PRODUCT_READ_FAILED", "Failed to load new arrivals.");
+    throw new ServiceError(
+      "PRODUCT_READ_FAILED",
+      "Failed to load new arrivals.",
+    );
   }
 
   return data as unknown as ProductWithCategory[];
@@ -221,7 +224,9 @@ export async function listAllProducts(
 
   if (options.search?.trim()) {
     const term = `%${options.search.trim()}%`;
-    query = query.or(`name.ilike.${term},sku.ilike.${term},description.ilike.${term}`);
+    query = query.or(
+      `name.ilike.${term},sku.ilike.${term},description.ilike.${term}`,
+    );
   }
 
   if (options.categoryId) {
@@ -273,7 +278,9 @@ export async function listPagedProducts(
 
   if (options.search?.trim()) {
     const term = `%${options.search.trim()}%`;
-    query = query.or(`name.ilike.${term},sku.ilike.${term},description.ilike.${term}`);
+    query = query.or(
+      `name.ilike.${term},sku.ilike.${term},description.ilike.${term}`,
+    );
   }
 
   if (options.categoryId) {
@@ -333,7 +340,10 @@ export async function createProduct(
     .single();
 
   if (error) {
-    throw new ServiceError("PRODUCT_CREATE_FAILED", "Failed to create product.");
+    throw new ServiceError(
+      "PRODUCT_CREATE_FAILED",
+      "Failed to create product.",
+    );
   }
 
   revalidateTag(STORE_CACHE_TAGS.products, STORE_CACHE_PROFILE);
@@ -377,7 +387,10 @@ export async function updateProduct(
     .single();
 
   if (error) {
-    throw new ServiceError("PRODUCT_UPDATE_FAILED", "Failed to update product.");
+    throw new ServiceError(
+      "PRODUCT_UPDATE_FAILED",
+      "Failed to update product.",
+    );
   }
 
   revalidateTag(STORE_CACHE_TAGS.products, STORE_CACHE_PROFILE);
@@ -431,7 +444,10 @@ export async function setProductActive(
     .single();
 
   if (error) {
-    throw new ServiceError("PRODUCT_UPDATE_FAILED", "Failed to update product.");
+    throw new ServiceError(
+      "PRODUCT_UPDATE_FAILED",
+      "Failed to update product.",
+    );
   }
 
   revalidateTag(STORE_CACHE_TAGS.products, STORE_CACHE_PROFILE);
@@ -460,7 +476,10 @@ export async function deleteProduct(
   const { error } = await supabase.from("products").delete().eq("id", id);
 
   if (error) {
-    throw new ServiceError("PRODUCT_DELETE_FAILED", "Failed to delete product.");
+    throw new ServiceError(
+      "PRODUCT_DELETE_FAILED",
+      "Failed to delete product.",
+    );
   }
 
   const { data: gone } = await supabase

@@ -34,6 +34,14 @@ export type WishlistActionResult =
 export type StorefrontInitialState = {
   cartCount: number;
   wishlistCount: number;
+  /**
+   * Whether the visitor has an authenticated session. The storefront is a
+   * static, cacheable shell, so the client cannot know this from the HTML —
+   * components that behave differently for guests (for example the wishlist
+   * toggle, which must send guests to sign in rather than silently failing)
+   * read it from here instead of assuming.
+   */
+  signedIn: boolean;
 };
 
 export type CartDetailsPayload = {
@@ -65,8 +73,15 @@ function errorText(error: unknown): string {
   if (error instanceof ServiceError) {
     const base = error.message;
     if (process.env.NODE_ENV === "development" && error.cause) {
-      const cause = error.cause as { message?: string; code?: string; details?: string; hint?: string };
-      const details = [cause.message, cause.code, cause.details, cause.hint].filter(Boolean).join(" | ");
+      const cause = error.cause as {
+        message?: string;
+        code?: string;
+        details?: string;
+        hint?: string;
+      };
+      const details = [cause.message, cause.code, cause.details, cause.hint]
+        .filter(Boolean)
+        .join(" | ");
       return details ? `${base} (${details})` : base;
     }
     return base;
@@ -85,7 +100,7 @@ function errorText(error: unknown): string {
 export async function getStorefrontInitialStateAction(): Promise<StorefrontInitialState> {
   const user = await getAuthUser();
   if (!user) {
-    return { cartCount: 0, wishlistCount: 0 };
+    return { cartCount: 0, wishlistCount: 0, signedIn: false };
   }
 
   const [cart, wishlist] = await Promise.all([
@@ -96,12 +111,12 @@ export async function getStorefrontInitialStateAction(): Promise<StorefrontIniti
   return {
     cartCount: cart?.itemCount ?? 0,
     wishlistCount: wishlist?.itemCount ?? 0,
+    signedIn: true,
   };
 }
 
 export async function getCartDetailsAction(): Promise<
-  | { ok: true; payload: CartDetailsPayload }
-  | { ok: false; error: string }
+  { ok: true; payload: CartDetailsPayload } | { ok: false; error: string }
 > {
   const user = await getAuthUser();
   if (!user) {
@@ -111,7 +126,10 @@ export async function getCartDetailsAction(): Promise<
   try {
     const summary = await getCartSummaryIfExists(user.id);
     if (!summary) {
-      return { ok: true, payload: { cartId: "", itemCount: 0, subtotal: 0, items: [] } };
+      return {
+        ok: true,
+        payload: { cartId: "", itemCount: 0, subtotal: 0, items: [] },
+      };
     }
     return {
       ok: true,
@@ -128,8 +146,7 @@ export async function getCartDetailsAction(): Promise<
 }
 
 export async function getWishlistDetailsAction(): Promise<
-  | { ok: true; payload: WishlistDetailsPayload }
-  | { ok: false; error: string }
+  { ok: true; payload: WishlistDetailsPayload } | { ok: false; error: string }
 > {
   const user = await getAuthUser();
   if (!user) {
@@ -175,7 +192,11 @@ export async function addToCartAction(
   try {
     const summary = await addToCart(user.id, { productId, quantity });
     revalidatePaths(["/cart", "/checkout", ...(revalidate ?? [])]);
-    return { ok: true, itemCount: summary.itemCount, subtotal: summary.subtotal };
+    return {
+      ok: true,
+      itemCount: summary.itemCount,
+      subtotal: summary.subtotal,
+    };
   } catch (error) {
     return { ok: false, error: errorText(error) };
   }
@@ -193,13 +214,19 @@ export async function updateCartItemAction(
   try {
     const summary = await updateCartItem(user.id, { itemId, quantity });
     revalidatePaths(["/cart", "/checkout"]);
-    return { ok: true, itemCount: summary.itemCount, subtotal: summary.subtotal };
+    return {
+      ok: true,
+      itemCount: summary.itemCount,
+      subtotal: summary.subtotal,
+    };
   } catch (error) {
     return { ok: false, error: errorText(error) };
   }
 }
 
-export async function removeCartItemAction(itemId: string): Promise<CartActionResult> {
+export async function removeCartItemAction(
+  itemId: string,
+): Promise<CartActionResult> {
   const user = await getAuthUser();
   if (!user) {
     return { ok: false, error: "Please sign in to update your bag." };
@@ -208,7 +235,11 @@ export async function removeCartItemAction(itemId: string): Promise<CartActionRe
   try {
     const summary = await removeCartItem(user.id, { itemId });
     revalidatePaths(["/cart", "/checkout"]);
-    return { ok: true, itemCount: summary.itemCount, subtotal: summary.subtotal };
+    return {
+      ok: true,
+      itemCount: summary.itemCount,
+      subtotal: summary.subtotal,
+    };
   } catch (error) {
     return { ok: false, error: errorText(error) };
   }
@@ -223,7 +254,11 @@ export async function clearCartAction(): Promise<CartActionResult> {
   try {
     const summary = await clearCart(user.id);
     revalidatePaths(["/cart", "/checkout"]);
-    return { ok: true, itemCount: summary.itemCount, subtotal: summary.subtotal };
+    return {
+      ok: true,
+      itemCount: summary.itemCount,
+      subtotal: summary.subtotal,
+    };
   } catch (error) {
     return { ok: false, error: errorText(error) };
   }
@@ -237,7 +272,11 @@ export async function getCartSummaryAction(): Promise<CartActionResult> {
 
   try {
     const summary = await getCartSummary(user.id);
-    return { ok: true, itemCount: summary.itemCount, subtotal: summary.subtotal };
+    return {
+      ok: true,
+      itemCount: summary.itemCount,
+      subtotal: summary.subtotal,
+    };
   } catch (error) {
     return { ok: false, error: errorText(error) };
   }
@@ -247,7 +286,9 @@ export async function getCartSummaryAction(): Promise<CartActionResult> {
  * Wishlist
  * --------------------------------------------------------------------- */
 
-export async function toggleWishlistAction(productId: string): Promise<WishlistActionResult> {
+export async function toggleWishlistAction(
+  productId: string,
+): Promise<WishlistActionResult> {
   const user = await getAuthUser();
   if (!user) {
     return { ok: false, error: "Please sign in to use your wishlist." };
@@ -267,7 +308,9 @@ export async function toggleWishlistAction(productId: string): Promise<WishlistA
   }
 }
 
-export async function addToWishlistAction(productId: string): Promise<WishlistActionResult> {
+export async function addToWishlistAction(
+  productId: string,
+): Promise<WishlistActionResult> {
   const user = await getAuthUser();
   if (!user) {
     return { ok: false, error: "Please sign in to use your wishlist." };
@@ -287,7 +330,9 @@ export async function addToWishlistAction(productId: string): Promise<WishlistAc
   }
 }
 
-export async function removeWishlistItemAction(itemId: string): Promise<WishlistActionResult> {
+export async function removeWishlistItemAction(
+  itemId: string,
+): Promise<WishlistActionResult> {
   const user = await getAuthUser();
   if (!user) {
     return { ok: false, error: "Please sign in to use your wishlist." };
@@ -330,26 +375,23 @@ export async function getWishlistSummaryAction(): Promise<WishlistActionResult> 
  * Checkout
  * --------------------------------------------------------------------- */
 
-export async function validateCheckoutAction(
-  customer: {
-    name: string;
-    phone: string;
-    email: string;
-    shippingAddress: string;
-    city: string;
-    postalCode?: string;
-    orderNotes?: string;
-  },
-): Promise<CheckoutActionResult> {
+export async function validateCheckoutAction(customer: {
+  name: string;
+  phone: string;
+  email: string;
+  shippingAddress: string;
+  city: string;
+  postalCode?: string;
+  orderNotes?: string;
+}): Promise<CheckoutActionResult> {
   const user = await getAuthUser();
   if (!user) {
     return { ok: false, error: "Please sign in to continue to checkout." };
   }
 
   try {
-    const { validateCheckout, computeTotals } = await import(
-      "@/services/checkout/checkout-service"
-    );
+    const { validateCheckout, computeTotals } =
+      await import("@/services/checkout/checkout-service");
     const result = await validateCheckout(user.id, customer);
     if (!result.ok) {
       return { ok: false, error: result.errors.join(" ") };
@@ -375,30 +417,32 @@ export type CheckoutHandoffResult =
       provider?: string;
       reference?: string;
       message: string;
-      totals: { itemCount: number; subtotal: number; shipping: number; total: number };
+      totals: {
+        itemCount: number;
+        subtotal: number;
+        shipping: number;
+        total: number;
+      };
     }
   | { ok: false; errors: string[] };
 
-export async function initiateCheckoutAction(
-  customer: {
-    name: string;
-    phone: string;
-    email: string;
-    shippingAddress: string;
-    city: string;
-    postalCode?: string;
-    orderNotes?: string;
-  },
-): Promise<CheckoutHandoffResult> {
+export async function initiateCheckoutAction(customer: {
+  name: string;
+  phone: string;
+  email: string;
+  shippingAddress: string;
+  city: string;
+  postalCode?: string;
+  orderNotes?: string;
+}): Promise<CheckoutHandoffResult> {
   const user = await getAuthUser();
   if (!user) {
     return { ok: false, errors: ["Please sign in to continue to checkout."] };
   }
 
   try {
-    const { initiateCheckout, validateCheckout } = await import(
-      "@/services/checkout/checkout-service"
-    );
+    const { initiateCheckout, validateCheckout } =
+      await import("@/services/checkout/checkout-service");
     const result = await validateCheckout(user.id, customer);
     if (!result.ok) {
       return { ok: false, errors: result.errors };
@@ -446,7 +490,14 @@ export async function initiateCheckoutAction(
  * --------------------------------------------------------------------- */
 
 export type OrderListResult =
-  | { ok: true; orders: Awaited<ReturnType<typeof import("@/services/orders/order-service").listCustomerOrders>> }
+  | {
+      ok: true;
+      orders: Awaited<
+        ReturnType<
+          typeof import("@/services/orders/order-service").listCustomerOrders
+        >
+      >;
+    }
   | { ok: false; error: string };
 
 export async function getCustomerOrdersAction(): Promise<OrderListResult> {
@@ -454,7 +505,8 @@ export async function getCustomerOrdersAction(): Promise<OrderListResult> {
   if (!user) return { ok: false, error: "Please sign in to view your orders." };
 
   try {
-    const { listCustomerOrders } = await import("@/services/orders/order-service");
+    const { listCustomerOrders } =
+      await import("@/services/orders/order-service");
     const orders = await listCustomerOrders(user.id);
     return { ok: true, orders };
   } catch (error) {
@@ -463,10 +515,19 @@ export async function getCustomerOrdersAction(): Promise<OrderListResult> {
 }
 
 export type OrderDetailResult =
-  | { ok: true; order: Awaited<ReturnType<typeof import("@/services/orders/order-service").getOrderDetail>> }
+  | {
+      ok: true;
+      order: Awaited<
+        ReturnType<
+          typeof import("@/services/orders/order-service").getOrderDetail
+        >
+      >;
+    }
   | { ok: false; error: string };
 
-export async function getOrderDetailAction(orderId: string): Promise<OrderDetailResult> {
+export async function getOrderDetailAction(
+  orderId: string,
+): Promise<OrderDetailResult> {
   const user = await getAuthUser();
   if (!user) return { ok: false, error: "Please sign in to view this order." };
 
@@ -484,8 +545,7 @@ export async function getOrderDetailAction(orderId: string): Promise<OrderDetail
  * --------------------------------------------------------------------- */
 
 export type ProfileActionResult =
-  | { ok: true; message: string }
-  | { ok: false; error: string };
+  { ok: true; message: string } | { ok: false; error: string };
 
 export async function updateProfileAction(input: {
   full_name?: string;
@@ -498,7 +558,8 @@ export async function updateProfileAction(input: {
   if (!user) return { ok: false, error: "Please sign in." };
 
   try {
-    const { updateOwnProfile } = await import("@/services/profiles/update-profile");
+    const { updateOwnProfile } =
+      await import("@/services/profiles/update-profile");
     await updateOwnProfile(user.id, input);
     revalidatePath("/account");
     return { ok: true, message: "Profile updated." };
@@ -512,7 +573,8 @@ export async function getOwnProfileAction() {
   if (!user) return null;
 
   try {
-    const { getOwnProfile } = await import("@/services/profiles/get-own-profile");
+    const { getOwnProfile } =
+      await import("@/services/profiles/get-own-profile");
     return await getOwnProfile(user.id);
   } catch {
     return null;
@@ -524,12 +586,21 @@ export async function getOwnProfileAction() {
  * --------------------------------------------------------------------- */
 
 export type NotificationListResult =
-  | { ok: true; notifications: Awaited<ReturnType<typeof import("@/services/notifications/notification-service").listNotifications>>; unreadCount: number }
+  | {
+      ok: true;
+      notifications: Awaited<
+        ReturnType<
+          typeof import("@/services/notifications/notification-service").listNotifications
+        >
+      >;
+      unreadCount: number;
+    }
   | { ok: false; error: string };
 
-export async function getNotificationsAction(
-  options?: { unreadOnly?: boolean; limit?: number },
-): Promise<NotificationListResult> {
+export async function getNotificationsAction(options?: {
+  unreadOnly?: boolean;
+  limit?: number;
+}): Promise<NotificationListResult> {
   const user = await getAuthUser();
   if (!user) return { ok: false, error: "Please sign in." };
 
@@ -550,19 +621,23 @@ export async function getNotificationCountAction(): Promise<number> {
   if (!user) return 0;
 
   try {
-    const { getUnreadCount } = await import("@/services/notifications/notification-service");
+    const { getUnreadCount } =
+      await import("@/services/notifications/notification-service");
     return await getUnreadCount(user.id);
   } catch {
     return 0;
   }
 }
 
-export async function markNotificationReadAction(notificationId: string): Promise<ProfileActionResult> {
+export async function markNotificationReadAction(
+  notificationId: string,
+): Promise<ProfileActionResult> {
   const user = await getAuthUser();
   if (!user) return { ok: false, error: "Please sign in." };
 
   try {
-    const { markAsRead } = await import("@/services/notifications/notification-service");
+    const { markAsRead } =
+      await import("@/services/notifications/notification-service");
     await markAsRead(user.id, notificationId);
     return { ok: true, message: "Marked as read." };
   } catch (error) {
@@ -575,7 +650,8 @@ export async function markAllNotificationsReadAction(): Promise<ProfileActionRes
   if (!user) return { ok: false, error: "Please sign in." };
 
   try {
-    const { markAllAsRead } = await import("@/services/notifications/notification-service");
+    const { markAllAsRead } =
+      await import("@/services/notifications/notification-service");
     await markAllAsRead(user.id);
     revalidatePath("/account");
     return { ok: true, message: "All notifications marked as read." };
@@ -589,7 +665,15 @@ export async function markAllNotificationsReadAction(): Promise<ProfileActionRes
  * --------------------------------------------------------------------- */
 
 export type AdminOrderListResult =
-  | { ok: true; orders: Awaited<ReturnType<typeof import("@/services/orders/order-service").listAllOrders>>["orders"]; total: number }
+  | {
+      ok: true;
+      orders: Awaited<
+        ReturnType<
+          typeof import("@/services/orders/order-service").listAllOrders
+        >
+      >["orders"];
+      total: number;
+    }
   | { ok: false; error: string };
 
 export async function getAdminOrdersAction(options?: {
@@ -599,7 +683,8 @@ export async function getAdminOrdersAction(options?: {
   offset?: number;
 }): Promise<AdminOrderListResult> {
   const user = await getAuthUser();
-  if (!user || user.role !== "admin") return { ok: false, error: "Admin access required." };
+  if (!user || user.role !== "admin")
+    return { ok: false, error: "Admin access required." };
 
   try {
     const { listAllOrders } = await import("@/services/orders/order-service");
@@ -615,11 +700,16 @@ export async function getAdminOrdersAction(options?: {
 
 export async function getAdminOrderDetailAction(orderId: string) {
   const user = await getAuthUser();
-  if (!user || user.role !== "admin") return { ok: false as const, error: "Admin access required." };
+  if (!user || user.role !== "admin")
+    return { ok: false as const, error: "Admin access required." };
 
   try {
-    const { getAdminOrderDetail } = await import("@/services/orders/order-service");
-    const order = await getAdminOrderDetail({ id: user.id, role: user.role }, orderId);
+    const { getAdminOrderDetail } =
+      await import("@/services/orders/order-service");
+    const order = await getAdminOrderDetail(
+      { id: user.id, role: user.role },
+      orderId,
+    );
     return { ok: true as const, order };
   } catch (error) {
     return { ok: false as const, error: errorText(error) };
@@ -632,10 +722,12 @@ export async function updateOrderStatusAction(
   note?: string,
 ): Promise<ProfileActionResult> {
   const user = await getAuthUser();
-  if (!user || user.role !== "admin") return { ok: false, error: "Admin access required." };
+  if (!user || user.role !== "admin")
+    return { ok: false, error: "Admin access required." };
 
   try {
-    const { updateOrderStatus } = await import("@/services/orders/order-service");
+    const { updateOrderStatus } =
+      await import("@/services/orders/order-service");
     await updateOrderStatus(
       { id: user.id, role: user.role },
       orderId,
@@ -657,8 +749,11 @@ function revalidatePaths(paths: string[] = []): void {
   }
 }
 
+/** Sign out from the storefront. */
 export async function signOutAction(): Promise<void> {
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
+  // Awaited on purpose: the refresh token must be revoked and the auth cookies
+  // expired in the response, otherwise the action resolves with a live session.
   await supabase.auth.signOut();
 }

@@ -18,9 +18,9 @@ type AdminAiWorkplacePanelProps = {
 export function AdminAiWorkplacePanel({
   initialConversationId,
 }: AdminAiWorkplacePanelProps) {
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(
-    initialConversationId,
-  );
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(initialConversationId);
   const [panelOpen, setPanelOpen] = useState(false);
 
   const handleSelectConversation = useCallback((id: string) => {
@@ -37,6 +37,7 @@ export function AdminAiWorkplacePanel({
         subtitle="DINS by Daniyal · business workforce"
         fallbackAgent="AI Manager"
         variant="panel"
+        theme="gold"
         conversationToLoad={activeConversationId}
         onReset={() => setActiveConversationId(null)}
         headerActions={

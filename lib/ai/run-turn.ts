@@ -43,9 +43,11 @@ import {
 const CANCEL_DRAFT_PATTERN =
   /(?:^|\s)(?:chhod\s+do|chhor\s+do|chor\s+do|chord\s+do|chhodh\s+do|cancel\s+kar\s+do|cancel\s+karo|cancel(?:\s+it)?\b|cancel\s+the\s+(?:draft|product|checkout|order)\b|drop\s+it\b|never\s+mind\b|skip\s+it\b)(?=\s|$)/i;
 
-export type ChatUser =
-  | { id: string; email: string | null; role: "admin" | "customer" }
-  | null;
+export type ChatUser = {
+  id: string;
+  email: string | null;
+  role: "admin" | "customer";
+} | null;
 
 export type ChatTurnOptions = {
   channel: "admin" | "salesman";
@@ -71,14 +73,16 @@ const chatBodySchema = z.object({
     .optional(),
 });
 
-export type ChatTurnResult = {
-  ok: true;
-  response: Response;
-} | {
-  ok: false;
-  status: number;
-  message: string;
-};
+export type ChatTurnResult =
+  | {
+      ok: true;
+      response: Response;
+    }
+  | {
+      ok: false;
+      status: number;
+      message: string;
+    };
 
 function jsonError(status: number, message: string): Response {
   return new Response(JSON.stringify({ error: message }), {
@@ -116,9 +120,8 @@ function handleRunError(error: unknown): {
   message: string;
 } {
   if (error instanceof InputGuardrailTripwireTriggered) {
-    const info = (
-      error.result?.output?.outputInfo as { message?: string } | undefined
-    );
+    const info = error.result?.output?.outputInfo as
+      { message?: string } | undefined;
     return {
       kind: "injection",
       message: info?.message ?? friendlyDriftMessage("injection"),
@@ -131,7 +134,10 @@ function handleRunError(error: unknown): {
     return { kind: "max_turns", message: friendlyDriftMessage("max_turns") };
   }
   if (error instanceof ToolTimeoutError) {
-    return { kind: "tool_timeout", message: friendlyDriftMessage("tool_timeout") };
+    return {
+      kind: "tool_timeout",
+      message: friendlyDriftMessage("tool_timeout"),
+    };
   }
   // Catch Zod validation errors that might leak from tool parameter validation
   const errorStr = String(error);
@@ -254,6 +260,17 @@ export async function runChatTurn(
     };
   }
 
+  // True only when this is the very first message of a brand-new conversation:
+  // an authenticated user whose persisted thread has zero prior rows, or a
+  // guest with no client-supplied history. Later turns always have history, so
+  // the welcome greeting can never leak onto subsequent messages.
+  const isFirstMessage =
+    channel === "salesman"
+      ? isAuthenticated
+        ? historyRows.length === 0
+        : (history ?? []).length === 0
+      : false;
+
   const requestId = globalThis.crypto.randomUUID();
 
   // Resolve the conversation's current focus entity (last named/acted-on
@@ -310,6 +327,7 @@ export async function runChatTurn(
     focusEntity,
     recentFocusEntities,
     pendingDraft,
+    firstMessage: isFirstMessage || undefined,
   };
 
   // Feed the model a bounded recency window of persisted history. Full threads
@@ -323,6 +341,7 @@ export async function runChatTurn(
     recentFocusEntities,
     pendingDraft,
     draftCancelled,
+    firstMessage: isFirstMessage || undefined,
   });
   const entryAgent: Agent<AgentContext> = getEntryAgent(channel);
 
@@ -339,11 +358,11 @@ export async function runChatTurn(
       },
       traceIncludeSensitiveData: false,
     });
-    streamed = await runner.run(entryAgent, inputItems, {
+    streamed = (await runner.run(entryAgent, inputItems, {
       stream: true,
       context,
       maxTurns: MAX_AGENT_TURNS,
-    }) as StreamedRunResult<AgentContext, Agent<AgentContext, any>>;
+    })) as StreamedRunResult<AgentContext, Agent<AgentContext, any>>;
   } catch (error) {
     // Model/provider config errors surface when the run starts.
     const mapped = handleRunError(error);
@@ -378,7 +397,9 @@ export async function runChatTurn(
             assistantText += event.delta;
           }
           if (event.type === "tool") {
-            console.log(`[ai-debug] tool event: ${event.name} state=${event.state}`);
+            console.log(
+              `[ai-debug] tool event: ${event.name} state=${event.state}`,
+            );
           }
           if (event.type === "agent") {
             console.log(`[ai-debug] agent event: ${event.name}`);

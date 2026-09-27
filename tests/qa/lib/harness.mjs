@@ -193,7 +193,9 @@ export async function createDisposableCustomer({ token, fullName } = {}) {
   });
   const created = await res.json();
   if (!created.id) {
-    throw new Error(`createDisposableCustomer -> ${res.status}: ${JSON.stringify(created)}`);
+    throw new Error(
+      `createDisposableCustomer -> ${res.status}: ${JSON.stringify(created)}`,
+    );
   }
   await servicePatch(`/rest/v1/profiles?id=eq.${created.id}`, {
     full_name: name,
@@ -202,7 +204,9 @@ export async function createDisposableCustomer({ token, fullName } = {}) {
   }).catch(() => {});
   const auth = await signIn(email, password);
   if (!auth.access_token) {
-    throw new Error(`createDisposableCustomer sign-in failed: ${JSON.stringify(auth)}`);
+    throw new Error(
+      `createDisposableCustomer sign-in failed: ${JSON.stringify(auth)}`,
+    );
   }
   return {
     auth,
@@ -227,10 +231,10 @@ export async function deleteOrdersByUser(userId) {
 /** Hard-delete a customer and everything they own (orders must already be gone). */
 export async function deleteDisposableCustomer(userId) {
   await deleteOrdersByUser(userId);
-  const res = await fetch(
-    `${SUPABASE_URL}/auth/v1/admin/users/${userId}`,
-    { method: "DELETE", headers: serviceHeaders() },
-  );
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+    method: "DELETE",
+    headers: serviceHeaders(),
+  });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`deleteDisposableCustomer -> ${res.status}: ${text}`);
@@ -241,7 +245,15 @@ export async function deleteDisposableCustomer(userId) {
  * Create a disposable COD order owned by `customerId` for `productId` directly.
  * Used only for admin order-status tests. Returns the created order row.
  */
-export async function createDisposableOrder({ customerId, productId, productName, productPrice, quantity = 1, customerName, customerEmail }) {
+export async function createDisposableOrder({
+  customerId,
+  productId,
+  productName,
+  productPrice,
+  quantity = 1,
+  customerName,
+  customerEmail,
+}) {
   const token = uniqueToken();
   const orderNumber = `DIN-${new Date()
     .toISOString()
@@ -273,7 +285,9 @@ export async function createDisposableOrder({ customerId, productId, productName
   });
   if (!orderRes.ok) {
     const text = await orderRes.text().catch(() => "");
-    throw new Error(`createDisposableOrder order -> ${orderRes.status}: ${text}`);
+    throw new Error(
+      `createDisposableOrder order -> ${orderRes.status}: ${text}`,
+    );
   }
   const orderRows = await orderRes.json();
   const order = Array.isArray(orderRows) ? orderRows[0] : orderRows;
@@ -320,7 +334,11 @@ export async function queryRows(table, filter = "", extra = "") {
  * Send one chat message to a channel. Returns:
  * { status, text, tools, toolEvents, agents, conversationId, meta, raw }
  */
-export async function chat(channel, { message, conversationId, history }, cookie) {
+export async function chat(
+  channel,
+  { message, conversationId, history },
+  cookie,
+) {
   const body = { message };
   if (conversationId) body.conversationId = conversationId;
   if (Array.isArray(history) && history.length) body.history = history;
@@ -337,7 +355,9 @@ export async function chat(channel, { message, conversationId, history }, cookie
 
   if (res.status !== 200) {
     let data = {};
-    try { data = JSON.parse(raw); } catch {}
+    try {
+      data = JSON.parse(raw);
+    } catch {}
     return {
       status: res.status,
       error: data.error ?? res.statusText,
@@ -361,7 +381,11 @@ export async function chat(channel, { message, conversationId, history }, cookie
 
   for (const line of raw.trim().split("\n")) {
     let ev;
-    try { ev = JSON.parse(line); } catch { continue; }
+    try {
+      ev = JSON.parse(line);
+    } catch {
+      continue;
+    }
     if (ev.type === "text") text += ev.delta ?? "";
     if (ev.type === "done") doneOutput.text = ev.output ?? "";
     if (ev.type === "agent") agents.push(ev.name);
@@ -420,8 +444,10 @@ export class QaResults {
     console.log(`[${pass ? "✓" : "✗"}] ${id}: ${scenario} — ${icon}`);
     if (details.note) console.log(`    Note: ${details.note}`);
     if (details.mismatch) console.log(`    MISMATCH: ${details.mismatch}`);
-    if (details.tools?.length) console.log(`    Tools: ${details.tools.join(", ")}`);
-    if (details.evidence != null) console.log(`    Evidence: ${details.evidence}`);
+    if (details.tools?.length)
+      console.log(`    Tools: ${details.tools.join(", ")}`);
+    if (details.evidence != null)
+      console.log(`    Evidence: ${details.evidence}`);
   }
 
   summary(title) {
@@ -429,12 +455,16 @@ export class QaResults {
     let fail = 0;
     console.log(`\n===== ${title} =====`);
     for (const r of this.results) {
-      console.log(`  ${r.pass ? "✓" : "✗"} ${r.id}. ${r.scenario} — ${r.pass ? "PASS" : "FAIL"}`);
+      console.log(
+        `  ${r.pass ? "✓" : "✗"} ${r.id}. ${r.scenario} — ${r.pass ? "PASS" : "FAIL"}`,
+      );
       if (r.mismatch) console.log(`      mismatch: ${r.mismatch}`);
       pass += r.pass ? 1 : 0;
       fail += r.pass ? 0 : 1;
     }
-    console.log(`  Total: ${this.results.length} | PASS: ${pass} | FAIL: ${fail}\n`);
+    console.log(
+      `  Total: ${this.results.length} | PASS: ${pass} | FAIL: ${fail}\n`,
+    );
     return { total: this.results.length, pass, fail };
   }
 

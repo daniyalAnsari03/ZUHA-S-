@@ -70,6 +70,7 @@ export default async function WishlistPage() {
                           alt={item.name}
                           width={160}
                           height={200}
+                          sizes="80px"
                           className="h-full w-full object-cover"
                         />
                       ) : null}
@@ -92,7 +93,9 @@ export default async function WishlistPage() {
                           {formatPrice(item.price)}
                         </p>
                         {item.stock <= 0 ? (
-                          <p className="mt-1 text-[11px] text-red-600">Out of stock</p>
+                          <p className="mt-1 text-[11px] text-red-600">
+                            Out of stock
+                          </p>
                         ) : null}
                       </div>
 
@@ -106,9 +109,8 @@ export default async function WishlistPage() {
                         <form
                           action={async (formData: FormData) => {
                             "use server";
-                            const { removeWishlistItemAction } = await import(
-                              "@/app/storefront/actions"
-                            );
+                            const { removeWishlistItemAction } =
+                              await import("@/app/storefront/actions");
                             const itemId = formData.get("itemId") as string;
                             await removeWishlistItemAction(itemId);
                           }}
@@ -116,15 +118,22 @@ export default async function WishlistPage() {
                           <input type="hidden" name="itemId" value={item.id} />
                           <button
                             type="submit"
-                            className="inline-flex h-10 w-10 items-center justify-center rounded text-charcoal-muted transition-colors hover:text-red-600"
+                            className="inline-flex h-11 w-11 items-center justify-center rounded text-charcoal-muted transition-colors hover:text-red-600"
                             aria-label={`Remove ${item.name} from wishlist`}
                           >
-                          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          </svg>
-</button>
-                          </form>
-                        </div>
+                            <svg
+                              className="h-4 w-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              aria-hidden="true"
+                            >
+                              <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                          </button>
+                        </form>
+                      </div>
                     </div>
                   </div>
                 </li>

@@ -59,8 +59,8 @@ export default async function OrdersPage() {
         {orders.length === 0 ? (
           <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-8 sm:p-10 text-center">
             <p className="text-sm text-charcoal-muted">
-              You haven&apos;t placed any orders yet. Browse the collection and find
-              something you love.
+              You haven&apos;t placed any orders yet. Browse the collection and
+              find something you love.
             </p>
             <Link
               href="/shop"
@@ -79,13 +79,16 @@ export default async function OrdersPage() {
                 >
                   <div className="flex min-w-0 flex-1 gap-4">
                     {/* First item image */}
-                    {order.items[0]?.product_image ? (
+{order.items[0]?.product_image ? (
                       <div className="hidden h-16 w-14 shrink-0 overflow-hidden rounded-lg border border-charcoal/10 bg-cream sm:block">
                         <Image
-                          src={resolveImageUrl(order.items[0].product_image) ?? ""}
+                          src={
+                            resolveImageUrl(order.items[0].product_image) ?? ""
+                          }
                           alt={order.items[0].product_name}
                           width={112}
                           height={128}
+                          sizes="56px"
                           className="h-full w-full object-cover"
                         />
                       </div>
@@ -103,7 +106,9 @@ export default async function OrdersPage() {
                         </span>
                       </div>
                       <p className="mt-1 text-xs text-charcoal-muted">
-                        {formatDate(order.created_at)} &middot; {order.items.length} item{order.items.length === 1 ? "" : "s"}
+                        {formatDate(order.created_at)} &middot;{" "}
+                        {order.items.length} item
+                        {order.items.length === 1 ? "" : "s"}
                       </p>
                       <p className="mt-1 text-xs text-charcoal-muted sm:hidden">
                         {formatPrice(order.total)}

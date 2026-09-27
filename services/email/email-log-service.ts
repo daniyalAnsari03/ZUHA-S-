@@ -200,9 +200,9 @@ export async function hasProcessedReportToday(
   return hasProcessedReportPeriod(reportType, pktTodayKey());
 }
 
-export async function listEmailLogs(
-  options?: { limit?: number },
-): Promise<EmailLogRow[]> {
+export async function listEmailLogs(options?: {
+  limit?: number;
+}): Promise<EmailLogRow[]> {
   const supabase = createAdminClient();
   const limit = Math.min(Math.max(options?.limit ?? 50, 1), 100);
 

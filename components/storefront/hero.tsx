@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { Reveal } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { resolveImageUrl } from "@/lib/images";
@@ -25,7 +24,14 @@ export function Hero({ slide }: HeroProps) {
             alt=""
             fill
             sizes="100vw"
+            // The hero is the LCP element on the homepage. `priority` injects
+            // the preload link; the explicit fetchPriority is what makes the
+            // image itself outrank every other request during load.
             priority
+            fetchPriority="high"
+            // Rendered beneath a gradient scrim at every width, so a lower
+            // quality step is visually indistinguishable and materially smaller.
+            quality={55}
             className="object-cover object-center"
           />
         ) : (
@@ -39,7 +45,7 @@ export function Hero({ slide }: HeroProps) {
 
       <div className="relative">
         <Container className="flex min-h-[70vh] flex-col items-center justify-end pb-28 pt-24 text-center sm:pb-32 sm:pt-32">
-          <Reveal className="flex max-w-2xl flex-col items-center">
+          <div className="flex max-w-2xl flex-col items-center">
             {slide.eyebrow ? (
               <p className="text-[11px] uppercase tracking-[0.32em] text-gold-soft sm:text-xs">
                 {slide.eyebrow}
@@ -54,7 +60,7 @@ export function Hero({ slide }: HeroProps) {
             <Link href={slide.ctaHref} className="mt-8">
               <Button size="lg">{slide.ctaLabel}</Button>
             </Link>
-          </Reveal>
+          </div>
         </Container>
       </div>
     </section>

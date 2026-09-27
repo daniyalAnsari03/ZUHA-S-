@@ -31,7 +31,9 @@ export function ProfileEditor({
     postal_code: profile.postal_code ?? "",
   });
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(
+    null,
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,11 +50,15 @@ export function ProfileEditor({
       <h2 className="font-serif text-lg text-charcoal">Account Information</h2>
       <dl className="mt-4 grid gap-4 sm:grid-cols-2">
         <div>
-          <dt className="text-xs uppercase tracking-[0.14em] text-charcoal-muted">Email</dt>
+          <dt className="text-xs uppercase tracking-[0.14em] text-charcoal-muted">
+            Email
+          </dt>
           <dd className="mt-1 text-sm text-charcoal">{email}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-[0.14em] text-charcoal-muted">Role</dt>
+          <dt className="text-xs uppercase tracking-[0.14em] text-charcoal-muted">
+            Role
+          </dt>
           <dd className="mt-1 text-sm capitalize text-charcoal">{role}</dd>
         </div>
       </dl>
@@ -64,7 +70,10 @@ export function ProfileEditor({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="profile-name" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
+            <label
+              htmlFor="profile-name"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-muted"
+            >
               Full Name
             </label>
             <Input
@@ -75,7 +84,10 @@ export function ProfileEditor({
             />
           </div>
           <div>
-            <label htmlFor="profile-phone" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
+            <label
+              htmlFor="profile-phone"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-muted"
+            >
               Phone
             </label>
             <Input
@@ -89,7 +101,10 @@ export function ProfileEditor({
         </div>
 
         <div>
-          <label htmlFor="profile-address" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
+          <label
+            htmlFor="profile-address"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-muted"
+          >
             Address
           </label>
           <Input
@@ -102,7 +117,10 @@ export function ProfileEditor({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="profile-city" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
+            <label
+              htmlFor="profile-city"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-muted"
+            >
               City
             </label>
             <Input
@@ -113,13 +131,18 @@ export function ProfileEditor({
             />
           </div>
           <div>
-            <label htmlFor="profile-postal" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
+            <label
+              htmlFor="profile-postal"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-muted"
+            >
               Postal Code
             </label>
             <Input
               id="profile-postal"
               value={form.postal_code}
-              onChange={(e) => setForm({ ...form, postal_code: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, postal_code: e.target.value })
+              }
               placeholder="Optional"
             />
           </div>
@@ -130,7 +153,9 @@ export function ProfileEditor({
             {loading ? "Saving…" : "Save Changes"}
           </Button>
           {result && (
-            <p className={`text-sm ${result.ok ? "text-green-700" : "text-red-600"}`}>
+            <p
+              className={`text-sm ${result.ok ? "text-green-700" : "text-red-600"}`}
+            >
               {result.message}
             </p>
           )}

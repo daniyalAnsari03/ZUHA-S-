@@ -33,7 +33,9 @@ describe("AnnouncementBar", () => {
   it("renders nothing when no announcements are active", () => {
     const { container } = render(
       <AnnouncementBar
-        announcements={[{ id: "x", message: "hi", active: false, order: 1, durationMs: 5000 }]}
+        announcements={[
+          { id: "x", message: "hi", active: false, order: 1, durationMs: 5000 },
+        ]}
       />,
     );
     expect(container.firstChild).toBeNull();

@@ -34,7 +34,10 @@ export async function listActiveCategories(): Promise<CategoryRow[]> {
     .order("name", { ascending: true });
 
   if (error) {
-    throw new ServiceError("CATEGORY_READ_FAILED", "Failed to load categories.");
+    throw new ServiceError(
+      "CATEGORY_READ_FAILED",
+      "Failed to load categories.",
+    );
   }
 
   return data;
@@ -58,7 +61,10 @@ export async function listAllCategories(
     .order("name", { ascending: true });
 
   if (error) {
-    throw new ServiceError("CATEGORY_READ_FAILED", "Failed to load categories.");
+    throw new ServiceError(
+      "CATEGORY_READ_FAILED",
+      "Failed to load categories.",
+    );
   }
 
   return data;
@@ -83,9 +89,7 @@ export async function getCategoryBySlug(
   return data;
 }
 
-export async function getCategoryById(
-  id: string,
-): Promise<CategoryRow | null> {
+export async function getCategoryById(id: string): Promise<CategoryRow | null> {
   const supabase = await createSupabaseClient();
 
   const { data, error } = await supabase
@@ -126,7 +130,10 @@ export async function createCategory(
     .single();
 
   if (error) {
-    throw new ServiceError("CATEGORY_CREATE_FAILED", "Failed to create category.");
+    throw new ServiceError(
+      "CATEGORY_CREATE_FAILED",
+      "Failed to create category.",
+    );
   }
 
   revalidateTag(STORE_CACHE_TAGS.categories, STORE_CACHE_PROFILE);
@@ -159,7 +166,10 @@ export async function updateCategory(
     .single();
 
   if (error) {
-    throw new ServiceError("CATEGORY_UPDATE_FAILED", "Failed to update category.");
+    throw new ServiceError(
+      "CATEGORY_UPDATE_FAILED",
+      "Failed to update category.",
+    );
   }
 
   revalidateTag(STORE_CACHE_TAGS.categories, STORE_CACHE_PROFILE);
@@ -184,7 +194,11 @@ export async function setCategoryActive(
     .single();
 
   if (error) {
-    throw new ServiceError("CATEGORY_UPDATE_FAILED", "Failed to update category.", error);
+    throw new ServiceError(
+      "CATEGORY_UPDATE_FAILED",
+      "Failed to update category.",
+      error,
+    );
   }
 
   revalidateTag(STORE_CACHE_TAGS.categories, STORE_CACHE_PROFILE);
@@ -215,7 +229,11 @@ export async function deleteCategory(
     .limit(1);
 
   if (productsError) {
-    throw new ServiceError("CATEGORY_DELETE_FAILED", "Failed to check category usage.", productsError);
+    throw new ServiceError(
+      "CATEGORY_DELETE_FAILED",
+      "Failed to check category usage.",
+      productsError,
+    );
   }
 
   if ((products ?? []).length > 0) {
@@ -228,7 +246,11 @@ export async function deleteCategory(
   const { error } = await supabase.from("categories").delete().eq("id", id);
 
   if (error) {
-    throw new ServiceError("CATEGORY_DELETE_FAILED", "Failed to delete category.", error);
+    throw new ServiceError(
+      "CATEGORY_DELETE_FAILED",
+      "Failed to delete category.",
+      error,
+    );
   }
 
   const { data: gone } = await supabase

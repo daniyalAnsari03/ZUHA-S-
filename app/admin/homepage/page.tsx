@@ -58,7 +58,8 @@ const DEFAULT_HOMEPAGE: HomepageData = {
   brandStoryImage: "/images/placeholders/product-3.svg",
   socialHeading: "Follow @dinsbydaniyal",
   socialEyebrow: "On Instagram",
-  socialDescription: "A closer look at the studio, the craft and the collection.",
+  socialDescription:
+    "A closer look at the studio, the craft and the collection.",
   socialHandle: "@dinsbydaniyal",
   socialImages: [
     "/images/placeholders/social-1.svg",

@@ -24,16 +24,27 @@ export function CategoryCard({ category }: CategoryCardProps) {
     >
       <div className="aspect-[4/5] overflow-hidden lg:aspect-[5/6]">
         <Image
-          src={resolveImageUrl(category.image) || "/images/placeholders/category-placeholder.svg"}
+          src={
+            resolveImageUrl(category.image) ||
+            "/images/placeholders/category-placeholder.svg"
+          }
           alt={category.name}
           width={800}
           height={1000}
-          sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
+          // Shop By Category is a 2-up grid below `lg` and 3-up above it, inside
+          // a `max-w-7xl` container. The previous `90vw` fallback made every
+          // mobile card request an 828px candidate for a ~184px slot, so the
+          // six category images (~300KB) loaded above the fold and competed with
+          // the hero for bandwidth. `48vw` matches the real 2-up width and the
+          // wide breakpoint is a fixed px hint because the container stops
+          // growing at 7xl and a vw value would keep over-fetching.
+          sizes="(min-width: 1536px) 400px, (min-width: 1024px) 30vw, 48vw"
+          quality={50}
+          loading="lazy"
+          fetchPriority="low"
           className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
         />
       </div>
-
-      
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[75%] bg-gradient-to-t from-plum-dark/95 via-plum-dark/45 to-transparent transition-opacity duration-500" />
 

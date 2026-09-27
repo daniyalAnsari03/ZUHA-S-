@@ -61,10 +61,14 @@ export function ImagePicker({
       const { listMediaAction } = await import("@/app/admin/actions");
       const result = await listMediaAction(folder);
       if (result.ok) {
-        setMediaFiles(result.files.filter((f) => {
-          const ext = f.name.split(".").pop()?.toLowerCase();
-          return ["jpg", "jpeg", "png", "webp", "gif", "svg"].includes(ext || "");
-        }));
+        setMediaFiles(
+          result.files.filter((f) => {
+            const ext = f.name.split(".").pop()?.toLowerCase();
+            return ["jpg", "jpeg", "png", "webp", "gif", "svg"].includes(
+              ext || "",
+            );
+          }),
+        );
       } else {
         setError(result.error);
       }
@@ -117,12 +121,15 @@ export function ImagePicker({
     [handleUpload],
   );
 
-  const selectExisting = useCallback((file: MediaFile) => {
-    const path = `${folder}/${file.name}`;
-    setSelectedPath(path);
-    setIsOpen(false);
-    onChange?.(path);
-  }, [folder, onChange]);
+  const selectExisting = useCallback(
+    (file: MediaFile) => {
+      const path = `${folder}/${file.name}`;
+      setSelectedPath(path);
+      setIsOpen(false);
+      onChange?.(path);
+    },
+    [folder, onChange],
+  );
 
   const removeImage = useCallback(() => {
     setSelectedPath("");
@@ -185,9 +192,7 @@ export function ImagePicker({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="relative w-full max-w-2xl rounded-2xl bg-neutral-soft shadow-xl">
             <div className="flex items-center justify-between border-b border-charcoal/10 px-6 py-4">
-              <h3 className="font-serif text-lg text-charcoal">
-                Choose Image
-              </h3>
+              <h3 className="font-serif text-lg text-charcoal">Choose Image</h3>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
@@ -243,7 +248,8 @@ export function ImagePicker({
                   ) : (
                     <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
                       {mediaFiles.map((file) => {
-                        const fileUrl = resolveImageUrl(`${folder}/${file.name}`) || "";
+                        const fileUrl =
+                          resolveImageUrl(`${folder}/${file.name}`) || "";
                         const isSelected =
                           selectedPath === `${folder}/${file.name}`;
                         return (

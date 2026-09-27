@@ -40,8 +40,9 @@ const DEFAULT_ANNOUNCEMENTS: AnnouncementItem[] = [
 export default async function AnnouncementsPage() {
   const raw = await getCmsContent("announcements");
 
-  const announcements: AnnouncementItem[] =
-    Array.isArray(raw) ? (raw as AnnouncementItem[]) : DEFAULT_ANNOUNCEMENTS;
+  const announcements: AnnouncementItem[] = Array.isArray(raw)
+    ? (raw as AnnouncementItem[])
+    : DEFAULT_ANNOUNCEMENTS;
 
   return <AnnouncementsEditor announcements={announcements} />;
 }

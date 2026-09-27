@@ -19,9 +19,7 @@ import {
  * prove both rejection and agent-name attribution.
  */
 
-function contextWith(
-  overrides: Partial<AgentContext> = {},
-): {
+function contextWith(overrides: Partial<AgentContext> = {}): {
   ctx: AgentContext;
   runContext: {
     context: AgentContext;
@@ -50,7 +48,10 @@ describe("checkRole", () => {
 
   it("allows a customer for customer-scoped actions", () => {
     const { ctx } = contextWith({ role: "customer" });
-    expect(checkRole(ctx, [CUSTOMER_ROLE])).toEqual({ ok: true, role: "customer" });
+    expect(checkRole(ctx, [CUSTOMER_ROLE])).toEqual({
+      ok: true,
+      role: "customer",
+    });
   });
 
   it("rejects a customer for admin-only actions", () => {
@@ -88,8 +89,12 @@ describe("toolRoleGuardrail", () => {
     const { ctx, runContext } = contextWith({ role: "admin" });
     const guardrail = toolRoleGuardrail("update_stock", [ADMIN_ROLE]);
     const result = await guardrail.run({
-      context: runContext as unknown as Parameters<typeof guardrail.run>[0]["context"],
-      agent: { name: "ai_manager" } as unknown as Parameters<typeof guardrail.run>[0]["agent"],
+      context: runContext as unknown as Parameters<
+        typeof guardrail.run
+      >[0]["context"],
+      agent: { name: "ai_manager" } as unknown as Parameters<
+        typeof guardrail.run
+      >[0]["agent"],
       toolCall: {
         id: "tc-1",
         type: "function_call",
@@ -106,8 +111,12 @@ describe("toolRoleGuardrail", () => {
     const { runContext } = contextWith({ role: "customer" });
     const guardrail = toolRoleGuardrail("delete_product", [ADMIN_ROLE]);
     const result = await guardrail.run({
-      context: runContext as unknown as Parameters<typeof guardrail.run>[0]["context"],
-      agent: { name: "product_agent" } as unknown as Parameters<typeof guardrail.run>[0]["agent"],
+      context: runContext as unknown as Parameters<
+        typeof guardrail.run
+      >[0]["context"],
+      agent: { name: "product_agent" } as unknown as Parameters<
+        typeof guardrail.run
+      >[0]["agent"],
       toolCall: {
         id: "tc-2",
         type: "function_call",
@@ -126,8 +135,12 @@ describe("toolRoleGuardrail", () => {
     const { runContext } = contextWith({ role: null });
     const guardrail = toolRoleGuardrail("list_my_orders", [CUSTOMER_ROLE]);
     const result = await guardrail.run({
-      context: runContext as unknown as Parameters<typeof guardrail.run>[0]["context"],
-      agent: { name: "order_agent" } as unknown as Parameters<typeof guardrail.run>[0]["agent"],
+      context: runContext as unknown as Parameters<
+        typeof guardrail.run
+      >[0]["context"],
+      agent: { name: "order_agent" } as unknown as Parameters<
+        typeof guardrail.run
+      >[0]["agent"],
       toolCall: {
         id: "tc-3",
         type: "function_call",

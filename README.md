@@ -27,15 +27,15 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Scripts
 
-| Command              | Description                          |
-| -------------------- | ------------------------------------ |
-| `npm run dev`        | Start the development server         |
-| `npm run build`      | Production build                     |
-| `npm run start`      | Serve the production build           |
-| `npm run lint`       | Run ESLint                           |
-| `npm run typecheck`  | Run TypeScript type checking         |
-| `npm test`           | Run tests (Vitest)                   |
-| `npm run test:watch` | Run tests in watch mode              |
+| Command              | Description                  |
+| -------------------- | ---------------------------- |
+| `npm run dev`        | Start the development server |
+| `npm run build`      | Production build             |
+| `npm run start`      | Serve the production build   |
+| `npm run lint`       | Run ESLint                   |
+| `npm run typecheck`  | Run TypeScript type checking |
+| `npm test`           | Run tests (Vitest)           |
+| `npm run test:watch` | Run tests in watch mode      |
 
 ## Environment Variables
 

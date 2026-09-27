@@ -7,6 +7,7 @@ import { ZodError } from "zod";
 import { getAuthUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ServiceError } from "@/services/base";
+import sharp from "sharp";
 import {
   createCategory,
   deleteCategory,
@@ -20,9 +21,7 @@ import {
   updateProduct,
   updateStock,
 } from "@/services/products/products-service";
-import {
-  maybeAlertAdminOnStockCrossing,
-} from "@/services/notifications/notification-service";
+import { maybeAlertAdminOnStockCrossing } from "@/services/notifications/notification-service";
 import {
   upsertCmsContent,
   type AnnouncementItem,
@@ -31,8 +30,7 @@ import {
 } from "@/services/cms/cms-service";
 
 export type ActionResult =
-  | { ok: true; message?: string }
-  | { ok: false; error: string };
+  { ok: true; message?: string } | { ok: false; error: string };
 
 /* ---------------------------------------------------------------------------
  * Form readers / coercion
@@ -94,7 +92,8 @@ export async function createProductAction(
         label: field(formData, "label"),
         categoryId: optionalField(formData, "categoryId"),
         price: numberField(formData, "price"),
-        compareAtPrice: compareAtRaw === "" ? null : numberField(formData, "compareAtPrice"),
+        compareAtPrice:
+          compareAtRaw === "" ? null : numberField(formData, "compareAtPrice"),
         sku: field(formData, "sku"),
         stockQuantity: numberField(formData, "stockQuantity"),
         lowStockThreshold: numberField(formData, "lowStockThreshold", 5),
@@ -123,29 +122,26 @@ export async function updateProductAction(
   const compareAtRaw = field(formData, "compareAtPrice");
 
   try {
-    await updateProduct(
-      { id: user.id, role: user.role },
-      id,
-      {
-        name: field(formData, "name"),
-        slug: field(formData, "slug"),
-        description: field(formData, "description"),
-        fabric: field(formData, "fabric"),
-        embroidery: field(formData, "embroidery"),
-        color: field(formData, "color"),
-        label: field(formData, "label"),
-        categoryId: optionalField(formData, "categoryId"),
-        price: numberField(formData, "price"),
-        compareAtPrice: compareAtRaw === "" ? null : numberField(formData, "compareAtPrice"),
-        sku: field(formData, "sku"),
-        stockQuantity: numberField(formData, "stockQuantity"),
-        lowStockThreshold: numberField(formData, "lowStockThreshold", 5),
-        imageUrl: field(formData, "imageUrl"),
-        isActive: checkField(formData, "isActive"),
-        isFeatured: checkField(formData, "isFeatured"),
-        sortOrder: numberField(formData, "sortOrder"),
-      },
-    );
+    await updateProduct({ id: user.id, role: user.role }, id, {
+      name: field(formData, "name"),
+      slug: field(formData, "slug"),
+      description: field(formData, "description"),
+      fabric: field(formData, "fabric"),
+      embroidery: field(formData, "embroidery"),
+      color: field(formData, "color"),
+      label: field(formData, "label"),
+      categoryId: optionalField(formData, "categoryId"),
+      price: numberField(formData, "price"),
+      compareAtPrice:
+        compareAtRaw === "" ? null : numberField(formData, "compareAtPrice"),
+      sku: field(formData, "sku"),
+      stockQuantity: numberField(formData, "stockQuantity"),
+      lowStockThreshold: numberField(formData, "lowStockThreshold", 5),
+      imageUrl: field(formData, "imageUrl"),
+      isActive: checkField(formData, "isActive"),
+      isFeatured: checkField(formData, "isFeatured"),
+      sortOrder: numberField(formData, "sortOrder"),
+    });
   } catch (error) {
     return { ok: false, error: errorText(error) };
   }
@@ -192,16 +188,14 @@ export async function updateStockAction(
   }
 
   try {
-    const { getProductById } = await import(
-      "@/services/products/products-service"
-    );
+    const { getProductById } =
+      await import("@/services/products/products-service");
     const before = await getProductById(productId);
 
-    await updateStock(
-      { id: user.id, role: user.role },
-      productId,
-      { stockQuantity, lowStockThreshold },
-    );
+    await updateStock({ id: user.id, role: user.role }, productId, {
+      stockQuantity,
+      lowStockThreshold,
+    });
 
     if (before) {
       await maybeAlertAdminOnStockCrossing(
@@ -223,7 +217,9 @@ export async function updateStockAction(
 }
 
 /** Delete a product. Safe with order history (FK on order_items is set null). */
-export async function deleteProductAction(productId: string): Promise<ActionResult> {
+export async function deleteProductAction(
+  productId: string,
+): Promise<ActionResult> {
   const user = await getAuthUser();
   if (!user || user.role !== "admin") {
     return { ok: false, error: "Admin access required." };
@@ -281,18 +277,14 @@ export async function updateCategoryAction(
   if (!user) return { ok: false, error: "You must be signed in." };
 
   try {
-    await updateCategory(
-      { id: user.id, role: user.role },
-      id,
-      {
-        name: field(formData, "name"),
-        slug: field(formData, "slug"),
-        description: field(formData, "description"),
-        imageUrl: field(formData, "imageUrl"),
-        isActive: checkField(formData, "isActive"),
-        sortOrder: numberField(formData, "sortOrder"),
-      },
-    );
+    await updateCategory({ id: user.id, role: user.role }, id, {
+      name: field(formData, "name"),
+      slug: field(formData, "slug"),
+      description: field(formData, "description"),
+      imageUrl: field(formData, "imageUrl"),
+      isActive: checkField(formData, "isActive"),
+      sortOrder: numberField(formData, "sortOrder"),
+    });
   } catch (error) {
     return { ok: false, error: errorText(error) };
   }
@@ -349,9 +341,46 @@ const ALLOWED_IMAGE_TYPES = [
 ];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
+// Image optimization settings
+const MAX_WIDTH = 1920;
+const MAX_HEIGHT = 1920;
+const WEBP_QUALITY = 80;
+
 export type UploadImageResult =
-  | { ok: true; path: string; publicUrl: string }
-  | { ok: false; error: string };
+  { ok: true; path: string; publicUrl: string } | { ok: false; error: string };
+
+async function optimizeImage(
+  file: File,
+): Promise<{ buffer: Buffer; contentType: string; extension: string }> {
+  const arrayBuffer = await file.arrayBuffer();
+  const inputBuffer = Buffer.from(arrayBuffer);
+
+  // SVG files pass through without optimization (sharp doesn't handle SVG well for all cases)
+  if (file.type === "image/svg+xml") {
+    return { buffer: inputBuffer, contentType: "image/svg+xml", extension: "svg" };
+  }
+
+  const image = sharp(inputBuffer);
+  const metadata = await image.metadata();
+
+  // Resize if larger than max dimensions
+  let pipeline = image;
+  if ((metadata.width ?? 0) > MAX_WIDTH || (metadata.height ?? 0) > MAX_HEIGHT) {
+    pipeline = pipeline.resize(MAX_WIDTH, MAX_HEIGHT, {
+      fit: "inside",
+      withoutEnlargement: true,
+    });
+  }
+
+  // Convert to WebP for optimal compression (except GIF which may be animated)
+  if (file.type !== "image/gif") {
+    pipeline = pipeline.webp({ quality: WEBP_QUALITY });
+    return { buffer: await pipeline.toBuffer(), contentType: "image/webp", extension: "webp" };
+  }
+
+  // For GIF, preserve format but still resize if needed
+  return { buffer: await pipeline.toBuffer(), contentType: "image/gif", extension: "gif" };
+}
 
 export async function uploadImageAction(
   formData: FormData,
@@ -383,14 +412,35 @@ export async function uploadImageAction(
   const safeName = file.name
     .replace(/[^a-zA-Z0-9.-]/g, "_")
     .replace(/_+/g, "_");
-  const path = `${folder}/${timestamp}-${safeName}`;
+
+  // Optimize image before upload
+  let optimizedBuffer: Buffer;
+  let contentType: string;
+  let extension: string;
+
+  try {
+    const optimized = await optimizeImage(file);
+    optimizedBuffer = optimized.buffer;
+    contentType = optimized.contentType;
+    extension = optimized.extension;
+  } catch (optimizeError) {
+    return {
+      ok: false,
+      error: `Image optimization failed: ${optimizeError instanceof Error ? optimizeError.message : "Unknown error"}`,
+    };
+  }
+
+  // Use optimized filename with webp extension for non-GIF/SVG
+  const finalExtension = extension === "svg" ? "svg" : extension;
+  const baseName = safeName.replace(/\.[^.]+$/, "");
+  const path = `${folder}/${timestamp}-${baseName}.${finalExtension}`;
 
   try {
     const supabase = await createClient();
 
     const { error: uploadError } = await supabase.storage
       .from("product-images")
-      .upload(path, file, { contentType: file.type, upsert: false });
+      .upload(path, optimizedBuffer, { contentType, upsert: false });
 
     if (uploadError) {
       return { ok: false, error: `Upload failed: ${uploadError.message}` };
@@ -421,8 +471,7 @@ export type MediaFile = {
 };
 
 export type ListMediaResult =
-  | { ok: true; files: MediaFile[] }
-  | { ok: false; error: string };
+  { ok: true; files: MediaFile[] } | { ok: false; error: string };
 
 export async function listMediaAction(
   folder?: string,
@@ -508,7 +557,11 @@ export async function saveCmsAnnouncementsAction(
 
   try {
     const parsed = JSON.parse(raw) as AnnouncementItem[];
-    await upsertCmsContent({ id: user.id, role: user.role }, "announcements", parsed as unknown as Record<string, unknown>);
+    await upsertCmsContent(
+      { id: user.id, role: user.role },
+      "announcements",
+      parsed as unknown as Record<string, unknown>,
+    );
   } catch (error) {
     return { ok: false, error: errorText(error) };
   }
@@ -530,7 +583,11 @@ export async function saveCmsHeroAction(
 
   try {
     const parsed = JSON.parse(raw) as HeroSlideData;
-    await upsertCmsContent({ id: user.id, role: user.role }, "hero", parsed as unknown as Record<string, unknown>);
+    await upsertCmsContent(
+      { id: user.id, role: user.role },
+      "hero",
+      parsed as unknown as Record<string, unknown>,
+    );
   } catch (error) {
     return { ok: false, error: errorText(error) };
   }
@@ -552,7 +609,11 @@ export async function saveCmsHomepageAction(
 
   try {
     const parsed = JSON.parse(raw) as HomepageContent;
-    await upsertCmsContent({ id: user.id, role: user.role }, "homepage", parsed as unknown as Record<string, unknown>);
+    await upsertCmsContent(
+      { id: user.id, role: user.role },
+      "homepage",
+      parsed as unknown as Record<string, unknown>,
+    );
   } catch (error) {
     return { ok: false, error: errorText(error) };
   }
@@ -569,14 +630,17 @@ export async function saveCmsHomepageAction(
 export type AdminNotificationsResult = {
   ok: true;
   notifications: Awaited<
-    ReturnType<typeof import("@/services/notifications/notification-service").listNotifications>
+    ReturnType<
+      typeof import("@/services/notifications/notification-service").listNotifications
+    >
   >;
   unreadCount: number;
 };
 
-export async function getAdminNotificationsAction(
-  options?: { unreadOnly?: boolean; limit?: number },
-): Promise<AdminNotificationsResult | ActionResult> {
+export async function getAdminNotificationsAction(options?: {
+  unreadOnly?: boolean;
+  limit?: number;
+}): Promise<AdminNotificationsResult | ActionResult> {
   const user = await getAuthUser();
   if (!user || user.role !== "admin") {
     return { ok: false, error: "Admin access required." };
@@ -601,9 +665,8 @@ export async function markAdminNotificationReadAction(
   if (!user || user.role !== "admin") return;
 
   try {
-    const { markAsRead } = await import(
-      "@/services/notifications/notification-service"
-    );
+    const { markAsRead } =
+      await import("@/services/notifications/notification-service");
     await markAsRead(user.id, notificationId);
   } catch (error) {
     console.error("[admin] mark notification read failed:", error);
@@ -615,9 +678,8 @@ export async function markAdminAllNotificationsReadAction(): Promise<void> {
   if (!user || user.role !== "admin") return;
 
   try {
-    const { markAllAsRead } = await import(
-      "@/services/notifications/notification-service"
-    );
+    const { markAllAsRead } =
+      await import("@/services/notifications/notification-service");
     await markAllAsRead(user.id);
     revalidatePath("/admin/notifications");
   } catch (error) {
@@ -629,6 +691,8 @@ export async function markAdminAllNotificationsReadAction(): Promise<void> {
 export async function adminSignOutAction(): Promise<void> {
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
+  // Awaited before redirect(): redirect() throws, so an un-awaited sign-out
+  // here would be orphaned and the session would survive the redirect.
   await supabase.auth.signOut();
   redirect("/");
 }

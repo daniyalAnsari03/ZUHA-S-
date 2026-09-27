@@ -36,12 +36,18 @@ const adminCookie = `sb-${(process.env.SUPABASE_URL || "").match(/https:\/\/([^.
 const adminId = auth.user?.id;
 
 async function getCategories() {
-  const rows = await serviceGet("/rest/v1/categories?select=id,name&is_active=eq.true&limit=50").catch(() => []);
+  const rows = await serviceGet(
+    "/rest/v1/categories?select=id,name&is_active=eq.true&limit=50",
+  ).catch(() => []);
   return Array.isArray(rows) ? rows : [];
 }
 
 async function product(id) {
-  const rows = await queryRows("products", `id=eq.${id}`, "select=id,name,slug,description,category_id");
+  const rows = await queryRows(
+    "products",
+    `id=eq.${id}`,
+    "select=id,name,slug,description,category_id",
+  );
   return Array.isArray(rows) ? rows[0] : null;
 }
 
@@ -53,7 +59,10 @@ async function countTextEvents(res) {
   lines.forEach((line, i) => {
     try {
       const ev = JSON.parse(line);
-      if (ev.type === "text") { count += 1; lastTextIndex = i; }
+      if (ev.type === "text") {
+        count += 1;
+        lastTextIndex = i;
+      }
       if (ev.type === "done") doneIndex = i;
     } catch {}
   });
@@ -100,49 +109,66 @@ try {
     adminCookie,
     `product "${mehrabName}" ki description change kar do. Sirf description change karni hai — slug, name, price waghera mat chhedna.`,
   );
-  const t2 = await chatAdmin(
-    adminCookie,
-    "khudhi kar do update desc!",
-    { conversationId: t1.conversationId },
-  );
+  const t2 = await chatAdmin(adminCookie, "khudhi kar do update desc!", {
+    conversationId: t1.conversationId,
+  });
 
   // Authoritative evidence of WHICH product the update targeted: the audit row
   // for update_product in this conversation carries the entity_id.
-  const convAudits = (await queryRows(
-    "ai_audit_logs",
-    `user_id=eq.${adminId}`,
-    "select=tool_name,status,entity_type,entity_id,detail,created_at&order=created_at.desc&limit=100",
-  ).catch(() => [])).filter(
-    (a) => (a.detail?.conversationId ?? null) === t1.conversationId,
-  );
+  const convAudits = (
+    await queryRows(
+      "ai_audit_logs",
+      `user_id=eq.${adminId}`,
+      "select=tool_name,status,entity_type,entity_id,detail,created_at&order=created_at.desc&limit=100",
+    ).catch(() => [])
+  ).filter((a) => (a.detail?.conversationId ?? null) === t1.conversationId);
   const updateRow = convAudits.find((a) => a.tool_name === "update_product");
   const updateTargetedMehrab = updateRow?.entity_id === mehrab.id;
   const updateTargetedKhirke = updateRow?.entity_id === khirke.id;
 
   const mehrabAfter = await product(mehrab.id);
   const khirkeAfter = await product(khirke.id);
-  const mehrabMutated = !!mehrabAfter && !(mehrabAfter.description ?? "").includes("QA FOCUS original desc");
-  const khirkeMutated = !!khirkeAfter && !(khirkeAfter.description ?? "").includes("QA FOCUS original desc");
+  const mehrabMutated =
+    !!mehrabAfter &&
+    !(mehrabAfter.description ?? "").includes("QA FOCUS original desc");
+  const khirkeMutated =
+    !!khirkeAfter &&
+    !(khirkeAfter.description ?? "").includes("QA FOCUS original desc");
 
   const t2CalledUpdate = (t2.tools || []).includes("update_product");
 
   if (t2CalledUpdate && updateTargetedKhirke) {
-    results.record("2a", "#2 focus: ambiguous follow-up mutated WRONG product (regression)", false, {
-      mismatch: `update_product targeted Khirke (${khirke.id}) instead of Mehrab (${mehrab.id}).`,
-      evidence: `audit entity_id=${updateRow?.entity_id}`,
-    });
+    results.record(
+      "2a",
+      "#2 focus: ambiguous follow-up mutated WRONG product (regression)",
+      false,
+      {
+        mismatch: `update_product targeted Khirke (${khirke.id}) instead of Mehrab (${mehrab.id}).`,
+        evidence: `audit entity_id=${updateRow?.entity_id}`,
+      },
+    );
   } else if (t2CalledUpdate && updateTargetedMehrab && !khirkeMutated) {
-    results.record("2a", "#2 focus: ambiguous follow-up resolved to focus entity (Mehrab)", true, {
-      note: `update_product targeted Mehrab id ${mehrab.id} (audit); update ${updateRow?.status}; Mehrab desc changed=${mehrabMutated}.`,
-      tools: t2.tools,
-    });
+    results.record(
+      "2a",
+      "#2 focus: ambiguous follow-up resolved to focus entity (Mehrab)",
+      true,
+      {
+        note: `update_product targeted Mehrab id ${mehrab.id} (audit); update ${updateRow?.status}; Mehrab desc changed=${mehrabMutated}.`,
+        tools: t2.tools,
+      },
+    );
   } else if (!t2CalledUpdate) {
     const namesMehrab = /mehrab/i.test(t2.text);
-    results.record("2a", "#2 focus: no update; reply must still reference the focus product", namesMehrab, {
-      note: namesMehrab
-        ? "AI asked/clarified naming Mehrab (acceptable per spec)."
-        : `AI neither updated nor referenced Mehrab. Snippet: ${t2.text.slice(0, 160)}`,
-    });
+    results.record(
+      "2a",
+      "#2 focus: no update; reply must still reference the focus product",
+      namesMehrab,
+      {
+        note: namesMehrab
+          ? "AI asked/clarified naming Mehrab (acceptable per spec)."
+          : `AI neither updated nor referenced Mehrab. Snippet: ${t2.text.slice(0, 160)}`,
+      },
+    );
   } else {
     results.record("2a", "#2 focus: unresolved outcome", false, {
       note: `update row=${JSON.stringify(updateRow)} khirkeMutated=${khirkeMutated}`,
@@ -159,7 +185,11 @@ try {
     "2b",
     "#2 focus: audit trail recorded the focus product entity",
     !!mehrabAudit,
-    { note: mehrabAudit ? `tool=${mehrabAudit.tool_name} status=${mehrabAudit.status}` : "no product entity row found for Mehrab" },
+    {
+      note: mehrabAudit
+        ? `tool=${mehrabAudit.tool_name} status=${mehrabAudit.status}`
+        : "no product entity row found for Mehrab",
+    },
   );
 
   // ── Fix #3: combined confirm+processing for a PENDING order ────────────────
@@ -167,7 +197,9 @@ try {
     adminCookie,
     `order ${orderNumber} ko directly processing kar do.`,
   );
-  const afterT1 = (await queryRows("orders", `order_number=eq.${orderNumber}`, "select=status")).find(() => true);
+  const afterT1 = (
+    await queryRows("orders", `order_number=eq.${orderNumber}`, "select=status")
+  ).find(() => true);
   const offeredCombined =
     /confirm/i.test(o1.text) && /process/i.test(o1.text) && /\?/.test(o1.text);
   results.record(
@@ -175,34 +207,45 @@ try {
     "#3 combined: direct pending→processing offered the combined confirm+processing option (no flat refusal)",
     offeredCombined,
     {
-      note: afterT1?.status === "pending"
-        ? "order still pending after the offer"
-        : `order status after offer: ${afterT1?.status}`,
-      mismatch: !offeredCombined ? `reply: ${o1.text.slice(0, 200)}` : undefined,
+      note:
+        afterT1?.status === "pending"
+          ? "order still pending after the offer"
+          : `order status after offer: ${afterT1?.status}`,
+      mismatch: !offeredCombined
+        ? `reply: ${o1.text.slice(0, 200)}`
+        : undefined,
     },
   );
 
-  const o2 = await chatAdmin(
-    adminCookie,
-    "haan dono kar do.",
-    { conversationId: o1.conversationId },
-  );
-  const afterT2 = (await queryRows("orders", `order_number=eq.${orderNumber}`, "select=status")).find(() => true);
+  const o2 = await chatAdmin(adminCookie, "haan dono kar do.", {
+    conversationId: o1.conversationId,
+  });
+  const afterT2 = (
+    await queryRows("orders", `order_number=eq.${orderNumber}`, "select=status")
+  ).find(() => true);
   const usedAdvance = (o2.tools || []).includes("advance_order_status");
   const finalStatus = afterT2?.status;
   results.record(
     "3b",
     "#3 combined: yes executed confirm+processing; order now processing",
-    (usedAdvance || (o2.tools || []).includes("update_order_status")) && finalStatus === "processing",
+    (usedAdvance || (o2.tools || []).includes("update_order_status")) &&
+      finalStatus === "processing",
     {
       note: `final=${finalStatus} tools=${(o2.tools || []).join(", ")}`,
-      mismatch: finalStatus !== "processing" ? `reply tail: ${o2.text.slice(-160)}` : undefined,
+      mismatch:
+        finalStatus !== "processing"
+          ? `reply tail: ${o2.text.slice(-160)}`
+          : undefined,
     },
   );
 
   let historyRows = [];
   try {
-    const rows = await queryRows("order_status_history", `order_id=eq.${disposableOrder.id}`, "select=previous_status,new_status&order=created_at.asc");
+    const rows = await queryRows(
+      "order_status_history",
+      `order_id=eq.${disposableOrder.id}`,
+      "select=previous_status,new_status&order=created_at.asc",
+    );
     historyRows = Array.isArray(rows) ? rows : [];
   } catch {}
   const h = historyRows;
@@ -221,25 +264,53 @@ try {
     month: "long",
     day: "numeric",
   });
-  const dayExpected = String(new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Karachi", day: "numeric" }));
-  const yearExpected = String(new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Karachi", year: "numeric" }));
-  const d = await chatAdmin(adminCookie, "aaj ki complete date kya hai? (sirf sahi date batao)");
-  const dateOk = d.text.includes(yearExpected) && (d.text.includes(dayExpected) || d.text.includes(` ${dayExpected} `));
+  const dayExpected = String(
+    new Date().toLocaleDateString("en-GB", {
+      timeZone: "Asia/Karachi",
+      day: "numeric",
+    }),
+  );
+  const yearExpected = String(
+    new Date().toLocaleDateString("en-GB", {
+      timeZone: "Asia/Karachi",
+      year: "numeric",
+    }),
+  );
+  const d = await chatAdmin(
+    adminCookie,
+    "aaj ki complete date kya hai? (sirf sahi date batao)",
+  );
+  const dateOk =
+    d.text.includes(yearExpected) &&
+    (d.text.includes(dayExpected) || d.text.includes(` ${dayExpected} `));
   results.record("4a", "#4 date: reply contains the real PKT date", dateOk, {
     note: `expected(≈${expected}) reply: ${d.text.slice(0, 160)}`,
     mismatch: !dateOk ? `day=${dayExpected} year=${yearExpected}` : undefined,
   });
 
   // ── Fix #5: get_product includes the linked category name ─────────────────
-  const details = await chatAdmin(adminCookie, `product "${mehrab.name}" ki details batao.`);
+  const details = await chatAdmin(
+    adminCookie,
+    `product "${mehrab.name}" ki details batao.`,
+  );
   const mentionsCategory = new RegExp(categoryName, "i").test(details.text);
-  results.record("5a", "#5 category: product details include the real category name", mentionsCategory, {
-    note: `category="${categoryName}" in reply: ${mentionsCategory}`,
-    mismatch: !mentionsCategory ? `reply: ${details.text.slice(0, 200)}` : undefined,
-  });
+  results.record(
+    "5a",
+    "#5 category: product details include the real category name",
+    mentionsCategory,
+    {
+      note: `category="${categoryName}" in reply: ${mentionsCategory}`,
+      mismatch: !mentionsCategory
+        ? `reply: ${details.text.slice(0, 200)}`
+        : undefined,
+    },
+  );
 
   // ── Fix #6: Manager answers dashboard overview questions directly ──────────
-  const overview = await chatAdmin(adminCookie, "dashboard mein kaun kaun se options hain?");
+  const overview = await chatAdmin(
+    adminCookie,
+    "dashboard mein kaun kaun se options hain?",
+  );
   const substantive = overview.text.length > 100;
   const mentionsFeature =
     /product/i.test(overview.text) ||
@@ -247,11 +318,18 @@ try {
     /customer/i.test(overview.text) ||
     /setting/i.test(overview.text) ||
     /محصولات|آرڈر|کسٹمر/i.test(overview.text);
-  results.record("6a", "#6 overview: Manager answered directly (not a deflection)", substantive && mentionsFeature, {
-    note: `level=${overview.text.length}`,
-    mismatch: !mentionsFeature ? `reply: ${overview.text.slice(0, 200)}` : undefined,
-    tools: overview.tools,
-  });
+  results.record(
+    "6a",
+    "#6 overview: Manager answered directly (not a deflection)",
+    substantive && mentionsFeature,
+    {
+      note: `level=${overview.text.length}`,
+      mismatch: !mentionsFeature
+        ? `reply: ${overview.text.slice(0, 200)}`
+        : undefined,
+      tools: overview.tools,
+    },
+  );
 
   // ── Fix #7: streaming renders incrementally ────────────────────────────────
   const stream = await chatAdmin(
@@ -259,10 +337,18 @@ try {
     "Kya aap customers ko delivery/shipping ke baare mein 3 points mein batate ho? detail mein batao.",
   );
   const { count, lastTextIndex, doneIndex } = await countTextEvents(stream);
-  results.record("7a", "#7 streaming: multiple incremental text events before done", count >= 2 && lastTextIndex < doneIndex, {
-    note: `text events=${count}`,
-    mismatch: count < 2 ? "model emitted a single text event (no incremental render)" : undefined,
-  });
+  results.record(
+    "7a",
+    "#7 streaming: multiple incremental text events before done",
+    count >= 2 && lastTextIndex < doneIndex,
+    {
+      note: `text events=${count}`,
+      mismatch:
+        count < 2
+          ? "model emitted a single text event (no incremental render)"
+          : undefined,
+    },
+  );
 } finally {
   // ── Teardown (disposable only) ─────────────────────────────────────────────
   await deleteDisposableCustomer(focusCustomer.userId).catch(() => {});

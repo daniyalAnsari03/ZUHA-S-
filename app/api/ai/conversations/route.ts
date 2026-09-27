@@ -13,16 +13,15 @@ export async function GET(request: NextRequest) {
   const user = await getAuthUser();
 
   if (!user || user.role !== "admin") {
-    return new Response(
-      JSON.stringify({ error: "Admin access required." }),
-      { status: 403, headers: { "content-type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: "Admin access required." }), {
+      status: 403,
+      headers: { "content-type": "application/json" },
+    });
   }
 
   const { searchParams } = new URL(request.url);
   const channel = (searchParams.get("channel") ?? "admin") as
-    | "admin"
-    | "salesman";
+    "admin" | "salesman";
 
   try {
     const conversations = await listUserConversations(user.id, channel);

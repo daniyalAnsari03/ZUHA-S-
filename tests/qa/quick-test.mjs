@@ -1,11 +1,7 @@
 import "./load-env.mjs";
 
-const {
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
-  ADMIN_EMAIL,
-  ADMIN_PASSWORD,
-} = process.env;
+const { SUPABASE_URL, SUPABASE_ANON_KEY, ADMIN_EMAIL, ADMIN_PASSWORD } =
+  process.env;
 
 async function main() {
   const res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
@@ -14,8 +10,17 @@ async function main() {
     body: JSON.stringify({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD }),
   });
   const auth = await res.json();
-  const session = { access_token: auth.access_token, refresh_token: auth.refresh_token, expires_in: auth.expires_in, expires_at: auth.expires_at, token_type: "bearer", user: auth.user };
-  const cookie = "sb-geturxcylpsubnzweilc-auth-token=" + encodeURIComponent(JSON.stringify(session));
+  const session = {
+    access_token: auth.access_token,
+    refresh_token: auth.refresh_token,
+    expires_in: auth.expires_in,
+    expires_at: auth.expires_at,
+    token_type: "bearer",
+    user: auth.user,
+  };
+  const cookie =
+    "sb-geturxcylpsubnzweilc-auth-token=" +
+    encodeURIComponent(JSON.stringify(session));
 
   // Quick test - scenario 1
   const r = await fetch("http://localhost:3000/api/ai/admin", {
@@ -33,7 +38,8 @@ async function main() {
       const event = JSON.parse(line);
       if (event.type === "text") finalText += event.delta;
       if (event.type === "agent") agentName = event.name;
-      if (event.type === "tool") toolCalls.push(`${event.name}(${event.state})`);
+      if (event.type === "tool")
+        toolCalls.push(`${event.name}(${event.state})`);
     } catch {}
   }
   console.log("Agent:", agentName);

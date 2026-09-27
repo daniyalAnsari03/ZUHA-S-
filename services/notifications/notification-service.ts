@@ -27,10 +27,7 @@ export async function listNotifications(
   const limit = options?.limit ?? 50;
   const offset = options?.offset ?? 0;
 
-  let query = supabase
-    .from("notifications")
-    .select("*")
-    .eq("user_id", userId);
+  let query = supabase.from("notifications").select("*").eq("user_id", userId);
 
   if (options?.unreadOnly) {
     query = query.eq("is_read", false);
@@ -41,7 +38,11 @@ export async function listNotifications(
     .range(offset, offset + limit - 1);
 
   if (error) {
-    throw new ServiceError("NOTIFICATIONS_READ_FAILED", "Failed to load notifications.", error);
+    throw new ServiceError(
+      "NOTIFICATIONS_READ_FAILED",
+      "Failed to load notifications.",
+      error,
+    );
   }
 
   return (data ?? []) as NotificationRow[];
@@ -63,7 +64,11 @@ export async function getNotificationDetail(
     .maybeSingle();
 
   if (error) {
-    throw new ServiceError("NOTIFICATIONS_READ_FAILED", "Failed to load notification.", error);
+    throw new ServiceError(
+      "NOTIFICATIONS_READ_FAILED",
+      "Failed to load notification.",
+      error,
+    );
   }
 
   return (data ?? null) as NotificationRow | null;
@@ -80,7 +85,11 @@ export async function getUnreadCount(userId: string): Promise<number> {
     .eq("is_read", false);
 
   if (error) {
-    throw new ServiceError("NOTIFICATION_COUNT_FAILED", "Failed to load notification count.", error);
+    throw new ServiceError(
+      "NOTIFICATION_COUNT_FAILED",
+      "Failed to load notification count.",
+      error,
+    );
   }
 
   return count ?? 0;
@@ -100,7 +109,11 @@ export async function markAsRead(
     .eq("user_id", userId);
 
   if (error) {
-    throw new ServiceError("NOTIFICATION_UPDATE_FAILED", "Failed to update notification.", error);
+    throw new ServiceError(
+      "NOTIFICATION_UPDATE_FAILED",
+      "Failed to update notification.",
+      error,
+    );
   }
 }
 
@@ -115,7 +128,11 @@ export async function markAllAsRead(userId: string): Promise<void> {
     .eq("is_read", false);
 
   if (error) {
-    throw new ServiceError("NOTIFICATION_UPDATE_FAILED", "Failed to update notifications.", error);
+    throw new ServiceError(
+      "NOTIFICATION_UPDATE_FAILED",
+      "Failed to update notifications.",
+      error,
+    );
   }
 }
 
@@ -150,7 +167,11 @@ export async function createNotification(
     .single();
 
   if (error) {
-    throw new ServiceError("NOTIFICATION_CREATE_FAILED", "Failed to create notification.", error);
+    throw new ServiceError(
+      "NOTIFICATION_CREATE_FAILED",
+      "Failed to create notification.",
+      error,
+    );
   }
 
   return data as NotificationRow;
@@ -176,7 +197,11 @@ export async function createNotificationAdmin(
     .single();
 
   if (error) {
-    throw new ServiceError("NOTIFICATION_CREATE_FAILED", "Failed to create notification.", error);
+    throw new ServiceError(
+      "NOTIFICATION_CREATE_FAILED",
+      "Failed to create notification.",
+      error,
+    );
   }
 
   return data as NotificationRow;
@@ -186,11 +211,19 @@ export async function createNotificationAdmin(
  * Notification templates
  * --------------------------------------------------------------------- */
 
-const STATUS_NOTIFICATIONS: Record<string, { type: NotificationType; title: string; message: (orderNumber: string) => string }> = {
+const STATUS_NOTIFICATIONS: Record<
+  string,
+  {
+    type: NotificationType;
+    title: string;
+    message: (orderNumber: string) => string;
+  }
+> = {
   pending: {
     type: "order_placed",
     title: "Order Placed",
-    message: (n) => `Your order ${n} has been placed successfully. We'll confirm it shortly.`,
+    message: (n) =>
+      `Your order ${n} has been placed successfully. We'll confirm it shortly.`,
   },
   confirmed: {
     type: "order_confirmed",
@@ -200,17 +233,20 @@ const STATUS_NOTIFICATIONS: Record<string, { type: NotificationType; title: stri
   processing: {
     type: "order_processing",
     title: "Order Processing",
-    message: (n) => `Your order ${n} is now being processed and prepared for shipment.`,
+    message: (n) =>
+      `Your order ${n} is now being processed and prepared for shipment.`,
   },
   shipped: {
     type: "order_shipped",
     title: "Order Shipped",
-    message: (n) => `Your order ${n} has been shipped and is on its way to you.`,
+    message: (n) =>
+      `Your order ${n} has been shipped and is on its way to you.`,
   },
   delivered: {
     type: "order_delivered",
     title: "Order Delivered",
-    message: (n) => `Your order ${n} has been delivered. We hope you love your purchase!`,
+    message: (n) =>
+      `Your order ${n} has been delivered. We hope you love your purchase!`,
   },
   cancelled: {
     type: "order_cancelled",
@@ -364,10 +400,7 @@ export async function maybeAlertAdminOnStockCrossing(
   productName: string,
   productId?: string,
 ): Promise<void> {
-  if (
-    newStock <= lowStockThreshold &&
-    prevStock > lowStockThreshold
-  ) {
+  if (newStock <= lowStockThreshold && prevStock > lowStockThreshold) {
     await notifyAdminsOfLowStock(productName, productId).catch(() => {});
   }
 }

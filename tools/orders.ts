@@ -28,7 +28,7 @@ const adminActor = (ctx: AgentContext) => ({
 
 /**
  * Admin order references: accept either the order UUID (orderId) or the
- * human-facing order number (orderNumber, e.g. DIN-2026-xxxx). The AI pairs
+ * human-facing order number (orderNumber, e.g. DINS-2026-xxxx). The AI pairs
  * these from list_all_orders results or from an order number mentioned by the
  * owner. Exactly one is required.
  */
@@ -188,7 +188,7 @@ export const listAllOrdersTool = tool({
 export const getOrderDetailTool = tool({
   name: "get_order_detail",
   description:
-    "Get full detail for any order (admin) including all items and status history. Provide either orderId (the UUID from list_all_orders) or orderNumber (e.g. DIN-2026-xxxx). Useful before changing an order.",
+    "Get full detail for any order (admin) including all items and status history. Provide either orderId (the UUID from list_all_orders) or orderNumber (e.g. DINS-2026-xxxx). Useful before changing an order.",
   parameters: z.object({
     orderId: z.string().uuid().optional(),
     orderNumber: z.string().trim().max(40).optional(),
@@ -225,7 +225,7 @@ export const getOrderDetailTool = tool({
 export const updateOrderStatusTool = tool({
   name: "update_order_status",
   description:
-    "Change an order's fulfillment/payment status (admin). Provide either orderId (the UUID from list_all_orders) or orderNumber (e.g. DIN-2026-xxxx). Valid transitions are enforced by the service. e.g. pending → confirmed → processing → shipped → delivered.",
+    "Change an order's fulfillment/payment status (admin). Provide either orderId (the UUID from list_all_orders) or orderNumber (e.g. DINS-2026-xxxx). Valid transitions are enforced by the service. e.g. pending → confirmed → processing → shipped → delivered.",
   parameters: z.object({
     orderId: z.string().uuid().optional(),
     orderNumber: z.string().trim().max(40).optional(),

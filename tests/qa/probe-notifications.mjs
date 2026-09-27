@@ -5,13 +5,14 @@
  * link 404s — this pinpoints the broken notification detail route.
  */
 import "./lib/harness.mjs";
-import {
-  serviceGet,
-  queryRows,
-} from "./lib/harness.mjs";
+import { serviceGet, queryRows } from "./lib/harness.mjs";
 
 async function main() {
-  const notifications = await queryRows("notifications", "", "order=created_at.desc&limit=200").catch(() => []);
+  const notifications = await queryRows(
+    "notifications",
+    "",
+    "order=created_at.desc&limit=200",
+  ).catch(() => []);
 
   let withOrder = 0;
   let orphaned = 0;
@@ -38,7 +39,9 @@ async function main() {
   console.log(`notifications total      : ${rows.length}`);
   console.log(`notifications w/ order_id: ${withOrder}`);
   console.log(`orphaned (missing order) : ${orphaned}`);
-  console.log(`order_id per type        : ${JSON.stringify(Object.fromEntries(orderCounts))}`);
+  console.log(
+    `order_id per type        : ${JSON.stringify(Object.fromEntries(orderCounts))}`,
+  );
   if (orphans.length) {
     console.log("orphans:", JSON.stringify(orphans.slice(0, 20)));
   }
@@ -47,7 +50,12 @@ async function main() {
   for (const n of rows) {
     distinctTypes.set(n.type, (distinctTypes.get(n.type) ?? 0) + 1);
   }
-  console.log(`all notification types   : ${JSON.stringify(Object.fromEntries(distinctTypes))}`);
+  console.log(
+    `all notification types   : ${JSON.stringify(Object.fromEntries(distinctTypes))}`,
+  );
 }
 
-main().catch((e) => { console.error("probe failed:", e.message); process.exit(1); });
+main().catch((e) => {
+  console.error("probe failed:", e.message);
+  process.exit(1);
+});

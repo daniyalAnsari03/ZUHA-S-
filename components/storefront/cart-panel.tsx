@@ -12,6 +12,9 @@ import {
   getCartDetailsAction,
   type CartDetailsPayload,
 } from "@/app/storefront/actions";
+
+/** Error text that means "you are signed out", not "something broke". */
+const NEEDS_AUTH = /sign in/i;
 import { useStorefront } from "./storefront-provider";
 
 /**
@@ -99,6 +102,17 @@ export function CartPanel() {
   }
 
   if (state.status === "error") {
+    // A signed-out visitor is not a failure: their bag simply lives behind the
+    // account, so show the sign-in path instead of an error heading.
+    if (NEEDS_AUTH.test(state.error ?? "")) {
+      return (
+        <EmptyState
+          heading="Your bag is waiting"
+          body="Sign in to see the pieces you have saved."
+          cta={{ href: "/login?next=/cart", label: "Sign in" }}
+        />
+      );
+    }
     return (
       <EmptyState
         heading="Unable to load your bag"
@@ -177,7 +191,10 @@ export function CartPanel() {
                 >
                   <Minus className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
-                <span aria-live="polite" className="w-8 text-center text-sm text-charcoal">
+                <span
+                  aria-live="polite"
+                  className="w-8 text-center text-sm text-charcoal"
+                >
                   {item.quantity}
                 </span>
                 <button
@@ -209,7 +226,8 @@ export function CartPanel() {
 
         <div className="flex items-center justify-between text-sm text-charcoal">
           <span>
-            Subtotal ({payload.itemCount} item{payload.itemCount === 1 ? "" : "s"})
+            Subtotal ({payload.itemCount} item
+            {payload.itemCount === 1 ? "" : "s"})
           </span>
           <span className="font-medium">{formatPrice(payload.subtotal)}</span>
         </div>
@@ -248,7 +266,9 @@ function EmptyState({
         <ShoppingBag className="h-6 w-6" aria-hidden="true" />
       </span>
       <h3 className="font-serif text-xl text-charcoal">{heading}</h3>
-      <p className="max-w-xs text-sm leading-relaxed text-charcoal-muted">{body}</p>
+      <p className="max-w-xs text-sm leading-relaxed text-charcoal-muted">
+        {body}
+      </p>
       {cta ? (
         <Link href={cta.href} className="mt-2">
           <Button variant="primary">{cta.label}</Button>

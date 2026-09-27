@@ -33,11 +33,11 @@ export default async function AdminProductsPage({
   const search = params.search;
   const status = params.status;
 
-
   const [products, categories] = await Promise.all([
     listAllProducts(actor, {
       search,
-      isActive: status === "archived" ? false : status === "active" ? true : undefined,
+      isActive:
+        status === "archived" ? false : status === "active" ? true : undefined,
     }).catch(() => []),
     listAllCategories(actor).catch(() => []),
   ]);
@@ -73,8 +73,12 @@ export default async function AdminProductsPage({
         ].map((option) => (
           <Link
             key={option.label}
-            href={option.value ? `/admin/products?status=${option.value}` : "/admin/products"}
-            className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
+            href={
+              option.value
+                ? `/admin/products?status=${option.value}`
+                : "/admin/products"
+            }
+            className={`inline-flex min-h-11 items-center rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${
               status === option.value
                 ? "bg-plum text-white"
                 : "border border-charcoal/15 bg-neutral-soft text-charcoal hover:border-plum hover:text-plum"
@@ -113,9 +117,14 @@ export default async function AdminProductsPage({
 
       {products.length === 0 ? (
         <div className="mt-8 rounded-xl border border-charcoal/10 bg-neutral-soft p-10 text-center">
-          <Package className="mx-auto h-10 w-10 text-charcoal-muted/40" aria-hidden="true" />
+          <Package
+            className="mx-auto h-10 w-10 text-charcoal-muted/40"
+            aria-hidden="true"
+          />
           <p className="mt-3 text-sm text-charcoal-muted">
-            {search || status ? "No products match the current filters." : "No products yet ΓÇö add your first product."}
+            {search || status
+              ? "No products match the current filters."
+              : "No products yet ΓÇö add your first product."}
           </p>
         </div>
       ) : (
@@ -129,14 +138,20 @@ export default async function AdminProductsPage({
                   <th className="px-5 py-3.5 font-semibold">Price</th>
                   <th className="px-5 py-3.5 font-semibold">Stock</th>
                   <th className="px-5 py-3.5 font-semibold">Status</th>
-                  <th className="px-5 py-3.5 font-semibold text-right">Actions</th>
+                  <th className="px-5 py-3.5 font-semibold text-right">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-charcoal/5">
                 {products.map((product) => {
-                  const lowStock = product.stock_quantity <= product.low_stock_threshold;
+                  const lowStock =
+                    product.stock_quantity <= product.low_stock_threshold;
                   return (
-                    <tr key={product.id} className="transition-colors hover:bg-cream/50">
+                    <tr
+                      key={product.id}
+                      className="transition-colors hover:bg-cream/50"
+                    >
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <div className="relative h-14 w-11 shrink-0 overflow-hidden rounded-lg border border-charcoal/10 bg-cream">
@@ -165,7 +180,7 @@ export default async function AdminProductsPage({
                       </td>
                       <td className="px-5 py-3 text-sm text-charcoal-muted">
                         {product.category_id
-                          ? categoryName.get(product.category_id) ?? "ΓÇö"
+                          ? (categoryName.get(product.category_id) ?? "ΓÇö")
                           : "ΓÇö"}
                       </td>
                       <td className="px-5 py-3 text-sm text-charcoal">
@@ -195,7 +210,13 @@ export default async function AdminProductsPage({
                         ) : null}
                       </td>
                       <td className="px-5 py-3">
-                        <form action={toggleProductActiveAction.bind(null, product.id, !product.is_active)}>
+                        <form
+                          action={toggleProductActiveAction.bind(
+                            null,
+                            product.id,
+                            !product.is_active,
+                          )}
+                        >
                           <button
                             type="submit"
                             className={
@@ -228,4 +249,3 @@ export default async function AdminProductsPage({
     </div>
   );
 }
-

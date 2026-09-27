@@ -50,15 +50,50 @@ describe("buildContextItems", () => {
     const systemItem = asSystemMessage(item);
     if (systemItem.role !== "system") throw new Error("expected system item");
 
-    expect(systemItem.content).toContain("Current focus: product \"Mehrab Jamawar\"");
-    expect(systemItem.content).toContain("id: 00000000-0000-0000-0000-000000000001");
+    expect(systemItem.content).toContain(
+      'Current focus: product "Mehrab Jamawar"',
+    );
+    expect(systemItem.content).toContain(
+      "id: 00000000-0000-0000-0000-000000000001",
+    );
     expect(systemItem.content).toContain("khudhi karo");
+  });
+
+  it("injects the FIRST-MESSAGE GREETING line only when firstMessage is set", () => {
+    const [withGreeting] = buildContextItems({ firstMessage: true });
+    const greetingItem = asSystemMessage(withGreeting);
+    expect(greetingItem.content).toContain("FIRST-MESSAGE GREETING");
+    expect(greetingItem.content).toContain("welcome");
+    expect(greetingItem.content).toContain("first message");
+
+    const [withoutGreeting] = buildContextItems({});
+    const plainItem = asSystemMessage(withoutGreeting);
+    expect(plainItem.content).not.toContain("FIRST-MESSAGE GREETING");
+    expect(plainItem.content).not.toContain("welcome");
+  });
+
+  it("passes firstMessage through buildInputItems so only the first turn greets", () => {
+    const items = buildInputItems([], "salam", { firstMessage: true });
+    expect(asSystemMessage(items[0]).content).toContain(
+      "FIRST-MESSAGE GREETING",
+    );
+
+    const later = buildInputItems([], "salam", {});
+    expect(asSystemMessage(later[0]).content).not.toContain(
+      "FIRST-MESSAGE GREETING",
+    );
   });
 
   it("prepends the system line to a full input item list", () => {
     const items = buildInputItems(
       [
-        { id: "1", conversation_id: "c", role: "user", content: "earlier", created_at: "" },
+        {
+          id: "1",
+          conversation_id: "c",
+          role: "user",
+          content: "earlier",
+          created_at: "",
+        },
       ],
       "current message",
       { focusEntity: null },

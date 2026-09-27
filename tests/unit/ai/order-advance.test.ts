@@ -42,12 +42,30 @@ function makeFakeFrom(results: MaybeSingleResult[]) {
       const updateChain = {
         eq: () => updateChain,
         select: () => updateChain,
-        maybeSingle: () => Promise.resolve(results.shift() ?? { data: null, error: { message: "read fell off the queue" } }),
+        maybeSingle: () =>
+          Promise.resolve(
+            results.shift() ?? {
+              data: null,
+              error: { message: "read fell off the queue" },
+            },
+          ),
       };
       return updateChain;
     },
-    maybeSingle: () => Promise.resolve(results.shift() ?? { data: null, error: { message: "read fell off the queue" } }),
-    single: () => Promise.resolve(results.shift() ?? { data: null, error: { message: "read fell off the queue" } }),
+    maybeSingle: () =>
+      Promise.resolve(
+        results.shift() ?? {
+          data: null,
+          error: { message: "read fell off the queue" },
+        },
+      ),
+    single: () =>
+      Promise.resolve(
+        results.shift() ?? {
+          data: null,
+          error: { message: "read fell off the queue" },
+        },
+      ),
   };
 
   const from = (table: string) => (table === "orders" ? chainable : chainable);
@@ -72,7 +90,9 @@ describe("advanceOrderStatus", () => {
       advanceOrderStatus(actor, "order-1", ["processing" as never]),
     ).rejects.toMatchObject({
       name: "ServiceError",
-      message: expect.stringContaining("Cannot advance order status from \"pending\" to \"processing\""),
+      message: expect.stringContaining(
+        'Cannot advance order status from "pending" to "processing"',
+      ),
     });
   });
 
@@ -116,9 +136,9 @@ describe("advanceOrderStatus", () => {
     const fake = makeFakeFrom([]);
     vi.mocked(mockCreateClient).mockResolvedValue(fake as never);
 
-    await expect(advanceOrderStatus(actor, "order-1", [] as never[])).rejects.toThrow(
-      "No status steps were provided.",
-    );
+    await expect(
+      advanceOrderStatus(actor, "order-1", [] as never[]),
+    ).rejects.toThrow("No status steps were provided.");
   });
 
   it("fails the whole chain if a step cannot be applied (does not fake success)", async () => {

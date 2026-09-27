@@ -124,7 +124,9 @@ export default async function AdminNotificationDetailPage({
         >
           ← Notifications
         </Link>
-        <h1 className="font-serif text-2xl text-charcoal">Notification Detail</h1>
+        <h1 className="font-serif text-2xl text-charcoal">
+          Notification Detail
+        </h1>
       </div>
 
       <div className="mt-6 space-y-6">
@@ -144,7 +146,9 @@ export default async function AdminNotificationDetailPage({
               {timeAgo(notification.created_at)}
             </span>
           </div>
-          <h2 className="mt-4 font-serif text-lg text-charcoal">{notification.title}</h2>
+          <h2 className="mt-4 font-serif text-lg text-charcoal">
+            {notification.title}
+          </h2>
           <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-charcoal-muted">
             {notification.message}
           </p>
@@ -160,7 +164,9 @@ export default async function AdminNotificationDetailPage({
             <dl className="mt-3 space-y-2 text-sm">
               <div className="flex justify-between">
                 <dt className="text-charcoal-muted">Order</dt>
-                <dd className="font-medium text-charcoal">#{orderSummary.orderNumber}</dd>
+                <dd className="font-medium text-charcoal">
+                  #{orderSummary.orderNumber}
+                </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-charcoal-muted">Status</dt>
@@ -180,7 +186,9 @@ export default async function AdminNotificationDetailPage({
               </div>
               <div className="flex justify-between">
                 <dt className="text-charcoal-muted">Date</dt>
-                <dd className="text-charcoal">{formatDate(orderSummary.createdAt)}</dd>
+                <dd className="text-charcoal">
+                  {formatDate(orderSummary.createdAt)}
+                </dd>
               </div>
             </dl>
             <Link

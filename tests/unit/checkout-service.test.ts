@@ -31,17 +31,23 @@ describe("computeTotals", () => {
   });
 
   it("applies free shipping at/above the threshold", () => {
-    expect(computeTotals({ ...summary, subtotal: FREE_SHIPPING_THRESHOLD }).shipping).toBe(
-      0,
-    );
     expect(
-      computeTotals({ ...summary, subtotal: FREE_SHIPPING_THRESHOLD + 100 }).shipping,
+      computeTotals({ ...summary, subtotal: FREE_SHIPPING_THRESHOLD }).shipping,
+    ).toBe(0);
+    expect(
+      computeTotals({ ...summary, subtotal: FREE_SHIPPING_THRESHOLD + 100 })
+        .shipping,
     ).toBe(0);
   });
 
   it("returns zero totals for an empty cart", () => {
     const totals = computeTotals({ ...summary, subtotal: 0, itemCount: 0 });
-    expect(totals).toEqual({ itemCount: 0, subtotal: 0, shipping: 0, total: 0 });
+    expect(totals).toEqual({
+      itemCount: 0,
+      subtotal: 0,
+      shipping: 0,
+      total: 0,
+    });
   });
 });
 

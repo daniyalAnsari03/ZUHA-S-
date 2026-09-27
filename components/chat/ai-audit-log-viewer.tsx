@@ -55,7 +55,9 @@ export function AiAuditLogViewer() {
       }
     }
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) {
@@ -67,7 +69,9 @@ export function AiAuditLogViewer() {
   }
 
   if (error) {
-    return <p className="px-4 py-10 text-center text-xs text-red-600">{error}</p>;
+    return (
+      <p className="px-4 py-10 text-center text-xs text-red-600">{error}</p>
+    );
   }
 
   if (logs.length === 0) {
@@ -83,7 +87,7 @@ export function AiAuditLogViewer() {
       {logs.map((log) => (
         <li
           key={log.id}
-          className="rounded-xl border border-charcoal/10 bg-white p-3 shadow-sm"
+          className="rounded-xl border border-charcoal/10 bg-neutral-soft p-3"
         >
           <div className="flex items-center justify-between gap-2">
             <p className="min-w-0 truncate text-xs text-charcoal">
@@ -97,7 +101,8 @@ export function AiAuditLogViewer() {
             </p>
             <span
               className={`flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${
-                STATUS_BADGES[log.status] ?? "bg-neutral-soft text-charcoal-muted"
+                STATUS_BADGES[log.status] ??
+                "bg-neutral-soft text-charcoal-muted"
               }`}
             >
               {log.status}
@@ -108,7 +113,9 @@ export function AiAuditLogViewer() {
             {log.action_type}
             {log.entity_type ? (
               <span className="text-charcoal-muted/60">
-                <span className="mx-1" aria-hidden="true">·</span>
+                <span className="mx-1" aria-hidden="true">
+                  ·
+                </span>
                 {log.entity_type}
               </span>
             ) : null}

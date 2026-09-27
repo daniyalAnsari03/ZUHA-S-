@@ -92,9 +92,7 @@ function topLine(rows: { name: string; unitsSold: number }[]): string {
 
 function lowStockLine(rows: { name: string; stockQuantity: number }[]): string {
   if (rows.length === 0) return "No products are low on stock.";
-  return rows
-    .map((p) => `${p.name} (${p.stockQuantity} left)`)
-    .join(", ");
+  return rows.map((p) => `${p.name} (${p.stockQuantity} left)`).join(", ");
 }
 
 function growthPct(value: number | null): string {

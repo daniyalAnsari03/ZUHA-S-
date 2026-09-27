@@ -32,7 +32,9 @@ async function main() {
   ).catch(() => []);
   const adminRows = Array.isArray(adminNotes) ? adminNotes : [];
   if (adminRows.length === 0) {
-    console.log("SKIP admin route: no order-linked admin notification to test with");
+    console.log(
+      "SKIP admin route: no order-linked admin notification to test with",
+    );
   } else {
     const n = adminRows[0];
     const res = await fetch(`${APP_URL}/admin/notifications/${n.id}`, {
@@ -40,9 +42,13 @@ async function main() {
     });
     const html = await res.text();
     if (res.status === 200 && /Notification Detail/.test(html)) {
-      console.log(`ADMIN  /admin/notifications/:id  [200] rendered (${n.type})`);
+      console.log(
+        `ADMIN  /admin/notifications/:id  [200] rendered (${n.type})`,
+      );
     } else {
-      console.log(`ADMIN  WARN status=${res.status} detail=${/Notification Detail/.test(html)}`);
+      console.log(
+        `ADMIN  WARN status=${res.status} detail=${/Notification Detail/.test(html)}`,
+      );
     }
   }
 
@@ -83,8 +89,9 @@ async function main() {
   }
   console.log(`notification insert: status=${insRes.status} ok=${insRes.ok}`);
 
-  const notificationId = Array.isArray(inserted) ? inserted[0]?.id ?? null
-    : inserted?.id ?? null;
+  const notificationId = Array.isArray(inserted)
+    ? (inserted[0]?.id ?? null)
+    : (inserted?.id ?? null);
 
   if (notificationId) {
     const res = await fetch(`${APP_URL}/notifications/${notificationId}`, {
@@ -100,11 +107,16 @@ async function main() {
       );
     }
   } else {
-    console.log(`CUSTOMER SKIP: no notification id created (${String(insBody).slice(0, 200)})`);
+    console.log(
+      `CUSTOMER SKIP: no notification id created (${String(insBody).slice(0, 200)})`,
+    );
   }
 
   await deleteDisposableCustomer(cust.userId).catch(() => {});
   await deleteDisposableProduct(prod.id).catch(() => {});
 }
 
-main().catch((e) => { console.error("probe failed:", e.message); process.exit(1); });
+main().catch((e) => {
+  console.error("probe failed:", e.message);
+  process.exit(1);
+});

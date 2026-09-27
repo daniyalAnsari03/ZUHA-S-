@@ -11,11 +11,7 @@ import {
   Text,
 } from "@react-email/components";
 
-import {
-  BRAND_COLORS,
-  BRAND_NAME,
-  formatPrice,
-} from "./shared";
+import { BRAND_COLORS, BRAND_NAME, formatPrice } from "./shared";
 
 export type TopProductEmailRow = {
   name: string;
@@ -94,8 +90,7 @@ export default function DailyReportEmail({
           margin: 0,
           padding: 0,
           backgroundColor: ivory,
-          fontFamily:
-            "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'Georgia', 'Times New Roman', serif",
         }}
       >
         <Container

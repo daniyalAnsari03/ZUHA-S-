@@ -106,10 +106,17 @@ export default async function AdminAnalyticsPage() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
                     {kpi.label}
                   </p>
-                  <kpi.icon className="h-4 w-4 text-plum-light" aria-hidden="true" />
+                  <kpi.icon
+                    className="h-4 w-4 text-plum-light"
+                    aria-hidden="true"
+                  />
                 </div>
-                <p className="mt-3 font-serif text-2xl text-charcoal">{kpi.value}</p>
-                <p className="mt-1 truncate text-xs text-charcoal-muted">{kpi.hint}</p>
+                <p className="mt-3 font-serif text-2xl text-charcoal">
+                  {kpi.value}
+                </p>
+                <p className="mt-1 truncate text-xs text-charcoal-muted">
+                  {kpi.hint}
+                </p>
               </Link>
             ))}
           </div>
@@ -123,32 +130,32 @@ export default async function AdminAnalyticsPage() {
               </p>
               <div className="mt-6 overflow-x-auto pb-1">
                 <div className="flex h-48 min-w-full items-end gap-1.5">
-                {analytics.salesTrend.map((point) => (
-                  <div
-                    key={point.dateKey}
-                    className="group relative flex h-full flex-1 flex-col justify-end"
-                  >
-                    <div className="pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-charcoal px-2 py-1 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
-                      {formatPrice(Math.round(point.revenue))}
-                    </div>
+                  {analytics.salesTrend.map((point) => (
                     <div
-                      className={
-                        point.revenue > 0
-                          ? "rounded-t bg-plum transition-colors hover:bg-plum-dark"
-                          : "rounded-t bg-charcoal/10"
-                      }
-                      style={{
-                        height: `${Math.max(
-                          point.revenue > 0 ? 4 : 2,
-                          (point.revenue / trendMax) * 100,
-                        )}%`,
-                      }}
-                    />
-                    <div className="mt-1.5 truncate text-center text-[9px] text-charcoal-muted">
-                      {point.label}
+                      key={point.dateKey}
+                      className="group relative flex h-full flex-1 flex-col justify-end"
+                    >
+                      <div className="pointer-events-none absolute -top-1 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-charcoal px-2 py-1 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
+                        {formatPrice(Math.round(point.revenue))}
+                      </div>
+                      <div
+                        className={
+                          point.revenue > 0
+                            ? "rounded-t bg-plum transition-colors hover:bg-plum-dark"
+                            : "rounded-t bg-charcoal/10"
+                        }
+                        style={{
+                          height: `${Math.max(
+                            point.revenue > 0 ? 4 : 2,
+                            (point.revenue / trendMax) * 100,
+                          )}%`,
+                        }}
+                      />
+                      <div className="mt-1.5 truncate text-center text-[9px] text-charcoal-muted">
+                        {point.label}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
                 </div>
               </div>
             </section>
@@ -163,7 +170,10 @@ export default async function AdminAnalyticsPage() {
                       ? Math.round((item.count / analytics.ordersCount) * 100)
                       : 0;
                   return (
-                    <li key={item.status} className="flex items-center gap-3 py-2.5 sm:gap-4">
+                    <li
+                      key={item.status}
+                      className="flex items-center gap-3 py-2.5 sm:gap-4"
+                    >
                       <span className="w-24 shrink-0 truncate text-sm font-medium text-charcoal sm:w-28">
                         {item.label}
                       </span>
@@ -195,9 +205,15 @@ export default async function AdminAnalyticsPage() {
                 <table className="w-full min-w-[560px] text-left text-sm">
                   <thead>
                     <tr className="border-b border-charcoal/10 bg-cream/40">
-                      <th className="px-5 py-3 font-medium text-charcoal-muted">Product</th>
-                      <th className="px-5 py-3 font-medium text-charcoal-muted">Units sold</th>
-                      <th className="px-5 py-3 font-medium text-charcoal-muted">Revenue</th>
+                      <th className="px-5 py-3 font-medium text-charcoal-muted">
+                        Product
+                      </th>
+                      <th className="px-5 py-3 font-medium text-charcoal-muted">
+                        Units sold
+                      </th>
+                      <th className="px-5 py-3 font-medium text-charcoal-muted">
+                        Revenue
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-charcoal/5">

@@ -32,7 +32,11 @@ export class WidgetErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error("[widget-boundary] caught error:", error, info.componentStack);
+    console.error(
+      "[widget-boundary] caught error:",
+      error,
+      info.componentStack,
+    );
   }
 
   render(): ReactNode {

@@ -44,9 +44,9 @@ describe("category service authorization", () => {
     await expect(createCategory(CUSTOMER, validCategory)).rejects.toThrow(
       ServiceError,
     );
-    await expect(
-      createCategory(CUSTOMER, validCategory),
-    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(createCategory(CUSTOMER, validCategory)).rejects.toMatchObject(
+      { code: "FORBIDDEN" },
+    );
   });
 
   it("rejects a customer updating/deactivating a category", async () => {

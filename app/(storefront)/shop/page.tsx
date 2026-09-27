@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { Container } from "@/components/ui/container";
-import { ProductCard } from "@/components/storefront/product-card";
+import { ProductCard, PRODUCT_CARD_SIZES } from "@/components/storefront/product-card";
 import {
   getAllActiveProducts,
   getCategoryBySlug,
@@ -50,8 +50,17 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         </div>
 
         <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-2 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {products.map((product, index) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              // The first cards sit above the fold on every breakpoint, so their
+              // images are the category page LCP candidate. Without the preload
+              // hint the browser only discovered them after layout, which added
+              // ~600ms of load delay to LCP on mobile.
+              priority={index < 2}
+              sizes={PRODUCT_CARD_SIZES.grid}
+            />
           ))}
         </div>
 

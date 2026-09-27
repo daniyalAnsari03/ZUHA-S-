@@ -80,12 +80,332 @@ h6 {
   outline-offset: 2px;
 }
 
+/* Scroll-driven reveal. Purely declarative: no JS, no IntersectionObserver,
+   no main-thread cost. Falls back to fully visible content wherever
+   scroll-driven animations are unsupported. */
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .reveal-scroll {
+    animation: reveal-rise both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+    animation-delay: var(--reveal-delay, 0s);
+  }
+}
+
+/* Navbar chip entrance + per-icon hover micro-interactions. Both run once per
+   page load or hover using plain CSS so the first viewport needs no animation
+   runtime. The chip carries `data-nav-icon` and the glyph carries
+   `nav-icon-glyph`; the rules below do the rest. */
+@keyframes nav-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes nav-bag-swing {
+  0% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(-14deg);
+  }
+  40% {
+    transform: rotate(11deg);
+  }
+  60% {
+    transform: rotate(-7deg);
+  }
+  80% {
+    transform: rotate(4deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-nav-enter {
+  animation: nav-enter 0.5s var(--nav-delay, 0s) cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-nav-enter:hover {
+  transform: translate3d(0, -2px, 0) scale(1.07);
+}
+
+.animate-nav-enter:active {
+  transform: scale(0.9);
+}
+
+.nav-icon-glyph {
+  transition: transform 0.3s ease-out;
+}
+
+[data-nav-icon="menu"]:hover .nav-icon-glyph {
+  transform: rotate(-90deg);
+}
+
+[data-nav-icon="search"]:hover .nav-icon-glyph {
+  transform: rotate(-16deg) scale(1.14);
+}
+
+[data-nav-icon="account"]:hover .nav-icon-glyph {
+  transform: translate3d(0, -2px, 0) scale(1.14);
+}
+
+[data-nav-icon="bag"]:hover .nav-icon-glyph {
+  animation: nav-bag-swing 0.7s ease-in-out;
+}
+
+/* Announcement ticker. Two identical spans are translated by exactly one
+   span-width, so the loop is seamless and runs entirely on the compositor. */
+.announcement-ticker {
+  width: max-content;
+  animation: announcement-scroll 35s linear infinite;
+  will-change: transform;
+}
+
+@keyframes announcement-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* Account dropdown entrance (replaces the former spring animation). */
+.account-dropdown {
+  animation: account-dropdown-in 0.18s ease-out both;
+  transform-origin: top right;
+}
+
+@keyframes account-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* Drawer (slide-over) motion. The panel unmounts on close, so the entrance is
+   a single keyframe; the inner content cascades in with per-child delay. */
+.slide-over-backdrop {
+  animation: slide-over-fade 0.25s ease-out both;
+}
+
+.slide-over-panel {
+  animation: slide-over-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.slide-from-right {
+  --slide-over-from: 100%;
+}
+
+.slide-from-left {
+  --slide-over-from: -100%;
+}
+
+@keyframes slide-over-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-over-in {
+  from {
+    opacity: 0.5;
+    transform: translate3d(var(--slide-over-from, 100%), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.slide-over-content > * {
+  animation: slide-over-cascade 0.4s ease-out both;
+  animation-delay: 0.12s;
+}
+
+@keyframes slide-over-cascade {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Admin shell motion. The admin layout hydrates on the first paint of every
+   admin route, so the mobile drawer and the account dropdown are animated in
+   CSS rather than pulling an animation runtime into that critical path. */
+.admin-drawer-backdrop {
+  animation: admin-fade-in 0.2s ease-out both;
+}
+
+.admin-drawer-panel {
+  animation: admin-drawer-in 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.admin-menu-pop {
+  animation: admin-menu-in 0.18s ease-out both;
+  transform-origin: bottom center;
+}
+
+@keyframes admin-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes admin-drawer-in {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes admin-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Staggered entrance for drawer content. Each row sets `--stagger-i` (its
+   index) so the cascade costs nothing at runtime. */
+.stagger-in {
+  animation: stagger-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(0.06s * var(--stagger-i, 0));
+}
+
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Floating storefront chat: trigger entrance + popover open/close.
+   The trigger and the notification popover are plain CSS transitions on
+   purpose. They sit on every storefront page, so keeping them off the JS
+   animation runtime keeps framer-motion out of the first-load bundle and
+   keeps its parse/execute cost off the critical rendering path. The chat
+   conversation panel itself still animates with framer-motion, because that
+   module is only fetched once the customer actually opens the chat. */
+@keyframes chat-trigger-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.chat-trigger-enter {
+  animation: chat-trigger-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
+}
+
+.chat-trigger-enter:hover {
+  transform: scale(1.08);
+}
+
+.chat-trigger-enter:active {
+  transform: scale(0.92);
+}
+
+@keyframes chat-popover-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.chat-popover-in {
+  animation: chat-popover-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes chat-icon-swap-in {
+  from {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.chat-icon-swap-in {
+  animation: chat-icon-swap-in 0.2s ease-out both;
+}
+
+@keyframes chat-bell-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.chat-bell-enter {
+  animation: chat-bell-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Respect reduced-motion preferences across the storefront. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;

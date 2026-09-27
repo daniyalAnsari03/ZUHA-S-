@@ -28,7 +28,9 @@ export function AddToBagButton({
   onDark = false,
 }: AddToBagButtonProps) {
   const { addToCart } = useStorefront();
-  const [status, setStatus] = useState<"idle" | "busy" | "added" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "busy" | "added" | "error">(
+    "idle",
+  );
   const [message, setMessage] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -70,7 +72,7 @@ export function AddToBagButton({
         type="button"
         variant="primary"
         size={size}
-        className="w-full max-sm:h-8 max-sm:px-3 max-sm:text-xs"
+        className="w-full max-sm:min-h-11 max-sm:px-3 max-sm:text-xs"
         onClick={handleClick}
         disabled={status === "busy"}
         aria-live="polite"

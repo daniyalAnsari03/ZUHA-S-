@@ -7,6 +7,22 @@ import {
 
 import type { AgentContext } from "@/agents/context";
 
+/**
+ * Minimal, client-safe product data used to render a real product card in the
+ * chat UI. Every field comes straight from the (DB-backed) tool result — the
+ * chat never invents a name, price or image.
+ */
+export type ProductReference = {
+  id: string;
+  name: string;
+  slug: string;
+  price: string;
+  imageUrl: string | null;
+  fabric: string | null;
+  category: string | null;
+  availability?: string;
+};
+
 /** Events emitted over the NDJSON stream to the chat client. */
 export type AiStreamEvent =
   | { type: "meta"; conversationId: string | null }
@@ -14,6 +30,7 @@ export type AiStreamEvent =
   | { type: "agent"; name: string }
   | { type: "tool"; name: string; state: "start" | "end" }
   | { type: "text"; delta: string }
+  | { type: "products"; products: ProductReference[] }
   | { type: "done"; output: string }
   | { type: "error"; message: string };
 
@@ -53,6 +70,83 @@ function readHandoffTarget(item: RunItem): string | undefined {
   return typeof target?.name === "string" ? target.name : undefined;
 }
 
+/** Catalog tools whose output rows are product lines (name, price, imageUrl…). */
+const PRODUCT_CATALOG_TOOLS = new Set(["list_products", "get_product"]);
+
+function readProductReference(row: unknown): ProductReference | null {
+  if (!row || typeof row !== "object") return null;
+  const entry = row as Record<string, unknown>;
+  const name = typeof entry.name === "string" ? entry.name : "";
+  const slug = typeof entry.slug === "string" ? entry.slug : "";
+  const id = typeof entry.id === "string" ? entry.id : "";
+  if (!name && !slug && !id) return null;
+
+  const price =
+    typeof entry.price === "string"
+      ? entry.price
+      : typeof entry.price === "number"
+        ? `PKR ${entry.price.toLocaleString("en-PK")}`
+        : "";
+  const imageUrl =
+    typeof entry.imageUrl === "string"
+      ? entry.imageUrl
+      : typeof entry.image_url === "string"
+        ? entry.image_url
+        : null;
+
+  return {
+    id,
+    name,
+    slug,
+    price,
+    imageUrl,
+    fabric: typeof entry.fabric === "string" ? entry.fabric : null,
+    category: typeof entry.category === "string" ? entry.category : null,
+    ...(typeof entry.availability === "string"
+      ? { availability: entry.availability }
+      : {}),
+  };
+}
+
+/**
+ * Extract real product rows from a catalog tool result so the chat can render
+ * product cards instead of making the model describe images in text.
+ *
+ * Tool outputs are the raw objects returned by the tool's `execute` (e.g.
+ * `{ ok: true, data: [...] }`); string outputs are parsed defensively. Only
+ * rows that actually carry product identity (name/slug/id) are returned, and
+ * only for the catalog tools that return image-bearing product lines.
+ */
+export function extractProductsFromToolOutput(
+  toolName: string,
+  output: unknown,
+): ProductReference[] {
+  if (!PRODUCT_CATALOG_TOOLS.has(toolName)) return [];
+
+  let parsed = output;
+  if (typeof output === "string") {
+    try {
+      parsed = JSON.parse(output);
+    } catch {
+      return [];
+    }
+  }
+  if (!parsed || typeof parsed !== "object") return [];
+  const data = (parsed as Record<string, unknown>).data;
+  const rows = Array.isArray(data)
+    ? data
+    : data && typeof data === "object"
+      ? [data]
+      : [];
+
+  const refs: ProductReference[] = [];
+  for (const row of rows) {
+    const ref = readProductReference(row);
+    if (ref) refs.push(ref);
+  }
+  return refs;
+}
+
 /**
  * Translates the SDK's streamed run into a small, client-safe event sequence.
  *
@@ -84,6 +178,11 @@ export async function* streamRunToEvents(
         } else if (event.name === "tool_output") {
           const name = readToolNameFromItem(event.item);
           if (name) yield { type: "tool", name, state: "end" };
+          const output = (event.item as { output?: unknown }).output;
+          const products = extractProductsFromToolOutput(name ?? "", output);
+          if (products.length > 0) {
+            yield { type: "products", products };
+          }
         } else if (event.name === "handoff_occurred") {
           const target = readHandoffTarget(event.item);
           if (target) {

@@ -184,7 +184,9 @@ export function ProductForm({
             min="0"
             step="1"
             defaultValue={
-              values.stockQuantity === "" ? undefined : String(values.stockQuantity)
+              values.stockQuantity === ""
+                ? undefined
+                : String(values.stockQuantity)
             }
             required
           />

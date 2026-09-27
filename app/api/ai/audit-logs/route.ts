@@ -13,10 +13,10 @@ export async function GET(request: NextRequest) {
   const user = await getAuthUser();
 
   if (!user || user.role !== "admin") {
-    return new Response(
-      JSON.stringify({ error: "Admin access required." }),
-      { status: 403, headers: { "content-type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: "Admin access required." }), {
+      status: 403,
+      headers: { "content-type": "application/json" },
+    });
   }
 
   const { searchParams } = new URL(request.url);
@@ -26,10 +26,7 @@ export async function GET(request: NextRequest) {
   );
   const agentName = searchParams.get("agent") || undefined;
   const status = searchParams.get("status") as
-    | "granted"
-    | "denied"
-    | "error"
-    | undefined;
+    "granted" | "denied" | "error" | undefined;
 
   try {
     const logs = await listAiAuditLogs({ limit, agentName, status });

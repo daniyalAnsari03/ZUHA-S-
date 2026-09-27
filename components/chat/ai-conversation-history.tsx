@@ -57,7 +57,9 @@ export function AiConversationHistory({
       }
     }
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [channel]);
 
   if (loading) {

@@ -21,6 +21,11 @@ vi.mock("@/app/storefront/actions", () => ({
   }),
 }));
 
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
+}));
+
 vi.mock("@/components/storefront/storefront-provider", () => ({
   useStorefront: () => ({
     cartCount: 0,

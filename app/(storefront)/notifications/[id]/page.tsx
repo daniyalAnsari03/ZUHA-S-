@@ -133,7 +133,8 @@ export default async function NotificationDetailPage({
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${STATUS_STYLES[orderSummary.status] ?? "bg-gray-100 text-gray-700"}`}
                     >
-                      {STATUS_LABELS[orderSummary.status] ?? orderSummary.status}
+                      {STATUS_LABELS[orderSummary.status] ??
+                        orderSummary.status}
                     </span>
                   </dd>
                 </div>

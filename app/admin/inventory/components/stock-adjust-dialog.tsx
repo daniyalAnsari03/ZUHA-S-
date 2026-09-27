@@ -77,7 +77,9 @@ export function StockAdjustDialog({
           <div className="relative w-full max-w-md rounded-2xl border border-charcoal/10 bg-neutral-soft p-6 shadow-xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-serif text-lg text-charcoal">Adjust stock</h3>
+                <h3 className="font-serif text-lg text-charcoal">
+                  Adjust stock
+                </h3>
                 <p className="mt-0.5 line-clamp-1 text-sm text-charcoal-muted">
                   {productName}
                 </p>
@@ -120,7 +122,9 @@ export function StockAdjustDialog({
                     min={0}
                     step={1}
                     value={stock}
-                    onChange={(e) => setStock(Math.max(0, e.target.valueAsNumber || 0))}
+                    onChange={(e) =>
+                      setStock(Math.max(0, e.target.valueAsNumber || 0))
+                    }
                     className="w-full rounded-lg border border-charcoal/15 bg-ivory px-3 py-2 text-sm tabular-nums text-charcoal focus:border-plum focus:outline-none focus:ring-2 focus:ring-plum/15"
                   />
                   <button

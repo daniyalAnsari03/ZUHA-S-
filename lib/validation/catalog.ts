@@ -71,12 +71,7 @@ export const productInputSchema = z.object({
     .int()
     .min(0, "Stock cannot be negative.")
     .max(1_000_000),
-  lowStockThreshold: z
-    .number()
-    .int()
-    .min(0)
-    .max(1_000_000)
-    .default(5),
+  lowStockThreshold: z.number().int().min(0).max(1_000_000).default(5),
   imageUrl: optionalShortText,
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
@@ -91,12 +86,7 @@ export const stockUpdateSchema = z.object({
     .int()
     .min(0, "Stock cannot be negative.")
     .max(1_000_000),
-  lowStockThreshold: z
-    .number()
-    .int()
-    .min(0)
-    .max(1_000_000)
-    .default(5),
+  lowStockThreshold: z.number().int().min(0).max(1_000_000).default(5),
 });
 
 export type StockUpdateInput = z.input<typeof stockUpdateSchema>;

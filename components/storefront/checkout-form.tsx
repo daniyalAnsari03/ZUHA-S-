@@ -29,7 +29,11 @@ const checkoutSchema = z.object({
       /^(\+?92|0)?3\d{9}$/,
       "Enter a valid Pakistani mobile number (e.g. 0300 1234567).",
     ),
-  email: z.string().trim().min(1, "Email is required.").email("Enter a valid email address."),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email is required.")
+    .email("Enter a valid email address."),
   shippingAddress: z
     .string()
     .trim()
@@ -40,8 +44,16 @@ const checkoutSchema = z.object({
     .trim()
     .min(1, "City is required.")
     .max(80, "City must be 80 characters or fewer."),
-  postalCode: z.string().trim().max(20, "Postal/area code must be 20 characters or fewer.").optional(),
-  orderNotes: z.string().trim().max(1000, "Order notes must be 1000 characters or fewer.").optional(),
+  postalCode: z
+    .string()
+    .trim()
+    .max(20, "Postal/area code must be 20 characters or fewer.")
+    .optional(),
+  orderNotes: z
+    .string()
+    .trim()
+    .max(1000, "Order notes must be 1000 characters or fewer.")
+    .optional(),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -59,11 +71,20 @@ type CheckoutItem = {
 
 type CheckoutFormProps = {
   itemCount: number;
-  totals: { itemCount: number; subtotal: number; shipping: number; total: number };
+  totals: {
+    itemCount: number;
+    subtotal: number;
+    shipping: number;
+    total: number;
+  };
   items: CheckoutItem[];
 };
 
-export function CheckoutForm({ itemCount, totals: initialTotals, items }: CheckoutFormProps) {
+export function CheckoutForm({
+  itemCount,
+  totals: initialTotals,
+  items,
+}: CheckoutFormProps) {
   const router = useRouter();
   const {
     register,
@@ -103,7 +124,9 @@ export function CheckoutForm({ itemCount, totals: initialTotals, items }: Checko
 
     // Order created successfully — redirect to confirmation
     if (result.reference) {
-      router.push(`/orders/confirmation?ref=${encodeURIComponent(result.reference)}`);
+      router.push(
+        `/orders/confirmation?ref=${encodeURIComponent(result.reference)}`,
+      );
     }
   });
 
@@ -347,7 +370,12 @@ function OrderSummary({
   items,
 }: {
   itemCount: number;
-  totals: { itemCount: number; subtotal: number; shipping: number; total: number };
+  totals: {
+    itemCount: number;
+    subtotal: number;
+    shipping: number;
+    total: number;
+  };
   items: CheckoutItem[];
 }) {
   return (
@@ -370,12 +398,15 @@ function OrderSummary({
                   alt={item.name}
                   width={112}
                   height={128}
+                  sizes="56px"
                   className="h-full w-full object-cover"
                 />
               ) : null}
             </Link>
             <div className="flex min-w-0 flex-1 flex-col">
-              <p className="truncate font-serif text-sm text-charcoal">{item.name}</p>
+              <p className="truncate font-serif text-sm text-charcoal">
+                {item.name}
+              </p>
               {item.fabric ? (
                 <p className="text-[11px] uppercase tracking-wide text-charcoal-muted">
                   {item.fabric}
@@ -403,12 +434,17 @@ function OrderSummary({
         </div>
         <div className="mt-2 flex items-center justify-between border-t border-charcoal/10 pt-3 text-base">
           <dt className="font-medium text-charcoal">Total</dt>
-          <dd className="font-semibold text-plum">{formatPrice(totals.total)}</dd>
+          <dd className="font-semibold text-plum">
+            {formatPrice(totals.total)}
+          </dd>
         </div>
       </dl>
 
       <p className="mt-5 flex items-start gap-2 text-xs leading-relaxed text-charcoal-muted">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-plum" aria-hidden="true" />
+        <ShieldCheck
+          className="mt-0.5 h-4 w-4 shrink-0 text-plum"
+          aria-hidden="true"
+        />
         Totals are verified on the server. Prices, stock and eligibility are
         re-checked at the moment of ordering.
       </p>

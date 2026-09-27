@@ -1,18 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Handbag, Menu, Search, User } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Handbag, Menu, Search, User, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import type { Category, Product } from "@/lib/storefront/types";
 
-import { MobileMenu } from "./mobile-menu";
 import { NavIcon } from "./nav-icon-button";
-import { SearchPanel } from "./search-panel";
 import { SlideOver } from "./slide-over";
+import { MobileMenu } from "./mobile-menu";
+import { SearchPanel } from "./search-panel";
 import { CartPanel } from "./cart-panel";
 import { useStorefront } from "./storefront-provider";
+import { signOutClient } from "@/lib/auth/client-signout";
+
+/**
+ * Drawer bodies are imported directly. They used to be wrapped in
+ * `next/dynamic`, but they only ever ran a JavaScript animation library, which
+ * is what put ~130KB of animation code on the critical path of every storefront
+ * page. With the entrance now expressed in CSS they are cheap enough to import
+ * normally, so the drawer also opens with its content already there.
+ */
 
 type NavbarProps = {
   categories: Category[];
@@ -21,20 +30,87 @@ type NavbarProps = {
 
 type PanelId = "menu" | "search" | "cart" | null;
 
+type AccountState = "signedOut" | "signedIn" | "admin";
+
 /**
  * Premium storefront navbar. Locked layout: hamburger (left), brand wordmark
  * (center), search / login-account / bag entry points (right). Cart and login
  * entries live in the navbar; wishlist and notifications live elsewhere.
+ * When logged in, the account icon opens a dropdown with account actions.
  */
 export function Navbar({ categories, products }: NavbarProps) {
+  const router = useRouter();
   const [panel, setPanel] = useState<PanelId>(null);
-  const [scrolled, setScrolled] = useState(false);
+  // Initialize scrolled state correctly on mount to prevent color flash
+  const [scrolled, setScrolled] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.scrollY > 12;
+    }
+    return false;
+  });
+  const [accountState, setAccountState] = useState<AccountState>("signedOut");
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const close = () => setPanel(null);
   const isHome = usePathname() === "/";
   const { cartCount } = useStorefront();
 
+  // Detect auth state on mount. This asks the server, which already holds a
+  // Supabase session client, instead of constructing one in the browser —
+  // importing the browser Supabase SDK here added a large client-side dependency
+  // to every storefront page for a single account-state lookup.
+  useEffect(() => {
+    let active = true;
+
+    async function detectSession() {
+      try {
+        const response = await fetch("/api/session", {
+          credentials: "same-origin",
+          headers: { accept: "application/json" },
+        });
+        if (!response.ok) throw new Error("session lookup failed");
+        const data = (await response.json()) as {
+          state?: "signedOut" | "signedIn" | "admin";
+        };
+        if (active && data.state) setAccountState(data.state);
+      } catch {
+        if (active) setAccountState("signedOut");
+      }
+    }
+
+    detectSession();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+      const accountButton = document.querySelector('[data-account-button]');
+      const dropdown = document.querySelector('[data-account-dropdown]');
+      if (
+        accountDropdownOpen &&
+        accountButton &&
+        dropdown &&
+        !accountButton.contains(target) &&
+        !dropdown.contains(target)
+      ) {
+        setAccountDropdownOpen(false);
+      }
+    }
+
+    if (accountDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [accountDropdownOpen]);
+
+  // Initialize scroll state synchronously on mount and listen for scroll
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
+    // Set initial state immediately (useLayoutEffect would be ideal but useEffect with synchronous call works)
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -42,9 +118,21 @@ export function Navbar({ categories, products }: NavbarProps) {
 
   const solid = scrolled || !isHome;
   const tone = solid ? "light" : "dark";
+  // 44x44 on touch widths so the icon controls meet the 44px tap-target
+  // guideline; the pointer-sized 40x40 circle is kept from `sm` up so tablet and
+  // desktop keep their existing density. The navbar is far taller than either
+  // (h-32 / h-40), so this grows the hit area without moving the layout.
   const iconButtonClass = solid
-    ? "h-10 w-10 items-center justify-center rounded-full border border-plum/10 bg-gradient-to-b from-white to-plum/[0.06] text-plum shadow-sm shadow-plum/5 transition-all duration-300 hover:border-plum/25 hover:from-plum/10 hover:to-plum/10 hover:text-plum-dark focus-visible:outline-plum"
-    : "h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-gold-soft shadow-sm shadow-black/10 backdrop-blur-md transition-all duration-300 hover:border-white/35 hover:bg-white/20 hover:text-white focus-visible:outline-white";
+    ? "h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-plum/10 bg-gradient-to-b from-white to-plum/[0.06] text-plum shadow-sm shadow-plum/5 transition-all duration-300 hover:border-plum/25 hover:from-plum/10 hover:to-plum/10 hover:text-plum-dark focus-visible:outline-plum"
+    : "h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-gold-soft shadow-sm shadow-black/10 backdrop-blur-md transition-all duration-300 hover:border-white/35 hover:bg-white/20 hover:text-white focus-visible:outline-white";
+
+  const handleAccountClick = () => {
+    if (accountState === "signedOut") {
+      router.push("/login");
+    } else {
+      setAccountDropdownOpen((prev) => !prev);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40">
@@ -68,7 +156,9 @@ export function Navbar({ categories, products }: NavbarProps) {
             expanded={panel === "menu"}
             onClick={() => setPanel("menu")}
             className={`inline-flex ${iconButtonClass}`}
-            icon={<Menu className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />}
+            icon={
+              <Menu className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+            }
           />
           <NavIcon
             label="Search"
@@ -77,7 +167,13 @@ export function Navbar({ categories, products }: NavbarProps) {
             delay={0.05}
             onClick={() => setPanel("search")}
             className={`inline-flex lg:hidden ${iconButtonClass}`}
-            icon={<Search className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />}
+            icon={
+              <Search
+                className="h-[18px] w-[18px]"
+                strokeWidth={1.75}
+                aria-hidden="true"
+              />
+            }
           />
         </div>
 
@@ -93,12 +189,11 @@ export function Navbar({ categories, products }: NavbarProps) {
               backgroundImage: scrolled
                 ? "linear-gradient(135deg, #ffffff 0%, #ffffff 100%)"
                 : isHome
-                  ? "linear-gradient(135deg, #f3e5c0 0%, #dcc188 38%, #c2a668 66%, #9a7c42 100%)"
-                  : "linear-gradient(135deg, #3a1833 0%, #4a2040 45%, #7a3570 72%, #b89b63 118%)",
+                ? "linear-gradient(135deg, #f3e5c0 0%, #dcc188 38%, #c2a668 66%, #9a7c42 100%)"
+                : "linear-gradient(135deg, #3a1833 0%, #4a2040 45%, #7a3570 72%, #b89b63 118%)",
               WebkitMaskImage:
                 "url('/images/brand/dins-by-daniyal-logo-white.png')",
-              maskImage:
-                "url('/images/brand/dins-by-daniyal-logo-white.png')",
+              maskImage: "url('/images/brand/dins-by-daniyal-logo-white.png')",
               WebkitMaskRepeat: "no-repeat",
               maskRepeat: "no-repeat",
               WebkitMaskSize: "contain",
@@ -108,8 +203,8 @@ export function Navbar({ categories, products }: NavbarProps) {
               filter: scrolled
                 ? "drop-shadow(0 2px 8px rgba(74,32,64,0.28))"
                 : isHome
-                  ? "drop-shadow(0 2px 10px rgba(0,0,0,0.35))"
-                  : "drop-shadow(0 2px 8px rgba(74,32,64,0.18))",
+                ? "drop-shadow(0 2px 10px rgba(0,0,0,0.35))"
+                : "drop-shadow(0 2px 8px rgba(74,32,64,0.18))",
             }}
           />
         </Link>
@@ -122,17 +217,109 @@ export function Navbar({ categories, products }: NavbarProps) {
             delay={0.1}
             onClick={() => setPanel("search")}
             className={`hidden lg:inline-flex ${iconButtonClass}`}
-            icon={<Search className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />}
+            icon={
+              <Search
+                className="h-[18px] w-[18px]"
+                strokeWidth={1.75}
+                aria-hidden="true"
+              />
+            }
           />
-          <NavIcon
-            label="Login / My Account"
-            effect="account"
-            tone={tone}
-            delay={0.15}
-            href="/account"
-            className={`inline-flex ${iconButtonClass}`}
-            icon={<User className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />}
-          />
+          <div className="relative" data-account-button>
+            <NavIcon
+              label={
+                accountState === "signedOut"
+                  ? "Login / My Account"
+                  : "My Account"
+              }
+              effect="account"
+              tone={tone}
+              delay={0.15}
+              onClick={handleAccountClick}
+              className={`inline-flex ${iconButtonClass}`}
+              expanded={accountDropdownOpen}
+              icon={
+                <User
+                  className="h-[18px] w-[18px]"
+                  strokeWidth={1.75}
+                  aria-hidden="true"
+                />
+              }
+            />
+            {accountState !== "signedOut" && accountDropdownOpen && (
+              <div
+                className="account-dropdown absolute right-0 top-full mt-2 z-50 min-w-[180px] overflow-hidden rounded-xl border border-charcoal/10 bg-white shadow-lg shadow-plum/10 ring-1 ring-charcoal/5"
+                data-account-dropdown
+                role="menu"
+                aria-label="Account menu"
+              >
+                <Link
+                  href="/account"
+                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-charcoal hover:bg-plum/5 hover:text-plum"
+                  role="menuitem"
+                  onClick={() => setAccountDropdownOpen(false)}
+                >
+                  <User className="h-4 w-4" aria-hidden="true" />
+                  My Account
+                </Link>
+                <Link
+                  href="/orders"
+                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-charcoal hover:bg-plum/5 hover:text-plum"
+                  role="menuitem"
+                  onClick={() => setAccountDropdownOpen(false)}
+                >
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.75}
+                    aria-hidden="true"
+                  >
+                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  My Orders
+                </Link>
+                <Link
+                  href="/cart"
+                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-charcoal hover:bg-plum/5 hover:text-plum"
+                  role="menuitem"
+                  onClick={() => setAccountDropdownOpen(false)}
+                >
+                  <Handbag className="h-4 w-4" aria-hidden="true" />
+                  My Bag
+                </Link>
+                <Link
+                  href="/wishlist"
+                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-charcoal hover:bg-plum/5 hover:text-plum"
+                  role="menuitem"
+                  onClick={() => setAccountDropdownOpen(false)}
+                >
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.75}
+                    aria-hidden="true"
+                  >
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                  </svg>
+                  Wishlist
+                </Link>
+                <hr className="my-1 border-charcoal/10" />
+                <button
+                  type="button"
+                  onClick={signOutClient}
+                  className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50"
+                  role="menuitem"
+                >
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </div>
           <NavIcon
             label={`Cart${cartCount > 0 ? `, ${cartCount} items` : ""}`}
             effect="bag"
@@ -140,7 +327,13 @@ export function Navbar({ categories, products }: NavbarProps) {
             delay={0.2}
             onClick={() => setPanel("cart")}
             className={`inline-flex ${iconButtonClass}`}
-            icon={<Handbag className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />}
+            icon={
+              <Handbag
+                className="h-[18px] w-[18px]"
+                strokeWidth={1.75}
+                aria-hidden="true"
+              />
+            }
             badge={
               cartCount > 0 ? (
                 <span className="absolute -right-0.5 -top-0.5 z-20 flex h-4 min-w-4 items-center justify-center rounded-full bg-plum px-1 text-[10px] font-semibold leading-none text-white shadow-sm shadow-plum/30 ring-2 ring-white">

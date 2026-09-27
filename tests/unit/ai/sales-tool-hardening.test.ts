@@ -27,10 +27,10 @@ describe("Sales data normalization", () => {
 
   it("trend data with zero sales returns empty array, not error", () => {
     // Simulating what happens when there are no sales
-    const trend: { dateKey: string; revenue: number; orderCount: number }[] = [];
-    const todayRevenue = trend.find(
-      (t) => t.dateKey === "2026-09-11",
-    )?.revenue ?? 0;
+    const trend: { dateKey: string; revenue: number; orderCount: number }[] =
+      [];
+    const todayRevenue =
+      trend.find((t) => t.dateKey === "2026-09-11")?.revenue ?? 0;
     expect(todayRevenue).toBe(0);
   });
 
@@ -166,12 +166,7 @@ describe("Input edge cases for tools", () => {
   });
 
   it("mixed case is preserved for ILike matching", () => {
-    const inputs = [
-      "EmbroiDery",
-      "JAMAWAR",
-      "lAwN",
-      "Cut-Dana",
-    ];
+    const inputs = ["EmbroiDery", "JAMAWAR", "lAwN", "Cut-Dana"];
     for (const input of inputs) {
       const normalized = normalizeString(input);
       expect(normalized).toBe(input);

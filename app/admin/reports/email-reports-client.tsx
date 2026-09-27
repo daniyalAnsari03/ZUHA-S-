@@ -13,18 +13,17 @@ type EmailReportsClientProps = {
   recipient: string | null;
 };
 
-function ResultBanner({
-  message,
-}: {
-  message: string | null;
-}) {
+function ResultBanner({ message }: { message: string | null }) {
   if (!message) return null;
   return (
     <div
       className="flex items-start gap-3 rounded-xl border border-plum/15 bg-cream px-4 py-3 text-sm text-charcoal"
       role="status"
     >
-      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-plum" aria-hidden="true" />
+      <CheckCircle2
+        className="mt-0.5 h-4 w-4 shrink-0 text-plum"
+        aria-hidden="true"
+      />
       <span>{message}</span>
     </div>
   );
@@ -78,7 +77,10 @@ export function EmailReportsClient({ recipient }: EmailReportsClientProps) {
         </p>
 
         <form action={saveFormAction} className="mt-4 space-y-3">
-          <label htmlFor="report-email" className="block text-xs font-semibold uppercase tracking-wider text-charcoal-muted/80">
+          <label
+            htmlFor="report-email"
+            className="block text-xs font-semibold uppercase tracking-wider text-charcoal-muted/80"
+          >
             Recipient email
           </label>
           <input
@@ -99,7 +101,9 @@ export function EmailReportsClient({ recipient }: EmailReportsClientProps) {
         </form>
 
         <div className="mt-4">
-          <ResultBanner message={saveState.ok ? saveState.message ?? null : null} />
+          <ResultBanner
+            message={saveState.ok ? (saveState.message ?? null) : null}
+          />
           <ErrorBanner message={saveState.ok ? null : saveState.error} />
         </div>
 
@@ -126,7 +130,7 @@ export function EmailReportsClient({ recipient }: EmailReportsClientProps) {
             <button
               type="submit"
               disabled={dailyPending}
-              className="w-full rounded-xl border border-plum/25 bg-white px-4 py-3 text-left transition-colors hover:border-plum hover:bg-cream disabled:opacity-60"
+              className="w-full rounded-xl border border-plum/25 bg-neutral-soft px-4 py-3 text-left transition-colors hover:border-plum hover:bg-cream disabled:opacity-60"
             >
               <span className="block text-sm font-semibold text-plum">
                 {dailyPending ? "Sending…" : "Send Daily Report"}
@@ -140,7 +144,7 @@ export function EmailReportsClient({ recipient }: EmailReportsClientProps) {
             <button
               type="submit"
               disabled={weeklyPending}
-              className="w-full rounded-xl border border-plum/25 bg-white px-4 py-3 text-left transition-colors hover:border-plum hover:bg-cream disabled:opacity-60"
+              className="w-full rounded-xl border border-plum/25 bg-neutral-soft px-4 py-3 text-left transition-colors hover:border-plum hover:bg-cream disabled:opacity-60"
             >
               <span className="block text-sm font-semibold text-plum">
                 {weeklyPending ? "Sending…" : "Send Weekly Report"}
@@ -154,7 +158,7 @@ export function EmailReportsClient({ recipient }: EmailReportsClientProps) {
             <button
               type="submit"
               disabled={monthlyPending}
-              className="w-full rounded-xl border border-plum/25 bg-white px-4 py-3 text-left transition-colors hover:border-plum hover:bg-cream disabled:opacity-60"
+              className="w-full rounded-xl border border-plum/25 bg-neutral-soft px-4 py-3 text-left transition-colors hover:border-plum hover:bg-cream disabled:opacity-60"
             >
               <span className="block text-sm font-semibold text-plum">
                 {monthlyPending ? "Sending…" : "Send Monthly Report"}
@@ -170,15 +174,21 @@ export function EmailReportsClient({ recipient }: EmailReportsClientProps) {
           {dailyState.ok && dailyState.message && (
             <ResultBanner message={`Daily: ${dailyState.message}`} />
           )}
-          {!dailyState.ok && <ErrorBanner message={`Daily: ${dailyState.error}`} />}
+          {!dailyState.ok && (
+            <ErrorBanner message={`Daily: ${dailyState.error}`} />
+          )}
           {weeklyState.ok && weeklyState.message && (
             <ResultBanner message={`Weekly: ${weeklyState.message}`} />
           )}
-          {!weeklyState.ok && <ErrorBanner message={`Weekly: ${weeklyState.error}`} />}
+          {!weeklyState.ok && (
+            <ErrorBanner message={`Weekly: ${weeklyState.error}`} />
+          )}
           {monthlyState.ok && monthlyState.message && (
             <ResultBanner message={`Monthly: ${monthlyState.message}`} />
           )}
-          {!monthlyState.ok && <ErrorBanner message={`Monthly: ${monthlyState.error}`} />}
+          {!monthlyState.ok && (
+            <ErrorBanner message={`Monthly: ${monthlyState.error}`} />
+          )}
         </div>
       </section>
     </div>

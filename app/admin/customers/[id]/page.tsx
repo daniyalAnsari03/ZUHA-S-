@@ -83,11 +83,17 @@ export default async function AdminCustomerDetailPage({
             <p className="text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
               Orders
             </p>
-            <ShoppingBag className="h-4 w-4 text-plum-light" aria-hidden="true" />
+            <ShoppingBag
+              className="h-4 w-4 text-plum-light"
+              aria-hidden="true"
+            />
           </div>
           <p className="mt-3 font-serif text-2xl text-charcoal">
             {formatCount(detail.activeOrderCount)}
-            <span className="text-sm text-charcoal-muted"> / {formatCount(detail.orderCount)}</span>
+            <span className="text-sm text-charcoal-muted">
+              {" "}
+              / {formatCount(detail.orderCount)}
+            </span>
           </p>
           <p className="mt-1 text-xs text-charcoal-muted">active / total</p>
         </div>
@@ -96,12 +102,17 @@ export default async function AdminCustomerDetailPage({
             <p className="text-xs font-semibold uppercase tracking-wide text-charcoal-muted">
               Total spend
             </p>
-            <DollarSign className="h-4 w-4 text-plum-light" aria-hidden="true" />
+            <DollarSign
+              className="h-4 w-4 text-plum-light"
+              aria-hidden="true"
+            />
           </div>
           <p className="mt-3 font-serif text-2xl text-charcoal">
             {formatPrice(Math.round(detail.totalSpend))}
           </p>
-          <p className="mt-1 text-xs text-charcoal-muted">excludes cancelled / refunded</p>
+          <p className="mt-1 text-xs text-charcoal-muted">
+            excludes cancelled / refunded
+          </p>
         </div>
         <div className="rounded-2xl border border-charcoal/10 bg-neutral-soft p-5">
           <div className="flex items-center justify-between">
@@ -130,17 +141,30 @@ export default async function AdminCustomerDetailPage({
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-charcoal/10 bg-cream/40">
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Order</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Total</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Status</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Payment</th>
-                  <th className="px-5 py-3 font-medium text-charcoal-muted">Date</th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Order
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Total
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Status
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Payment
+                  </th>
+                  <th className="px-5 py-3 font-medium text-charcoal-muted">
+                    Date
+                  </th>
                   <th className="px-5 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-charcoal/5">
                 {orders.map((order) => (
-                  <tr key={order.id} className="transition-colors hover:bg-cream/30">
+                  <tr
+                    key={order.id}
+                    className="transition-colors hover:bg-cream/30"
+                  >
                     <td className="px-5 py-3.5">
                       <p className="font-mono text-xs font-medium text-charcoal">
                         {order.order_number}

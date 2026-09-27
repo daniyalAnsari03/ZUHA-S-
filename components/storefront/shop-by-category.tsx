@@ -20,10 +20,8 @@ export async function ShopByCategory({ categories }: ShopByCategoryProps) {
 
   try {
     const content = await getHomepageContent();
-    if (content.shopByCategoryEyebrow)
-      eyebrow = content.shopByCategoryEyebrow;
-    if (content.shopByCategoryHeading)
-      heading = content.shopByCategoryHeading;
+    if (content.shopByCategoryEyebrow) eyebrow = content.shopByCategoryEyebrow;
+    if (content.shopByCategoryHeading) heading = content.shopByCategoryHeading;
   } catch {
     // Use defaults
   }

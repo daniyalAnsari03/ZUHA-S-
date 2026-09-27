@@ -14,9 +14,17 @@ type LoginFormProps = {
   initialError?: string | null;
   /** Success message passed from the server page's search params. */
   initialMessage?: string | null;
+  /**
+   * Local path to return to once signed in, already validated as a same-origin
+   * relative path by the server page. Defaults to the storefront home.
+   */
+  nextPath?: string;
 };
 
-function friendlyLoginError(error: { message?: string; code?: string }): string {
+function friendlyLoginError(error: {
+  message?: string;
+  code?: string;
+}): string {
   const message = error.message?.toLowerCase() ?? "";
 
   if (message.includes("invalid login credentials")) {
@@ -50,13 +58,19 @@ function friendlyLoginError(error: { message?: string; code?: string }): string 
  * Client-side login form. Uses the existing Supabase browser client
  * (`lib/supabase/client.ts`) for Google OAuth and email/password sign-in.
  */
-export function LoginForm({ initialError = null, initialMessage = null }: LoginFormProps) {
+export function LoginForm({
+  initialError = null,
+  initialMessage = null,
+  nextPath = "/",
+}: LoginFormProps) {
   const router = useRouter();
   const [state, setState] = useState<LoginState>("idle");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(initialError);
-  const [successMessage, setSuccessMessage] = useState<string | null>(initialMessage);
+  const [successMessage, setSuccessMessage] = useState<string | null>(
+    initialMessage,
+  );
   const busyRef = useRef(false);
 
   async function handleGoogle() {
@@ -71,7 +85,9 @@ export function LoginForm({ initialError = null, initialMessage = null }: LoginF
       const { error } = await createClient().auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=/`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
+            nextPath,
+          )}`,
         },
       });
 
@@ -106,7 +122,7 @@ export function LoginForm({ initialError = null, initialMessage = null }: LoginF
         throw error;
       }
 
-      router.replace("/");
+      router.replace(nextPath);
       router.refresh();
     } catch (err) {
       const loginError = err as { message?: string; code?: string };
@@ -118,9 +134,7 @@ export function LoginForm({ initialError = null, initialMessage = null }: LoginF
 
   return (
     <div className="w-full">
-      <h1 className="font-serif text-2xl text-charcoal sm:text-3xl">
-        Sign in
-      </h1>
+      <h1 className="font-serif text-2xl text-charcoal sm:text-3xl">Sign in</h1>
       <p className="mt-2 text-sm text-charcoal-muted">
         Welcome back to DINS by Daniyal.
       </p>
@@ -186,7 +200,10 @@ export function LoginForm({ initialError = null, initialMessage = null }: LoginF
             autoComplete="email"
             required
             value={email}
-            onChange={(e) => { setEmail(e.target.value); setSuccessMessage(null); }}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setSuccessMessage(null);
+            }}
             placeholder="you@example.com"
             disabled={state !== "idle"}
           />
@@ -205,7 +222,10 @@ export function LoginForm({ initialError = null, initialMessage = null }: LoginF
             autoComplete="current-password"
             required
             value={password}
-            onChange={(e) => { setPassword(e.target.value); setSuccessMessage(null); }}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setSuccessMessage(null);
+            }}
             placeholder="••••••••"
             disabled={state !== "idle"}
           />

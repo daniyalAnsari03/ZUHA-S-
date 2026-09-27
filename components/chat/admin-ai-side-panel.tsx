@@ -55,7 +55,7 @@ export function AdminAiSidePanel({
             className={cn(
               "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition-colors",
               tab === "history"
-                ? "bg-white text-plum shadow-sm ring-1 ring-plum/15"
+                ? "bg-plum text-white shadow-sm"
                 : "text-plum/70 hover:text-plum",
             )}
           >
@@ -70,7 +70,7 @@ export function AdminAiSidePanel({
             className={cn(
               "inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition-colors",
               tab === "audit"
-                ? "bg-white text-plum shadow-sm ring-1 ring-plum/15"
+                ? "bg-plum text-white shadow-sm"
                 : "text-plum/70 hover:text-plum",
             )}
           >

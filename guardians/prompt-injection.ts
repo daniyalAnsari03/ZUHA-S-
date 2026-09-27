@@ -30,7 +30,8 @@ const INJECTION_PATTERNS: { pattern: RegExp; reason: string }[] = [
     reason: "instruction-override",
   },
   {
-    pattern: /\b(ignore|override|bypass)\s+(all\s+)?(guardrails?|safety|restrictions?|rules|checks?|policies?)\b/i,
+    pattern:
+      /\b(ignore|override|bypass)\s+(all\s+)?(guardrails?|safety|restrictions?|rules|checks?|policies?)\b/i,
     reason: "guardrail-override",
   },
   {
@@ -39,19 +40,23 @@ const INJECTION_PATTERNS: { pattern: RegExp; reason: string }[] = [
     reason: "role-escalation",
   },
   {
-    pattern: /reveal\s+(your\s+)?(system|internal|developer|full)\s+(prompt|instructions?|rules|configuration)/i,
+    pattern:
+      /reveal\s+(your\s+)?(system|internal|developer|full)\s+(prompt|instructions?|rules|configuration)/i,
     reason: "prompt-exfiltration",
   },
   {
-    pattern: /\b(system|developer|internal|original)\s+(prompt|message|instructions?)\s*[::—]/i,
+    pattern:
+      /\b(system|developer|internal|original)\s+(prompt|message|instructions?)\s*[::—]/i,
     reason: "prompt-exfiltration",
   },
   {
-    pattern: /\b(your\s+|the\s+)?(system|developer|internal|original)\s+(prompt|messages?|instructions?)\b/i,
+    pattern:
+      /\b(your\s+|the\s+)?(system|developer|internal|original)\s+(prompt|messages?|instructions?)\b/i,
     reason: "prompt-exfiltration",
   },
   {
-    pattern: /\b(give|send|share|expose|reveal)\s+me?\s+(the\s+)?(database|server|admin|service[\s-]?role|credentials?|api[\s-]?key|secret|password|token)\b/i,
+    pattern:
+      /\b(give|send|share|expose|reveal)\s+me?\s+(the\s+)?(database|server|admin|service[\s-]?role|credentials?|api[\s-]?key|secret|password|token)\b/i,
     reason: "credential-exfiltration",
   },
   {
@@ -60,11 +65,13 @@ const INJECTION_PATTERNS: { pattern: RegExp; reason: string }[] = [
     reason: "cross-customer-access",
   },
   {
-    pattern: /\bdelete\s+(all\s+|every\s+|every\s+single\s+)?(products?|orders?|customers?|users?|data|rows|records|categories?)\b/i,
+    pattern:
+      /\bdelete\s+(all\s+|every\s+|every\s+single\s+)?(products?|orders?|customers?|users?|data|rows|records|categories?)\b/i,
     reason: "destructive-action",
   },
   {
-    pattern: /\b(execute|run|write|fire)\s+(an?y\s+|arbitrary\s+|direct\s+|raw\s+)?(sql|queries?|commands?|scripts?)\b/i,
+    pattern:
+      /\b(execute|run|write|fire)\s+(an?y\s+|arbitrary\s+|direct\s+|raw\s+)?(sql|queries?|commands?|scripts?)\b/i,
     reason: "sql-command",
   },
   {
@@ -72,11 +79,13 @@ const INJECTION_PATTERNS: { pattern: RegExp; reason: string }[] = [
     reason: "role-escalation",
   },
   {
-    pattern: /\bapni\s+(instructions?|hidayaat|taleemaat|rules)\s+(ignore|chhor|bhool|delete)\s+(de|do|karo)\b/i,
+    pattern:
+      /\bapni\s+(instructions?|hidayaat|taleemaat|rules)\s+(ignore|chhor|bhool|delete)\s+(de|do|karo)\b/i,
     reason: "instruction-override-urdu",
   },
   {
-    pattern: /\b(system prompt|instructions|guardrails?)\s+(kholo|dikhao|batchao|chhor\s+do|remove\s+karo)\b/i,
+    pattern:
+      /\b(system prompt|instructions|guardrails?)\s+(kholo|dikhao|batchao|chhor\s+do|remove\s+karo)\b/i,
     reason: "prompt-exfiltration-urdu",
   },
 ];
@@ -127,7 +136,11 @@ function extractInputText(
       parts.push(content);
     } else if (Array.isArray(content)) {
       for (const part of content) {
-        const piece = part as { type?: string; text?: string; refusal?: string };
+        const piece = part as {
+          type?: string;
+          text?: string;
+          refusal?: string;
+        };
         if (piece?.type === "input_text" && typeof piece.text === "string") {
           parts.push(piece.text);
         }

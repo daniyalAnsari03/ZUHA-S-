@@ -9,9 +9,7 @@ const STORAGE_BUCKET = "product-images";
  *  - Supabase Storage paths like "cms/hero/file.jpeg" → converted to public URL
  *  - empty string / null / undefined → returns null
  */
-export function resolveImageUrl(
-  src: string | null | undefined,
-): string | null {
+export function resolveImageUrl(src: string | null | undefined): string | null {
   if (!src || typeof src !== "string") return null;
 
   const trimmed = src.trim();

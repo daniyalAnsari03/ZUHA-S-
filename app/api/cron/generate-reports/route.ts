@@ -36,17 +36,18 @@ export async function GET(request: NextRequest) {
     if (!cronSecret) {
       return new Response(
         JSON.stringify({
-          error: "CRON_SECRET is not configured. Add it to your server env, or verify this is a genuine Vercel CRON invocation.",
+          error:
+            "CRON_SECRET is not configured. Add it to your server env, or verify this is a genuine Vercel CRON invocation.",
         }),
         { status: 503, headers: { "content-type": "application/json" } },
       );
     }
     const auth = request.headers.get("authorization");
     if (auth !== `Bearer ${cronSecret}`) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized." }),
-        { status: 401, headers: { "content-type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized." }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
     }
   }
 
@@ -82,7 +83,9 @@ export async function GET(request: NextRequest) {
     if (!result.ok) {
       if (result.reason === "already_sent") {
         // Race-safe backstop: the unique index caught a concurrent duplicate.
-        console.log(`[cron] ${reportType} report skipped (already sent for period).`);
+        console.log(
+          `[cron] ${reportType} report skipped (already sent for period).`,
+        );
         return new Response(
           JSON.stringify({
             ok: true,
@@ -93,9 +96,17 @@ export async function GET(request: NextRequest) {
           { status: 200, headers: { "content-type": "application/json" } },
         );
       }
-      console.error(`[cron] ${reportType} report failed:`, result.reason, result.message);
+      console.error(
+        `[cron] ${reportType} report failed:`,
+        result.reason,
+        result.message,
+      );
       return new Response(
-        JSON.stringify({ ok: false, reason: result.reason, message: result.message }),
+        JSON.stringify({
+          ok: false,
+          reason: result.reason,
+          message: result.message,
+        }),
         { status: 500, headers: { "content-type": "application/json" } },
       );
     }

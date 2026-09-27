@@ -200,7 +200,9 @@ describe("Catalog tool input normalization patterns", () => {
 
 describe("Error message quality", () => {
   it("invalid input error is user-friendly", () => {
-    const result = invalid("Please provide a valid product ID to check availability.");
+    const result = invalid(
+      "Please provide a valid product ID to check availability.",
+    );
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.message).not.toContain("Zod");
@@ -211,7 +213,9 @@ describe("Error message quality", () => {
   });
 
   it("denied error is user-friendly", () => {
-    const result = denied("This action requires an admin. You don't have permission for it.");
+    const result = denied(
+      "This action requires an admin. You don't have permission for it.",
+    );
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.message).not.toContain("stack");
@@ -220,7 +224,9 @@ describe("Error message quality", () => {
   });
 
   it("notFound error is user-friendly", () => {
-    const result = notFound("No product found. Try searching by name or category.");
+    const result = notFound(
+      "No product found. Try searching by name or category.",
+    );
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.message).not.toContain("null");

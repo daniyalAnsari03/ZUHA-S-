@@ -46,9 +46,7 @@ type AuditRow = {
  * Failures must never break a chat/turn, so errors are swallowed after logging
  * to the server console.
  */
-export async function writeAiAuditLog(
-  input: AiAuditLogInput,
-): Promise<void> {
+export async function writeAiAuditLog(input: AiAuditLogInput): Promise<void> {
   try {
     const supabase = createAdminClient();
     const { error } = await supabase.from("ai_audit_logs").insert({
@@ -62,7 +60,9 @@ export async function writeAiAuditLog(
       entity_type: input.entityType ?? null,
       entity_id: input.entityId ?? null,
       detail:
-        "detail" in input && input.detail && Object.keys(input.detail).length > 0
+        "detail" in input &&
+        input.detail &&
+        Object.keys(input.detail).length > 0
           ? (input.detail as Json)
           : {},
     });
@@ -79,9 +79,11 @@ export async function writeAiAuditLog(
  * Admin view of AI activity (newest first). Only meaningful for admin callers;
  * callers are expected to verify authorization before invoking.
  */
-export async function listAiAuditLogs(
-  options?: { limit?: number; agentName?: string; status?: AuditStatus },
-): Promise<AuditRow[]> {
+export async function listAiAuditLogs(options?: {
+  limit?: number;
+  agentName?: string;
+  status?: AuditStatus;
+}): Promise<AuditRow[]> {
   const supabase = createAdminClient();
   const limit = Math.min(Math.max(options?.limit ?? 50, 1), 200);
 

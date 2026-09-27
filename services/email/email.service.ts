@@ -45,21 +45,21 @@ export type SendReportEmailOptions = {
 
 export type SendReportEmailResult =
   | {
-    ok: true;
-    emailLogId: string;
-    recipient: string;
-    subject: string;
-    aiInsight: string;
-    periodKey: string;
-    providerMessageId: string | null;
-    riskLevel: RiskLevel;
-  }
+      ok: true;
+      emailLogId: string;
+      recipient: string;
+      subject: string;
+      aiInsight: string;
+      periodKey: string;
+      providerMessageId: string | null;
+      riskLevel: RiskLevel;
+    }
   | {
-    ok: false;
-    reason: string;
-    message: string;
-    emailLogId?: string;
-  };
+      ok: false;
+      reason: string;
+      message: string;
+      emailLogId?: string;
+    };
 
 function fail(
   reason: string,
@@ -285,7 +285,11 @@ export async function sendReportEmail(
       if (error) {
         const message = error.message || "Resend rejected the email.";
         await markEmailLogFailed(emailLogId, message);
-        return fail("send_failed", `The email could not be sent: ${message}`, emailLogId);
+        return fail(
+          "send_failed",
+          `The email could not be sent: ${message}`,
+          emailLogId,
+        );
       }
       providerMessageId = data?.id ?? null;
     } catch (error) {

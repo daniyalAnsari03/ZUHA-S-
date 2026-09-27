@@ -11,11 +11,7 @@ import {
   Text,
 } from "@react-email/components";
 
-import {
-  BRAND_COLORS,
-  BRAND_NAME,
-  formatPrice,
-} from "./shared";
+import { BRAND_COLORS, BRAND_NAME, formatPrice } from "./shared";
 
 export type TopProductEmailRow = {
   name: string;
@@ -50,10 +46,7 @@ function growthLabel(percent: number): string {
   return "No change";
 }
 
-function orderGrowthLabel(
-  current: number,
-  previous: number,
-): string {
+function orderGrowthLabel(current: number, previous: number): string {
   if (previous > 0) {
     const pct = ((current - previous) / previous) * 100;
     return growthLabel(pct);
@@ -116,8 +109,7 @@ export default function MonthlyReportEmail({
           margin: 0,
           padding: 0,
           backgroundColor: ivory,
-          fontFamily:
-            "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'Georgia', 'Times New Roman', serif",
         }}
       >
         <Container

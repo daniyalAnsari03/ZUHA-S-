@@ -7,8 +7,7 @@
  * default (`gpt-5.6-luna`) as the fallback.
  */
 
-export const AI_MODEL =
-  process.env.OPENAI_MODEL?.trim() || "gpt-5.6-luna";
+export const AI_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-5.6-luna";
 
 /** Upper bound on turns per request — loop/abuse protection. */
 export const MAX_AGENT_TURNS = 8;

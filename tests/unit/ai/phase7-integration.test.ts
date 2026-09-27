@@ -529,7 +529,8 @@ describe("13. Edge Cases — Zero data is valid", () => {
   });
 
   it("zero customers instructions do not tell AI to say 'access unavailable'", () => {
-    const customerInstructions = (EMPLOYEES.customer as any).instructions as string;
+    const customerInstructions = (EMPLOYEES.customer as any)
+      .instructions as string;
     // Check that the instructions don't tell the AI to use "access unavailable"
     // for legitimate zero-data scenarios
     expect(customerInstructions).not.toMatch(/return.*access unavailable/i);
@@ -678,7 +679,7 @@ describe("17. Shared Safety Rules", () => {
 describe("18. Salesman access unavailable prevention", () => {
   it("salesman instructions explicitly forbid 'access unavailable' with working tools", () => {
     const instructions = (AGENTS.salesman as any).instructions as string;
-    expect(instructions).toContain("NEVER say \"access unavailable\"");
+    expect(instructions).toContain('NEVER say "access unavailable"');
     expect(instructions).toContain("Always use your tools first");
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { Heart } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -14,14 +15,20 @@ type WishlistButtonProps = {
 
 /**
  * Wishlist toggle. Reflects persistent DB state (via the storefront provider)
- * and gives clear feedback; guests are told to sign in.
+ * and gives clear feedback.
+ *
+ * A wishlist is a per-customer feature, so a guest click is sent to the sign-in
+ * page (and returned to the product afterwards) instead of quietly failing —
+ * the storefront shell is cacheable, so the signed-in state is only known once
+ * the provider has read it, hence the `ready`/`signedIn` gate.
  */
 export function WishlistButton({
   productId,
   initialSaved = false,
   className,
 }: WishlistButtonProps) {
-  const { toggleWishlist } = useStorefront();
+  const { toggleWishlist, ready, signedIn } = useStorefront();
+  const router = useRouter();
   const [saved, setSaved] = useState(initialSaved);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +43,13 @@ export function WishlistButton({
 
   const handleToggle = async () => {
     if (busy) return;
+
+    if (ready && !signedIn) {
+      const next = `${window.location.pathname}${window.location.search}`;
+      router.push(`/login?next=${encodeURIComponent(next)}`);
+      return;
+    }
+
     setBusy(true);
     setError(null);
 
@@ -60,7 +74,8 @@ export function WishlistButton({
         aria-pressed={saved}
         aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
         className={cn(
-          "inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors",
+          // 44x44 keeps the heart at the minimum tap-target size on phones.
+          "inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors",
           "focus-visible:outline-plum disabled:opacity-60",
           saved
             ? "bg-plum text-white hover:bg-plum-dark"
@@ -73,7 +88,10 @@ export function WishlistButton({
         />
       </button>
       {error ? (
-        <p aria-live="polite" className="rounded bg-white/90 px-2 py-1 text-[11px] text-red-600">
+        <p
+          aria-live="polite"
+          className="rounded bg-white/90 px-2 py-1 text-[11px] text-red-600"
+        >
           {error}
         </p>
       ) : null}

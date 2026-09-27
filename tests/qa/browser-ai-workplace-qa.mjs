@@ -132,38 +132,38 @@ async function main() {
     }
 
     await sendMessage(CONV_A_Q1);
-    await page.waitForFunction(
-      (q) => document.body.innerText.includes(q),
-      CONV_A_Q1,
-      { timeout: 60000 },
-    ).catch(() => {});
+    await page
+      .waitForFunction((q) => document.body.innerText.includes(q), CONV_A_Q1, {
+        timeout: 60000,
+      })
+      .catch(() => {});
 
     // New conversation A continuity: second message in same thread.
     await sendMessage(CONV_A_Q2);
-    await page.waitForFunction(
-      (q) => document.body.innerText.includes(q),
-      CONV_A_Q2,
-      { timeout: 60000 },
-    ).catch(() => {});
+    await page
+      .waitForFunction((q) => document.body.innerText.includes(q), CONV_A_Q2, {
+        timeout: 60000,
+      })
+      .catch(() => {});
 
-    const messagesAfterA = await page
-      .locator(".whitespace-pre-wrap")
-      .count();
+    const messagesAfterA = await page.locator(".whitespace-pre-wrap").count();
     console.log(`    bubbles after conv A: ${messagesAfterA}`);
 
     // ── 4. New conversation B ──────────────────────────────────────────
     console.log("\n[4] starting new conversation B…");
     await page.click('button[title="Start a new conversation"]');
-    await page.waitForFunction(
-      () => document.querySelectorAll(".whitespace-pre-wrap").length < 4,
-      { timeout: 10000 },
-    ).catch(() => {});
+    await page
+      .waitForFunction(
+        () => document.querySelectorAll(".whitespace-pre-wrap").length < 4,
+        { timeout: 10000 },
+      )
+      .catch(() => {});
     await sendMessage(CONV_B_Q1);
-    await page.waitForFunction(
-      (q) => document.body.innerText.includes(q),
-      CONV_B_Q1,
-      { timeout: 60000 },
-    ).catch(() => {});
+    await page
+      .waitForFunction((q) => document.body.innerText.includes(q), CONV_B_Q1, {
+        timeout: 60000,
+      })
+      .catch(() => {});
 
     const messagesAfterB = await page.locator(".whitespace-pre-wrap").count();
     console.log(`    bubbles after conv B: ${messagesAfterB}`);
@@ -215,7 +215,9 @@ async function main() {
       "h-history-shows-conv-a",
       "history drawer lists older conversation A",
       drawerText.includes("QA browser check A"),
-      { note: `drawer text: ${drawerText.slice(0, 220).replace(/\n/g, " | ")}` },
+      {
+        note: `drawer text: ${drawerText.slice(0, 220).replace(/\n/g, " | ")}`,
+      },
     );
 
     console.log("    clicking older conversation A…");
@@ -226,16 +228,20 @@ async function main() {
       .filter({ hasText: CONV_A_Q1 })
       .first();
     await oldConvButton.click();
-    await page.waitForSelector('aside[role="dialog"]', { state: "detached" }).catch(() => {});
+    await page
+      .waitForSelector('aside[role="dialog"]', { state: "detached" })
+      .catch(() => {});
 
     // ── 6. Verify A's real messages render in the chat view ────────────
     console.log("\n[6] verifying conversation A renders…");
-    await page.waitForFunction(
-      (q) => document.body.innerText.includes(q),
-      CONV_A_Q1,
-      { timeout: 15000 },
-    ).catch(() => {});
-    const chatTextAfterLoad = await page.locator(".whitespace-pre-wrap").allInnerTexts();
+    await page
+      .waitForFunction((q) => document.body.innerText.includes(q), CONV_A_Q1, {
+        timeout: 15000,
+      })
+      .catch(() => {});
+    const chatTextAfterLoad = await page
+      .locator(".whitespace-pre-wrap")
+      .allInnerTexts();
 
     const seesAq1 = chatTextAfterLoad.some((t) => t.includes(CONV_A_Q1));
     const seesAq2 = chatTextAfterLoad.some((t) => t.includes(CONV_A_Q2));
@@ -267,9 +273,14 @@ async function main() {
     console.log("\n[7] screenshot…");
     if (!existsSync(evidenceDir)) mkdirSync(evidenceDir, { recursive: true });
     await page.screenshot({ path: screenshotPath, fullPage: false });
-    check("h-screenshot", "desktop screenshot written", existsSync(screenshotPath), {
-      evidence: screenshotPath,
-    });
+    check(
+      "h-screenshot",
+      "desktop screenshot written",
+      existsSync(screenshotPath),
+      {
+        evidence: screenshotPath,
+      },
+    );
 
     // ── 8. Extra open-drawer screenshot proof of overlay ───────────────
     console.log("\n[8] re-open drawer for overlay-proof screenshot…");
@@ -287,26 +298,42 @@ async function main() {
     check(
       "h-overlay-proof",
       "with drawer open the chat is still visible beneath (overlay, not column)",
-      Boolean(drawer2Box && chatHeaderBox2 && drawer2Box.width < 700 && chatUnchanged2),
+      Boolean(
+        drawer2Box &&
+        chatHeaderBox2 &&
+        drawer2Box.width < 700 &&
+        chatUnchanged2,
+      ),
       {
         evidence: `drawer=${JSON.stringify(drawer2Box)} chat=${JSON.stringify(chatHeaderBox2)}`,
         note: "drawer is a fixed overlay; chat container retains its full width",
       },
     );
-    const overlayScreenshotPath = path.join(evidenceDir, "admin-ai-drawer-open.png");
+    const overlayScreenshotPath = path.join(
+      evidenceDir,
+      "admin-ai-drawer-open.png",
+    );
     await page.screenshot({ path: overlayScreenshotPath, fullPage: false });
-    check("h-drawer-screenshot", "drawer-open screenshot written", existsSync(overlayScreenshotPath), {
-      evidence: overlayScreenshotPath,
-    });
+    check(
+      "h-drawer-screenshot",
+      "drawer-open screenshot written",
+      existsSync(overlayScreenshotPath),
+      {
+        evidence: overlayScreenshotPath,
+      },
+    );
   } finally {
     await browser.close();
   }
 
   console.log(`\n===== BROWSER AI WORKPLACE QA RESULTS =====`);
-  console.log(`  Total: ${passCount + failCount} | PASS: ${passCount} | FAIL: ${failCount}\n`);
+  console.log(
+    `  Total: ${passCount + failCount} | PASS: ${passCount} | FAIL: ${failCount}\n`,
+  );
   if (failures.length) {
     console.log("═══ FAILED checks ═══");
-    for (const f of failures) console.log(`  ✗ ${f.id}: ${f.scenario} — ${f.note ?? ""}`);
+    for (const f of failures)
+      console.log(`  ✗ ${f.id}: ${f.scenario} — ${f.note ?? ""}`);
   }
   process.exit(failCount > 0 ? 1 : 0);
 }

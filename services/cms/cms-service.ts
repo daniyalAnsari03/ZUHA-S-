@@ -93,7 +93,10 @@ export async function upsertCmsContent(
     .single();
 
   if (error) {
-    throw new ServiceError("CMS_WRITE_FAILED", `Failed to save content: ${key}`);
+    throw new ServiceError(
+      "CMS_WRITE_FAILED",
+      `Failed to save content: ${key}`,
+    );
   }
 
   revalidateTag(STORE_CACHE_TAGS.cms, STORE_CACHE_PROFILE);
@@ -109,13 +112,13 @@ export async function deleteCmsContent(
 
   const supabase = await createSupabaseClient();
 
-  const { error } = await supabase
-    .from("site_content")
-    .delete()
-    .eq("key", key);
+  const { error } = await supabase.from("site_content").delete().eq("key", key);
 
   if (error) {
-    throw new ServiceError("CMS_DELETE_FAILED", `Failed to delete content: ${key}`);
+    throw new ServiceError(
+      "CMS_DELETE_FAILED",
+      `Failed to delete content: ${key}`,
+    );
   }
 
   revalidateTag(STORE_CACHE_TAGS.cms, STORE_CACHE_PROFILE);

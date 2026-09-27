@@ -97,7 +97,9 @@ export async function setReportEmailAddress(
  * Order: configured store recipient → explicit fallback (e.g. the signed-in
  * admin's email in the Admin UI). Never guesses or invents an address.
  */
-export async function resolveReportRecipient(fallback?: string | null): Promise<string | null> {
+export async function resolveReportRecipient(
+  fallback?: string | null,
+): Promise<string | null> {
   const configured = await getReportEmailAddress().catch(() => null);
   if (configured) return configured;
   if (fallback?.trim()) return fallback.trim();

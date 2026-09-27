@@ -1,6 +1,4 @@
-import {
-  createClient as createSupabaseClient,
-} from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { assertRole, ServiceError } from "@/services/base";
 import { isExcludedFromRevenue } from "@/services/analytics/analytics-service";
@@ -28,12 +26,7 @@ export type CustomerDetail = {
   profile: ProfileRow;
   orders: Pick<
     OrderRow,
-    | "id"
-    | "order_number"
-    | "status"
-    | "payment_status"
-    | "total"
-    | "created_at"
+    "id" | "order_number" | "status" | "payment_status" | "total" | "created_at"
   >[];
   orderCount: number;
   activeOrderCount: number;
@@ -50,7 +43,12 @@ export function computeCustomerSummary(
     OrderRow,
     "id" | "status" | "payment_status" | "total" | "created_at"
   >[],
-): { orderCount: number; activeOrderCount: number; totalSpend: number; lastOrderAt: string | null } {
+): {
+  orderCount: number;
+  activeOrderCount: number;
+  totalSpend: number;
+  lastOrderAt: string | null;
+} {
   let orderCount = 0;
   let activeOrderCount = 0;
   let totalSpend = 0;
@@ -105,7 +103,11 @@ export async function listCustomers(
     .range(offset, offset + limit - 1);
 
   if (error) {
-    throw new ServiceError("CUSTOMERS_READ_FAILED", "Failed to load customers.", error);
+    throw new ServiceError(
+      "CUSTOMERS_READ_FAILED",
+      "Failed to load customers.",
+      error,
+    );
   }
 
   const profiles = (data ?? []) as Pick<
@@ -121,10 +123,17 @@ export async function listCustomers(
   const { data: orderRows, error: ordersError } = await supabase
     .from("orders")
     .select("user_id, id, status, payment_status, total, created_at")
-    .in("user_id", profiles.map((p) => p.id));
+    .in(
+      "user_id",
+      profiles.map((p) => p.id),
+    );
 
   if (ordersError) {
-    throw new ServiceError("CUSTOMERS_ORDERS_FAILED", "Failed to load customer orders.", ordersError);
+    throw new ServiceError(
+      "CUSTOMERS_ORDERS_FAILED",
+      "Failed to load customer orders.",
+      ordersError,
+    );
   }
 
   const rows = (orderRows ?? []) as Pick<
@@ -178,7 +187,11 @@ export async function getCustomerDetail(
     .maybeSingle();
 
   if (profileError) {
-    throw new ServiceError("CUSTOMER_READ_FAILED", "Failed to load customer.", profileError);
+    throw new ServiceError(
+      "CUSTOMER_READ_FAILED",
+      "Failed to load customer.",
+      profileError,
+    );
   }
 
   const { data: orders, error: ordersError } = await supabase
@@ -190,13 +203,22 @@ export async function getCustomerDetail(
     .order("created_at", { ascending: false });
 
   if (ordersError) {
-    throw new ServiceError("CUSTOMER_ORDERS_FAILED", "Failed to load customer orders.", ordersError);
+    throw new ServiceError(
+      "CUSTOMER_ORDERS_FAILED",
+      "Failed to load customer orders.",
+      ordersError,
+    );
   }
 
   const orderRows = (orders ?? []) as unknown as Array<
     Pick<
       OrderRow,
-      "id" | "order_number" | "status" | "payment_status" | "total" | "created_at"
+      | "id"
+      | "order_number"
+      | "status"
+      | "payment_status"
+      | "total"
+      | "created_at"
     > & {
       customer_name: string;
       customer_phone: string;

@@ -42,14 +42,12 @@ export const metadata: Metadata = {
     locale: "en_PK",
     siteName: "DINS by Daniyal",
     title: siteTitle,
-    description:
-      "Premium Pakistani fashion and embroidery by DINS by Daniyal.",
+    description: "Premium Pakistani fashion and embroidery by DINS by Daniyal.",
   },
   twitter: {
     card: "summary_large_image",
     title: siteTitle,
-    description:
-      "Premium Pakistani fashion and embroidery by DINS by Daniyal.",
+    description: "Premium Pakistani fashion and embroidery by DINS by Daniyal.",
   },
   robots: {
     index: true,

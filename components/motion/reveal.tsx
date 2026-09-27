@@ -1,7 +1,4 @@
-"use client";
-
-import { motion, useReducedMotion, type Transition } from "framer-motion";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 type RevealProps = {
   children: ReactNode;
@@ -9,28 +6,24 @@ type RevealProps = {
   delay?: number;
 };
 
-const ease: Transition["ease"] = [0.22, 1, 0.36, 1];
-
 /**
- * Subtle scroll-reveal wrapper used across the storefront. Renders a plain
- * element when the user prefers reduced motion.
+ * Subtle scroll-reveal wrapper used across the storefront.
+ *
+ * Implemented with a CSS scroll-driven animation (`animation-timeline: view()`)
+ * instead of a JS animation library, so revealing a section costs zero
+ * JavaScript, zero observers and zero main-thread work. The markup is a single
+ * element with no extra wrappers. Browsers without scroll-driven animation
+ * support render the content immediately, and the global
+ * `prefers-reduced-motion` block disables the animation for users who ask for
+ * reduced motion.
  */
 export function Reveal({ children, className, delay = 0 }: RevealProps) {
-  const reduceMotion = useReducedMotion();
-
-  if (reduceMotion) {
-    return <div className={className}>{children}</div>;
-  }
-
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, delay, ease }}
+    <div
+      className={className ? `reveal-scroll ${className}` : "reveal-scroll"}
+      style={{ "--reveal-delay": `${delay}s` } as CSSProperties}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

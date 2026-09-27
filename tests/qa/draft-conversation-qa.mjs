@@ -182,7 +182,13 @@ async function t1_adminProductDraftInterrupt() {
         product.price === 9000 &&
         product.stock_quantity === 12 &&
         d3 === null,
-      { productSlug: expectedSlug, price: product && product.price, stock: product && product.stock_quantity, draftCleared: d3 === null, tools: r3.tools },
+      {
+        productSlug: expectedSlug,
+        price: product && product.price,
+        stock: product && product.stock_quantity,
+        draftCleared: d3 === null,
+        tools: r3.tools,
+      },
     );
   } finally {
     if (productId) await deleteDisposableProduct(productId).catch(() => {});
@@ -311,9 +317,7 @@ async function t3_customerExplicitCancel() {
     results.record(
       "C1",
       "explicit 'chhod do' clears the pending checkout draft",
-      !!d1 &&
-        rCanc.status === 200 &&
-        d2 === null,
+      !!d1 && rCanc.status === 200 && d2 === null,
       { hadDraft: !!d1, cleared: d2 === null, tools: rCanc.tools },
     );
 
@@ -348,10 +352,7 @@ async function t4_freshConversationZeroFocus() {
   results.record(
     "D1",
     "previously-discussed Khirke Jamawar in conversation A does NOT leak into a fresh conversation B",
-    !!convA &&
-      convA !== rB.conversationId &&
-      rB.status === 200 &&
-      !hasKhirke,
+    !!convA && convA !== rB.conversationId && rB.status === 200 && !hasKhirke,
     {
       convA,
       convB: rB.conversationId,

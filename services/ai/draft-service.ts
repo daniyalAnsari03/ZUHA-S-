@@ -64,7 +64,10 @@ export async function getPendingDraft(
   const { data, error } = await (
     supabase.from("ai_conversations") as unknown as {
       select(column: "draft"): {
-        eq(column: "id", value: string): Promise<{
+        eq(
+          column: "id",
+          value: string,
+        ): Promise<{
           data: { draft: Json | null }[] | null;
           error: { message: string } | null;
         }>;
@@ -121,13 +124,16 @@ export async function setPendingDraft(
   const supabase = await createSupabaseClient();
 
   const payload = {
-    draft: draft === null ? null : ((draft as unknown) as Json),
+    draft: draft === null ? null : (draft as unknown as Json),
   };
 
   const { error } = await (
     supabase.from("ai_conversations") as unknown as {
       update(payload: { draft: Json | null }): {
-        eq(column: "id", value: string): Promise<{
+        eq(
+          column: "id",
+          value: string,
+        ): Promise<{
           error: { message: string } | null;
         }>;
       };

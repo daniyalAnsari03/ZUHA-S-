@@ -1,8 +1,5 @@
 // Read-only verification of the 6 orders named in docs/fix.txt #1.
-import {
-  SUPABASE_URL,
-  SUPABASE_SERVICE_KEY,
-} from "./lib/harness.mjs";
+import { SUPABASE_URL, SUPABASE_SERVICE_KEY } from "./lib/harness.mjs";
 
 const numbers = [
   "DIN-20260911-1156",
@@ -21,7 +18,9 @@ const h = {
 
 const q = (path) =>
   fetch(`${SUPABASE_URL}${path}`, { method: "GET", headers: h })
-    .then(async (r) => (r.ok ? r.json() : { error: `${r.status} ${await r.text()}` }))
+    .then(async (r) =>
+      r.ok ? r.json() : { error: `${r.status} ${await r.text()}` },
+    )
     .catch((e) => ({ error: String(e) }));
 
 for (const n of numbers) {

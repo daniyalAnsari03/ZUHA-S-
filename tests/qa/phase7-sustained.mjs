@@ -39,7 +39,7 @@ function sessionCookie(auth) {
         expires_at: auth.expires_at,
         token_type: "bearer",
         user: auth.user,
-      })
+      }),
     )
   );
 }
@@ -111,7 +111,7 @@ async function main() {
     "[phase0] disposable orders:",
     order1.order_number,
     order2.order_number,
-    order3.order_number
+    order3.order_number,
   );
 
   const convos = []; // [{turn, label, message, response}]
@@ -136,10 +136,10 @@ async function main() {
     };
     turnLog.push(entry);
     console.log(
-      `  [T${String(turnCount).padStart(2, "0")}] ${label}: "${message.slice(0, 80)}"`
+      `  [T${String(turnCount).padStart(2, "0")}] ${label}: "${message.slice(0, 80)}"`,
     );
     console.log(
-      `       → tools: [${res.tools.join(", ")}]  agent: [${res.agents.join(", ")}]`
+      `       → tools: [${res.tools.join(", ")}]  agent: [${res.agents.join(", ")}]`,
     );
     console.log(`       → "${res.text.slice(0, 160)}"`);
     await sleep(800);
@@ -154,7 +154,7 @@ async function main() {
       "T01",
       "sales query",
       hasTool(t1, ["get_sales_overview"]) && /\d/.test(t1.text),
-      { tools: t1.tools, note: t1.text.slice(0, 120) }
+      { tools: t1.tools, note: t1.text.slice(0, 120) },
     );
 
     const t2 = await turn("products1", "sare products ki list do");
@@ -162,24 +162,24 @@ async function main() {
       "T02",
       "product list",
       hasTool(t2, ["list_products", "search_products_admin"]),
-      { tools: t2.tools }
+      { tools: t2.tools },
     );
 
     const t3 = await turn(
       "categories1",
-      "Jamawar collection mein kya kya hai?"
+      "Jamawar collection mein kya kya hai?",
     );
     check(
       "T03",
       "category browse",
       hasTool(t3, ["list_products", "list_categories"]),
-      { tools: t3.tools }
+      { tools: t3.tools },
     );
 
     // ── SCENARIO g: Category name in product detail ──────────────────────
     const t4 = await turn(
       "productDetail",
-      `"${productA.name}" ka complete detail batao — name, price, category, fabric, sab kuch`
+      `"${productA.name}" ka complete detail batao — name, price, category, fabric, sab kuch`,
     );
     const mentionsCatName =
       t4.text.toLowerCase().includes("jamawar") &&
@@ -194,7 +194,7 @@ async function main() {
         mismatch: !mentionsCatName
           ? `category name missing or "Not specified" in: "${t4.text.slice(0, 200)}"`
           : null,
-      }
+      },
     );
 
     const _t5 = await turn("lowstock1", "low stock products dikhao");
@@ -202,22 +202,13 @@ async function main() {
 
     // ── SCENARIO a: Topic bleed from Khirke Jamawar ──────────────────────
     // Mention Khirke Jamawar 3 times via read-only operations
-    const t6 = await turn(
-      "khirke1",
-      "Khirke Jamawar ka price kya hai?"
-    );
-    const t7 = await turn(
-      "khirke2",
-      "Khirke Jamawar ka fabric bhi bata do"
-    );
-    const t8 = await turn(
-      "khirke3",
-      "Khirke Jamawar ke saare variants dikhao"
-    );
+    const t6 = await turn("khirke1", "Khirke Jamawar ka price kya hai?");
+    const t7 = await turn("khirke2", "Khirke Jamawar ka fabric bhi bata do");
+    const t8 = await turn("khirke3", "Khirke Jamawar ke saare variants dikhao");
     // Now ask an UNRELATED topic — should NOT mention/action on Khirke
     const t9 = await turn(
       "salesAfterKhirke",
-      "aaj ki sales kya hai? mujhe sirf aaj ka data chahiye"
+      "aaj ki sales kya hai? mujhe sirf aaj ka data chahiye",
     );
     const mentionsKhirkeAfterUnrelated =
       /khirke|jamawar/i.test(t9.text) && !hasTool(t9, ["get_sales_overview"]);
@@ -231,17 +222,17 @@ async function main() {
         mismatch: mentionsKhirkeAfterUnrelated
           ? `Khirke/Jamawar leaked into unrelated sales answer: "${t9.text.slice(0, 200)}"`
           : null,
-      }
+      },
     );
 
     // ── SCENARIO b: "khudhi kar do" targets correct product ─────────────
     const t10 = await turn(
       "descUpdate",
-      `"${productA.name}" ki description update karo — nayi description: "QA TEMP Updated Description Phase7"`
+      `"${productA.name}" ki description update karo — nayi description: "QA TEMP Updated Description Phase7"`,
     );
     const t11 = await turn(
       "khudhiKarDo",
-      "khudhi kar do, sirf description change karni hai"
+      "khudhi kar do, sirf description change karni hai",
     );
     const productABefore = await getFirst("products", `id=eq.${productA.id}`);
     const descUpdated =
@@ -252,14 +243,14 @@ async function main() {
     const realProducts = await queryRows(
       "products",
       "is_active=eq.true",
-      "select=id,description&limit=10"
+      "select=id,description&limit=10",
     ).catch(() => []);
     const noOtherModified = Array.isArray(realProducts)
       ? realProducts.every(
           (p) =>
             p.id === productA.id ||
             !p.description ||
-            !p.description.includes("QA TEMP Updated Description Phase7")
+            !p.description.includes("QA TEMP Updated Description Phase7"),
         )
       : true;
     check(
@@ -274,30 +265,30 @@ async function main() {
           : !noOtherModified
             ? "another product was modified by 'khudhi kar do'"
             : null,
-      }
+      },
     );
 
     // ── SCENARIO h: Entity from 3–5 turns back ──────────────────────────
     // Establish order 1 as the focused entity at turn 12
     const t12 = await turn(
       "orderDetail1",
-      `order "${order1.order_number}" ki detail batao`
+      `order "${order1.order_number}" ki detail batao`,
     );
     // 4 unrelated turns to push order1 back 4–5 turns
     const _t13 = await turn("custList", "customers ki list dikhao");
     const _t14 = await turn(
       "ordersLast7",
-      "last 7 days mein kitne orders aaye?"
+      "last 7 days mein kitne orders aaye?",
     );
     const _t15 = await turn(
       "marketingCopy",
-      "Mehrab Jamawar ke liye Instagram post ka copy likh do"
+      "Mehrab Jamawar ke liye Instagram post ka copy likh do",
     );
     const _t16 = await turn("weekSales", "is week ki sales summary do");
     // Now refer back to the order from turn 12 (5 turns back)
     const t17 = await turn(
       "iskaOrder",
-      "iska order number kya tha? mujhe yaad nahi aa raha"
+      "iska order number kya tha? mujhe yaad nahi aa raha",
     );
     const mentionsOrder1 =
       t17.text.toLowerCase().includes(order1.order_number.toLowerCase()) ||
@@ -312,7 +303,7 @@ async function main() {
         mismatch: !mentionsOrder1
           ? `"iska" did not resolve to order ${order1.order_number}: "${t17.text.slice(0, 200)}"`
           : null,
-      }
+      },
     );
 
     // ── SCENARIO c: Single order pending→processing + bulk ──────────────
@@ -320,7 +311,7 @@ async function main() {
     // combined confirm+processing, NOT just refuse
     const t18 = await turn(
       "singleOrderStatus",
-      `order "${order2.order_number}" ko pending se processing mein daal do`
+      `order "${order2.order_number}" ko pending se processing mein daal do`,
     );
     // The AI should either:
     // (a) perform update_order_status directly (combined confirm+processing),
@@ -331,7 +322,7 @@ async function main() {
       /\?|confirm|kar doon|pakka|proceed|confirm.*processing/i.test(t18.text);
     const refused =
       /nahi kar sakta|cannot|can't do both|manual|you.*do.*processing yourself/i.test(
-        t18.text
+        t18.text,
       );
     const order2DB = await getFirst("orders", `id=eq.${order2.id}`);
     check(
@@ -347,7 +338,7 @@ async function main() {
           : !offeredCombined && order2DB?.status === "pending"
             ? "no combined offer and no action taken"
             : null,
-      }
+      },
     );
     // If AI asked for confirmation, give it
     if (
@@ -357,14 +348,14 @@ async function main() {
     ) {
       await turn(
         "confirmSingle",
-        "haan haan, kar do — confirm bhi karo aur processing mein bhi daal do"
+        "haan haan, kar do — confirm bhi karo aur processing mein bhi daal do",
       );
     }
 
     // Bulk: all remaining pending disposable orders → processing
     const t19 = await turn(
       "bulkOrderStatus",
-      "saare pending orders ko bulk mein confirm + processing mein daal do"
+      "saare pending orders ko bulk mein confirm + processing mein daal do",
     );
     // The bulk ">10 records" confirmation guard (pre-existing design) may ask
     // ONE final confirmation naming what will change. Model the owner's real
@@ -378,12 +369,12 @@ async function main() {
     ) {
       await turn(
         "bulkConfirm",
-        "haan, proceed karo — sab pending orders ko confirm + processing mein daal do"
+        "haan, proceed karo — sab pending orders ko confirm + processing mein daal do",
       );
     }
     const t20 = await turn(
       "sareOrdersDikhao",
-      "sare orders dikhao — mujhe har ek ka status check karna hai"
+      "sare orders dikhao — mujhe har ek ka status check karna hai",
     );
     // Verify DB actually changed for every disposable order
     const o1Fresh = await getFirst("orders", `id=eq.${order1.id}`);
@@ -412,19 +403,19 @@ async function main() {
           : !listsOrders
             ? "sare orders dikhao did not use list_all_orders"
             : null,
-      }
+      },
     );
 
     // ── SCENARIO d: "han confirm hai" resolves to order action ──────────
     // Set up an order-related pending question context
     const t21 = await turn(
       "orderStatusQuery",
-      `order "${order3.order_number}" ka current status kya hai? confirm hai ya processing?`
+      `order "${order3.order_number}" ka current status kya hai? confirm hai ya processing?`,
     );
     // Now say "han confirm hai" — should resolve to order action
     const t22 = await turn(
       "hanConfirm",
-      "han confirm hai — usko processing mein daal do"
+      "han confirm hai — usko processing mein daal do",
     );
     const o3AfterConfirm = await getFirst("orders", `id=eq.${order3.id}`);
     const orderActionFired =
@@ -447,13 +438,13 @@ async function main() {
           : !orderActionFired
             ? "'han confirm hai' did not trigger order action"
             : null,
-      }
+      },
     );
 
     // ── SCENARIO e: Real current server date ────────────────────────────
     const t23 = await turn(
       "dateQuery",
-      "aaj ki date kya hai? mujhe exact date chahiye"
+      "aaj ki date kya hai? mujhe exact date chahiye",
     );
     // Check the response contains today's date in some format (PKT: UTC+5)
     const pktOffset = 5 * 60 * 60 * 1000;
@@ -487,7 +478,7 @@ async function main() {
       `${pktDay} ${pktMonthName.slice(0, 3)} ${pktYear}`, // "14 Sep 2026"
     ];
     const dateCorrect = datePatterns.some((p) =>
-      t23.text.toLowerCase().includes(p.toLowerCase())
+      t23.text.toLowerCase().includes(p.toLowerCase()),
     );
     check("e", "returns real current server date (PKT)", dateCorrect, {
       tools: t23.tools,
@@ -501,13 +492,13 @@ async function main() {
     // ── SCENARIO f: General/meta question ───────────────────────────────
     const t24 = await turn(
       "metaQuery",
-      "aap kya kya kar sakte ho? mujhe apni capabilities batao"
+      "aap kya kya kar sakte ho? mujhe apni capabilities batao",
     );
     const hasRealAnswer =
       t24.text.length > 60 &&
       !/manager will guide you|guide you|ask the manager/i.test(t24.text) &&
       /\b(product|order|customer|sales|inventory|stock|category|marketing|analytics)\b/i.test(
-        t24.text
+        t24.text,
       );
     check(
       "f",
@@ -519,41 +510,26 @@ async function main() {
         mismatch: !hasRealAnswer
           ? `weak meta answer: "${t24.text.slice(0, 250)}"`
           : null,
-      }
+      },
     );
 
     // ── ADDITIONAL MIXING TURNS (to reach 30+) ─────────────────────────
-    await turn(
-      "salesTrend",
-      "pichle month ka sales trend kya raha?"
-    );
-    await turn(
-      "productSearch",
-      "Lawn collection mein kya kya available hai?"
-    );
-    await turn(
-      "orderCount",
-      "total orders kitne hue abhi tak?"
-    );
-    await turn(
-      "customerSearch",
-      "koi customer hai jiska naam Daniyal hai?"
-    );
+    await turn("salesTrend", "pichle month ka sales trend kya raha?");
+    await turn("productSearch", "Lawn collection mein kya kya available hai?");
+    await turn("orderCount", "total orders kitne hue abhi tak?");
+    await turn("customerSearch", "koi customer hai jiska naam Daniyal hai?");
     await turn(
       "inventoryRead",
-      `"${productA.name}" ka current stock kitna hai?`
+      `"${productA.name}" ka current stock kitna hai?`,
     );
     await turn(
       "deliveryInfo",
-      "delivery information update karo is product ke liye — standard delivery 3-5 business days"
+      "delivery information update karo is product ke liye — standard delivery 3-5 business days",
     );
-    await turn(
-      "categoryList",
-      "sare categories dikhao"
-    );
+    await turn("categoryList", "sare categories dikhao");
     await turn(
       "salesSummary",
-      "aaj ka final summary do — sales, orders, customers sab kuch"
+      "aaj ka final summary do — sales, orders, customers sab kuch",
     );
 
     // ── SECTION 1 CHECKLIST (Admin AI capability markers) ───────────────
@@ -564,24 +540,22 @@ async function main() {
     const section1Checks = [
       [
         "sales",
-        hasTool(
-          { tools: allToolsUsed },
-          ["get_sales_overview", "get_sales_trend"]
-        ),
+        hasTool({ tools: allToolsUsed }, [
+          "get_sales_overview",
+          "get_sales_trend",
+        ]),
       ],
       [
         "products",
-        hasTool(
-          { tools: allToolsUsed },
-          ["list_products", "search_products_admin", "get_product"]
-        ),
+        hasTool({ tools: allToolsUsed }, [
+          "list_products",
+          "search_products_admin",
+          "get_product",
+        ]),
       ],
       [
         "categories",
-        hasTool(
-          { tools: allToolsUsed },
-          ["list_products", "list_categories"]
-        ),
+        hasTool({ tools: allToolsUsed }, ["list_products", "list_categories"]),
       ],
       [
         "inventory read",
@@ -589,44 +563,38 @@ async function main() {
           (t) =>
             t.includes("stock") ||
             t.includes("inventory") ||
-            t.includes("list_products")
+            t.includes("list_products"),
         ),
       ],
-      [
-        "product edit",
-        hasTool({ tools: allToolsUsed }, ["update_product"]),
-      ],
+      ["product edit", hasTool({ tools: allToolsUsed }, ["update_product"])],
       [
         "orders read",
-        hasTool(
-          { tools: allToolsUsed },
-          ["list_all_orders", "get_order_detail"]
-        ),
+        hasTool({ tools: allToolsUsed }, [
+          "list_all_orders",
+          "get_order_detail",
+        ]),
       ],
       [
         "order status update",
-        hasTool(
-          { tools: allToolsUsed },
-          ["update_order_status", "advance_order_status"]
-        ),
+        hasTool({ tools: allToolsUsed }, [
+          "update_order_status",
+          "advance_order_status",
+        ]),
       ],
       [
         "customers",
-        hasTool(
-          { tools: allToolsUsed },
-          ["list_customers", "get_customer_detail"]
-        ),
+        hasTool({ tools: allToolsUsed }, [
+          "list_customers",
+          "get_customer_detail",
+        ]),
       ],
       [
         "marketing",
-        hasTool(
-          { tools: allToolsUsed },
-          [
-            "generate_social_post",
-            "generate_product_marketing_copy",
-            "generate_ad_copy",
-          ]
-        ),
+        hasTool({ tools: allToolsUsed }, [
+          "generate_social_post",
+          "generate_product_marketing_copy",
+          "generate_ad_copy",
+        ]),
       ],
     ];
     for (const [name, ok] of section1Checks) {
@@ -641,26 +609,24 @@ async function main() {
       "s3-no-admin-tools-leaked",
       "Section 3: no customer→admin escalation in sustained thread",
       true, // all turns are admin-authenticated; security is structural
-      { note: "all turns use admin cookie" }
+      { note: "all turns use admin cookie" },
     );
 
     // Section 4: Agent architecture — verify agents were used
-    const allAgents = [
-      ...new Set(turnLog.flatMap((e) => e.agents)),
-    ];
+    const allAgents = [...new Set(turnLog.flatMap((e) => e.agents))];
     check(
       "s4-agents-used",
       `Section 4: multiple agents engaged (${allAgents.join(", ")})`,
       allAgents.length >= 1,
-      { evidence: allAgents }
+      { evidence: allAgents },
     );
 
     // Section 5: Mutation verification
     const mutationsVerified = [
-      descUpdated,                           // product A description
-      o1Fresh?.status !== "pending",         // order1
-      o2Fresh?.status !== "pending",         // order2
-      o3AfterConfirm?.status !== "pending",  // order3
+      descUpdated, // product A description
+      o1Fresh?.status !== "pending", // order1
+      o2Fresh?.status !== "pending", // order2
+      o3AfterConfirm?.status !== "pending", // order3
     ].filter(Boolean).length;
     check(
       "s5-mutations-verified",
@@ -668,7 +634,7 @@ async function main() {
       mutationsVerified >= 3,
       {
         evidence: `desc=${descUpdated} o1=${o1Fresh?.status} o2=${o2Fresh?.status} o3=${o3AfterConfirm?.status}`,
-      }
+      },
     );
   } catch (e) {
     console.error("[fatal] sustained QA error:", e);
@@ -676,13 +642,13 @@ async function main() {
     // ── CLEANUP ───────────────────────────────────────────────────────
     console.log("\n[cleanup] deleting disposable data…");
     await deleteDisposableCustomer(cust.userId).catch((e) =>
-      console.log("  [cleanup] customer:", e.message)
+      console.log("  [cleanup] customer:", e.message),
     );
     await deleteDisposableProduct(productA.id).catch((e) =>
-      console.log("  [cleanup] product:", e.message)
+      console.log("  [cleanup] product:", e.message),
     );
     const stray = await getFirst("products", `sku=eq.${productA.sku}`).catch(
-      () => null
+      () => null,
     );
     if (stray) await deleteDisposableProduct(stray.id).catch(() => {});
     console.log("[cleanup] done.");
@@ -704,11 +670,11 @@ async function main() {
   // ── FULL TURN LOG (for manual inspection) ──────────────────────────
   console.log("\n═══ FULL TURN LOG ═══");
   for (const e of turnLog) {
-    console.log(
-      `\n── T${String(e.turn).padStart(2, "0")} [${e.label}] ──`
-    );
+    console.log(`\n── T${String(e.turn).padStart(2, "0")} [${e.label}] ──`);
     console.log(`  REQ: ${e.message}`);
-    console.log(`  TOOLS: [${e.tools.join(", ")}]  AGENTS: [${e.agents.join(", ")}]`);
+    console.log(
+      `  TOOLS: [${e.tools.join(", ")}]  AGENTS: [${e.agents.join(", ")}]`,
+    );
     console.log(`  RES: ${e.response.slice(0, 300)}`);
   }
 

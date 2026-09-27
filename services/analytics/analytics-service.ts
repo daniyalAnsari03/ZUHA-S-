@@ -1,6 +1,4 @@
-import {
-  createClient as createSupabaseClient,
-} from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@/lib/supabase/server";
 import type {
   Database,
   OrderStatus,
@@ -20,7 +18,13 @@ export type AdminActor = { id: string; role: "admin" | "customer" };
 /** Order fields fetched for admin analytics/dashboard snapshots. */
 export type OrderSnapshotRow = Pick<
   OrderRow,
-  "id" | "status" | "payment_status" | "total" | "order_number" | "customer_name" | "created_at"
+  | "id"
+  | "status"
+  | "payment_status"
+  | "total"
+  | "order_number"
+  | "customer_name"
+  | "created_at"
 >;
 
 export type OrderStatusDistribution = {
@@ -156,7 +160,10 @@ export function computeStatusDistribution(
  * Uses the server's local date for bucketing (consistent within a single deployment).
  */
 export function computeSalesTrend(
-  orders: Pick<OrderRow, "total" | "status" | "payment_status" | "created_at">[],
+  orders: Pick<
+    OrderRow,
+    "total" | "status" | "payment_status" | "created_at"
+  >[],
   days = 14,
 ): SalesTrendPoint[] {
   const trend = new Map<string, SalesTrendPoint>();
@@ -258,9 +265,7 @@ export function computeStats(
   };
 }
 
-export async function fetchAdminSnapshot(
-  actor: AdminActor,
-): Promise<{
+export async function fetchAdminSnapshot(actor: AdminActor): Promise<{
   orders: OrderSnapshotRow[];
   customersCount: number;
   productsCount: number;
@@ -276,7 +281,10 @@ export async function fetchAdminSnapshot(
       .select(
         "id, status, payment_status, total, order_number, customer_name, created_at",
       ),
-    supabase.from("profiles").select("id", { count: "exact" }).eq("role", "customer"),
+    supabase
+      .from("profiles")
+      .select("id", { count: "exact" })
+      .eq("role", "customer"),
     supabase
       .from("products")
       .select(
@@ -285,13 +293,25 @@ export async function fetchAdminSnapshot(
   ]);
 
   if (ordersResult.error) {
-    throw new ServiceError("ANALYTICS_ORDERS_FAILED", "Failed to load order data.", ordersResult.error);
+    throw new ServiceError(
+      "ANALYTICS_ORDERS_FAILED",
+      "Failed to load order data.",
+      ordersResult.error,
+    );
   }
   if (customersResult.error) {
-    throw new ServiceError("ANALYTICS_CUSTOMERS_FAILED", "Failed to load customer data.", customersResult.error);
+    throw new ServiceError(
+      "ANALYTICS_CUSTOMERS_FAILED",
+      "Failed to load customer data.",
+      customersResult.error,
+    );
   }
   if (productsResult.error) {
-    throw new ServiceError("ANALYTICS_PRODUCTS_FAILED", "Failed to load product data.", productsResult.error);
+    throw new ServiceError(
+      "ANALYTICS_PRODUCTS_FAILED",
+      "Failed to load product data.",
+      productsResult.error,
+    );
   }
 
   const products = (productsResult.data ?? []) as {
@@ -322,7 +342,9 @@ export async function fetchAdminSnapshot(
 }
 
 /** Live dashboard metrics used by /admin and the admin overview. */
-export async function getAdminDashboard(actor: AdminActor): Promise<DashboardData> {
+export async function getAdminDashboard(
+  actor: AdminActor,
+): Promise<DashboardData> {
   const snapshot = await fetchAdminSnapshot(actor);
 
   return {
@@ -342,7 +364,10 @@ export async function getSalesAnalytics(
   options?: { trendDays?: number; topProductLimit?: number },
 ): Promise<SalesAnalyticsData> {
   const trendDays = Math.max(7, Math.min(90, options?.trendDays ?? 14));
-  const topProductLimit = Math.max(1, Math.min(20, options?.topProductLimit ?? 5));
+  const topProductLimit = Math.max(
+    1,
+    Math.min(20, options?.topProductLimit ?? 5),
+  );
 
   assertRole(actor.role, ["admin"]);
   const supabase = await createSupabaseClient();

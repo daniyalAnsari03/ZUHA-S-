@@ -21,9 +21,8 @@ export async function GET(request: NextRequest) {
   // Only ever redirect to a local path. Reject protocol-relative or
   // external `next` values to prevent open-redirect abuse.
   const rawNext = searchParams.get("next") ?? "/";
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//")
-    ? rawNext
-    : "/";
+  const next =
+    rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
 
   if (error) {
     const message = errorDescription || error;
