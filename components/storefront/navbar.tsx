@@ -146,7 +146,9 @@ export function Navbar({ categories, products }: NavbarProps) {
       />
       <nav
         aria-label="Primary"
-        className="relative mx-auto grid h-32 max-w-7xl grid-cols-[1fr_auto_1fr] items-start gap-2 px-4 pt-3 sm:h-40 sm:px-6 sm:pt-4 lg:px-8"
+        // Top padding reserves the 36px announcement overlay that sits on top of
+        // this bar, so the two never overlap. Keep the two heights in step.
+        className="relative mx-auto grid h-32 max-w-7xl grid-cols-[1fr_auto_1fr] items-start gap-2 px-4 pt-12 sm:h-40 sm:px-6 sm:pt-[52px] lg:px-8"
       >
         <div className="flex items-center justify-self-start gap-0.5 sm:gap-1">
           <NavIcon
@@ -179,34 +181,40 @@ export function Navbar({ categories, products }: NavbarProps) {
 
         <Link
           href="/"
-          aria-label="DINS by Daniyal"
+          aria-label={isHome ? "ZUHA'S — home" : "DINS by Daniyal"}
           className="justify-self-center"
         >
-          <span
-            aria-hidden="true"
-            className="block h-[58px] w-[111px] transition-[filter] duration-500 sm:h-[69px] sm:w-[132px]"
-            style={{
-              backgroundImage: scrolled
-                ? "linear-gradient(135deg, #ffffff 0%, #ffffff 100%)"
-                : isHome
-                ? "linear-gradient(135deg, #f3e5c0 0%, #dcc188 38%, #c2a668 66%, #9a7c42 100%)"
-                : "linear-gradient(135deg, #3a1833 0%, #4a2040 45%, #7a3570 72%, #b89b63 118%)",
-              WebkitMaskImage:
-                "url('/images/brand/dins-by-daniyal-logo-white.png')",
-              maskImage: "url('/images/brand/dins-by-daniyal-logo-white.png')",
-              WebkitMaskRepeat: "no-repeat",
-              maskRepeat: "no-repeat",
-              WebkitMaskSize: "contain",
-              maskSize: "contain",
-              WebkitMaskPosition: "center",
-              maskPosition: "center",
-              filter: scrolled
-                ? "drop-shadow(0 2px 8px rgba(74,32,64,0.28))"
-                : isHome
-                ? "drop-shadow(0 2px 10px rgba(0,0,0,0.35))"
-                : "drop-shadow(0 2px 8px rgba(74,32,64,0.18))",
-            }}
-          />
+          {isHome ? (
+            // Homepage wordmark. The hero behind the navbar is dark, so the
+            // locked brand colour here is white; it only drops to plum once the
+            // bar turns solid, where white would no longer be readable.
+            <span
+              className={`block whitespace-nowrap text-center font-serif text-[22px] uppercase leading-none tracking-[0.24em] transition-colors duration-300 sm:text-[30px] sm:tracking-[0.3em] ${
+                scrolled ? "text-plum" : "text-white"
+              }`}
+            >
+              ZUHA&apos;S
+            </span>
+          ) : (
+            <span
+              aria-hidden="true"
+              className="block h-[58px] w-[111px] transition-[filter] duration-500 sm:h-[69px] sm:w-[132px]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(135deg, #3a1833 0%, #4a2040 45%, #7a3570 72%, #b89b63 118%)",
+                WebkitMaskImage:
+                  "url('/images/brand/dins-by-daniyal-logo-white.png')",
+                maskImage: "url('/images/brand/dins-by-daniyal-logo-white.png')",
+                WebkitMaskRepeat: "no-repeat",
+                maskRepeat: "no-repeat",
+                WebkitMaskSize: "contain",
+                maskSize: "contain",
+                WebkitMaskPosition: "center",
+                maskPosition: "center",
+                filter: "drop-shadow(0 2px 8px rgba(74,32,64,0.18))",
+              }}
+            />
+          )}
         </Link>
 
         <div className="flex items-center justify-self-end gap-0.5 sm:gap-1">
