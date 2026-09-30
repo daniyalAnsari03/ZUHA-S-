@@ -196,8 +196,13 @@ export function Navbar({ categories, products }: NavbarProps) {
             // Homepage wordmark. The hero behind the navbar is dark, so the
             // locked brand colour here is white; it only drops to plum once the
             // bar turns solid, where white would no longer be readable.
+            // The box matches the icon control height (h-11 / sm:h-10) and
+            // centres the text inside it, so the wordmark sits on the same line
+            // as the icons instead of hanging from the top of the grid row.
+            // The right padding cancels the trailing letter-space so the glyphs
+            // read as optically centred.
             <span
-              className={`block whitespace-nowrap text-center font-serif text-[22px] uppercase leading-none tracking-[0.24em] transition-colors duration-300 sm:text-[30px] sm:tracking-[0.3em] ${
+              className={`flex h-11 items-center justify-center whitespace-nowrap pr-[0.24em] font-serif text-[22px] uppercase leading-none tracking-[0.24em] transition-colors duration-300 sm:h-10 sm:text-[30px] sm:pr-[0.3em] sm:tracking-[0.3em] ${
                 scrolled ? "text-plum" : "text-white"
               }`}
             >
