@@ -122,9 +122,17 @@ export function Navbar({ categories, products }: NavbarProps) {
   // guideline; the pointer-sized 40x40 circle is kept from `sm` up so tablet and
   // desktop keep their existing density. The navbar is far taller than either
   // (h-32 / h-40), so this grows the hit area without moving the layout.
-  const iconButtonClass = solid
-    ? "h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-plum/10 bg-gradient-to-b from-white to-plum/[0.06] text-plum shadow-sm shadow-plum/5 transition-all duration-300 hover:border-plum/25 hover:from-plum/10 hover:to-plum/10 hover:text-plum-dark focus-visible:outline-plum"
-    : "h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-gold-soft shadow-sm shadow-black/10 backdrop-blur-md transition-all duration-300 hover:border-white/35 hover:bg-white/20 hover:text-white focus-visible:outline-white";
+  const iconButtonBase =
+    "h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-all duration-300";
+  // Homepage: the icons sit directly on the dark hero, so the locked treatment
+  // is plain white with no chip, no border and no shadow. Once the bar turns
+  // solid they drop to plum, where white would no longer be readable. Every
+  // other route keeps the existing bordered chip.
+  const iconButtonClass = isHome
+    ? scrolled
+      ? `${iconButtonBase} border-0 bg-transparent text-plum hover:bg-plum/5 hover:text-plum-dark focus-visible:outline-plum`
+      : `${iconButtonBase} border-0 bg-transparent text-white hover:bg-white/10 hover:text-white focus-visible:outline-white`
+    : `${iconButtonBase} border border-plum/10 bg-gradient-to-b from-white to-plum/[0.06] text-plum shadow-sm shadow-plum/5 hover:border-plum/25 hover:from-plum/10 hover:to-plum/10 hover:text-plum-dark focus-visible:outline-plum`;
 
   const handleAccountClick = () => {
     if (accountState === "signedOut") {
