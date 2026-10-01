@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { easeOutSlide, slideDuration } from "@/lib/storefront/slide-motion";
+import {
+  easeOutSlide,
+  slideDuration,
+  swipeAxis,
+  swipeCommitDistance,
+  swipeCommits,
+} from "@/lib/storefront/slide-motion";
 
 describe("slideDuration", () => {
   it("returns zero when there is nowhere to go", () => {
@@ -90,5 +96,108 @@ describe("easeOutSlide", () => {
     for (let t = 0.1; t < 0.95; t += 0.05) {
       expect(easeOutSlide(t + 0.05)).toBeGreaterThan(easeOutSlide(t));
     }
+  });
+});
+
+describe("swipeCommitDistance", () => {
+  it("scales with the slide above the floor, so the same flick reads the same on any screen", () => {
+    // The deck is one viewport tall. Above the floor a phone in landscape
+    // (a short slide) commits earlier than a phone held upright (a tall one),
+    // because a tenth of a 500px slide is a shorter, easier push than a tenth of
+    // a 1000px one — and a fixed number would be a nudge on one and a flick on
+    // the other.
+    expect(swipeCommitDistance(568)).toBeCloseTo(56.8, 5);
+    expect(swipeCommitDistance(844)).toBeCloseTo(84.4, 5);
+    expect(swipeCommitDistance(1200)).toBeCloseTo(120, 5);
+  });
+
+  it("never drops below the absolute floor, however short the viewport", () => {
+    // A phone in landscape can present a 320px slide, where a tenth of it would
+    // be 32px — less than a thumb's drift, and less than the gap between two
+    // dots on the rail the shopper is using as their other control.
+    expect(swipeCommitDistance(320)).toBe(40);
+    expect(swipeCommitDistance(400)).toBe(40);
+    expect(swipeCommitDistance(50)).toBe(40);
+  });
+
+  it("is above the drift a resting thumb produces", () => {
+    // Ten pixels of noise on a hand at rest must never be read as intent, and it
+    // must not sit close enough to the threshold to be luck either.
+    for (const slide of [320, 400, 568, 844, 900, 1200]) {
+      expect(swipeCommitDistance(slide)).toBeGreaterThanOrEqual(40);
+    }
+    expect(swipeCommitDistance(900)).toBeGreaterThanOrEqual(80);
+  });
+});
+
+describe("swipeCommits", () => {
+  it("ignores direction", () => {
+    expect(swipeCommits(-200, 900)).toBe(swipeCommits(200, 900));
+  });
+
+  it("is inclusive at the threshold, so there is no gap where a swipe is neither", () => {
+    const commit = swipeCommitDistance(900);
+    expect(swipeCommits(commit, 900)).toBe(true);
+    expect(swipeCommits(commit - 1, 900)).toBe(false);
+  });
+
+  it("reads a tap and a shift as neither, and a flick as a swipe", () => {
+    // A tap is 0px, thumb drift is a handful of pixels, and the shortest thing
+    // anybody means by a swipe is a tenth of a slide.
+    expect(swipeCommits(0, 900)).toBe(false);
+    expect(swipeCommits(8, 900)).toBe(false);
+    expect(swipeCommits(39, 900)).toBe(false);
+    expect(swipeCommits(120, 900)).toBe(true);
+  });
+
+  it("commits a whole-slide throw and a four-slide throw alike, because the cap is elsewhere", () => {
+    // The distance decides only WHETHER it is a swipe. How far the deck then
+    // travels is the component's bound of one slide, so no distance here can
+    // move the deck by more than one — which is why this predicate is allowed to
+    // keep answering "yes" forever.
+    expect(swipeCommits(900, 900)).toBe(true);
+    expect(swipeCommits(3600, 900)).toBe(true);
+    expect(swipeCommits(90000, 900)).toBe(true);
+  });
+
+  it("holds across every slide height a phone or desktop can present", () => {
+    for (const slide of [320, 400, 568, 667, 738, 800, 844, 900, 1000, 1200]) {
+      const commit = swipeCommitDistance(slide);
+      expect(commit).toBeGreaterThan(0);
+      expect(swipeCommits(commit, slide)).toBe(true);
+      expect(swipeCommits(commit - 1, slide)).toBe(false);
+      expect(swipeCommits(0, slide)).toBe(false);
+    }
+  });
+});
+
+describe("swipeAxis", () => {
+  it("waits rather than guessing while the finger has barely moved", () => {
+    // A moving hand produces several pixels of noise before a real drag starts.
+    // Claiming the gesture there would take sideways drags away from whoever
+    // else wanted them, and the cost of waiting 10px is unmeasurable.
+    expect(swipeAxis(0, 0)).toBe("undecided");
+    expect(swipeAxis(3, -9)).toBe("undecided");
+    expect(swipeAxis(-9, -3)).toBe("undecided");
+  });
+
+  it("claims a vertical drag for the deck", () => {
+    expect(swipeAxis(0, -200)).toBe("vertical");
+    expect(swipeAxis(0, 200)).toBe("vertical");
+    expect(swipeAxis(40, -200)).toBe("vertical");
+  });
+
+  it("claims a sideways drag for nobody, because the deck has no sideways travel", () => {
+    expect(swipeAxis(200, 0)).toBe("horizontal");
+    expect(swipeAxis(200, -40)).toBe("horizontal");
+    expect(swipeAxis(-200, 40)).toBe("horizontal");
+  });
+
+  it("gives a diagonal to the deck only when vertical genuinely wins", () => {
+    // 45 degrees is a tie, and a tie on a full-bleed cover is somebody
+    // adjusting their grip rather than swiping.
+    expect(swipeAxis(100, -100)).toBe("vertical");
+    expect(swipeAxis(100, -101)).toBe("vertical");
+    expect(swipeAxis(101, -100)).toBe("horizontal");
   });
 });

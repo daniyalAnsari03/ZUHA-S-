@@ -13,7 +13,12 @@ import {
 
 import { resolveImageUrl } from "@/lib/images";
 import { categoryHref } from "@/lib/storefront/format";
-import { easeOutSlide, slideDuration } from "@/lib/storefront/slide-motion";
+import {
+  easeOutSlide,
+  slideDuration,
+  swipeAxis,
+  swipeCommits,
+} from "@/lib/storefront/slide-motion";
 import type { Category } from "@/lib/storefront/types";
 
 type HomeSlidesProps = {
@@ -89,6 +94,30 @@ type CategorySlideProps = {
  *   the scroll offset, which the sticky stack then follows the whole way. A dot
  *   click is the one input that should cover a slide in ~500ms because the
  *   shopper asked for a specific slide; nothing else should.
+ *
+ *   A FINGER IS A DESTINATION TOO, ON A PHONE ONLY. This is the one place the
+ *   "travel is motion" rule above does not hold, and it is the reason: a finger
+ *   on a phone is not a scroll wheel, it is the deck's own dot rail being
+ *   dragged. Left to the browser it is the worst of both — `useSlideDeckTouch`
+ *   exists because it was measured to be the worst of both. A deck with no snap
+ *   point takes a native fling as far as the compositor throws it, which over
+ *   eight viewport-tall slides is two or three of them for one ordinary flick;
+ *   and with nothing to re-seat it, the offset then rests wherever the fling
+ *   died, which is almost never a slide. Measured on a 390x844 phone viewport:
+ *   one flick covering 0.8 of a slide came to rest at 675px of an 844px slide —
+ *   169px, or a fifth of the way, into slide two, and stuck there. On a phone
+ *   that is not "a finger tracks the cover", it is a deck with nowhere to go.
+ *
+ *   So on a coarse pointer the deck takes the gesture itself: the cover follows
+ *   the finger one to one while it is down, and a lift always resolves to
+ *   exactly one slide forward or back — the same answer a dot click gives. It
+ *   cannot land between two slides, because every resting offset it can produce
+ *   is `index * slideHeight` by construction. See `useSlideDeckTouch`.
+ *
+ *   Every desktop input is untouched by any of this: wheel and trackpad are
+ *   still travel, still land mid-cover and still travel the distance they were
+ *   given, and the touch handling never runs unless the primary pointer is
+ *   coarse.
  *
  *   The container keeps the default `overscroll-behavior` for the same reason
  *   it always has: once the deck is at its last slide it has nothing left to
@@ -219,6 +248,13 @@ export function HomeSlides({ hero, categories, footer }: HomeSlidesProps) {
   // to a detached scroller.
   useEffect(() => stopGlide, [stopGlide]);
 
+  // A finger on a phone is a destination, not travel: one swipe, one slide, and
+  // it can only ever come to rest on a slide. Wheel, trackpad, dots and keys are
+  // untouched by this — it installs nothing unless the primary pointer is
+  // coarse, and it is the coarse pointer's `touch-action: none` that stops the
+  // compositor from also scrolling, so the two never both move the deck.
+  useSlideDeckTouch({ scrollerRef, slideCount, glideTo, stopGlide });
+
   const goToSlide = useCallback(
     (index: number) => {
       glideTo(index);
@@ -276,7 +312,14 @@ export function HomeSlides({ hero, categories, footer }: HomeSlidesProps) {
         role="group"
         aria-label="Slide deck"
         onKeyDown={onKeyDown}
-        className="h-[100svh] overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] focus-visible:outline-plum [&::-webkit-scrollbar]:hidden"
+        // `touch-none`, and only under a coarse pointer, is what hands the
+        // gesture to `useSlideDeckTouch`: with the browser also free to scroll
+        // this container, one finger would drive the deck's own tracking AND a
+        // native scroll AND a fling, and the three would add up to several slides
+        // of travel for one flick. The trade is pinch-zoom inside the deck, which
+        // is a full-screen cover stack by definition; pinch-zoom everywhere else
+        // on the page is unchanged.
+        className="h-[100svh] overflow-y-auto [@media(pointer:coarse)]:touch-none [-ms-overflow-style:none] [scrollbar-width:none] focus-visible:outline-plum [&::-webkit-scrollbar]:hidden"
       >
         {hero ? (
           <div className="sticky top-0 h-[100svh]">{hero}</div>
@@ -389,6 +432,231 @@ function coveredIndex(offset: number, slideHeight: number, slideCount: number): 
   return Math.min(slideCount - 1, Math.max(0, nearest));
 }
 
+type SlideDeckTouch = {
+  scrollerRef: React.RefObject<HTMLDivElement | null>;
+  slideCount: number;
+  glideTo: (index: number) => void;
+  stopGlide: () => void;
+};
+
+/**
+ * ONE FINGER, ONE SLIDE, AND IT ALWAYS LANDS ON A SLIDE
+ *
+ * WHY THIS EXISTS
+ *
+ *   The deck is a sticky stack with no snap point, which is right for a wheel
+ *   and wrong for a phone. Left to the browser, one ordinary flick produced two
+ *   or three slides of travel and then stopped wherever the fling decayed to —
+ *   measured at 675px of an 844px slide, a fifth of the way into slide two and
+ *   stuck there, because on an unsnapped container the offset a fling dies at is
+ *   simply the offset the deck now has. There was no gesture to mis-measure and
+ *   no momentum loop to over-sample: the deck had no touch handling at all, and
+ *   both symptoms are what "no touch handling" looks like.
+ *
+ * WHAT IT DOES
+ *
+ *   Below a coarse primary pointer, and only then:
+ *
+ *     touchstart  stop any glide (a finger landing mid-glide is the shopper
+ *                 taking the deck back) and remember the offset, the slide that
+ *                 offset is on, and the finger.
+ *
+ *     touchmove   once the gesture is clearly vertical, take it — preventDefault
+ *                 so the compositor's own scroll does not add to ours — and
+ *                 write `startOffset + (startY - y)`. The cover tracks the
+ *                 finger one to one, so the drag can be felt, reversed, and
+ *                 dragged back, exactly as the wheel does on desktop.
+ *
+ *     touchend    resolve. Past the commit distance, exactly one slide from the
+ *                 slide the gesture STARTED on, in the direction it was thrown,
+ *                 clamped to the deck. Short of that, back to where it started.
+ *
+ * WHY THE DESTINATION IS `startIndex ± 1` AND NOT A SAMPLE OF THE END OFFSET
+ *
+ *   Two different questions have to be kept apart. "Which slide is showing" is
+ *   `coveredIndex`, and it answers the dot rail. "Where does this gesture go"
+ *   is a decision about the gesture, and it has to be anchored to where the
+ *   gesture started: a throw that crossed a slide boundary and came back to 0.6
+ *   is not an ask for slide N+2, and reading the end offset is precisely how a
+ *   single flick turns into a two- or three-slide jump. Anchoring to
+ *   `startIndex` and adding at most one is what makes the bound a bound rather
+ *   than an average.
+ *
+ * WHY IT CANNOT STOP BETWEEN TWO SLIDES
+ *
+ *   Not by checking the offset afterwards, which is the check that was failing
+ *   before: it can only be out by exactly as much as the compositor rounded the
+ *   last write, so a "settle" still needed a threshold, and a threshold near
+ *   the boundary is what produces a visible re-seat. It cannot stop between two
+ *   slides because there is no path that leaves it there. Every offset this hook
+ *   produces is one of `startOffset + drag` (in flight, under the finger) or
+ *   `index * clientHeight` (settled, via `glideTo`), and the second one is an
+ *   exact multiple of the slide height by construction.
+ *
+ * WHY VELOCITY IS NOT USED
+ *
+ *   The old build's version of this measured how fast the finger was moving to
+ *   decide how far to go, and that is where a momentum calculation goes wrong:
+ *   a fast flick reports a velocity that says two slides and a slow drag of the
+ *   same distance reports almost none, so the distance the shopper asked for and
+ *   the distance the deck travels stop being the same thing. Distance alone is
+ *   enough, is measurable without a stopwatch, and has no fast case to get
+ *   wrong. A slow deliberate drag of a whole slide commits one slide, which is
+ *   the right answer for that gesture too.
+ *
+ * WHAT IT DOES NOT TOUCH
+ *
+ *   Wheel and trackpad still travel and still come to rest mid-cover; the hook
+ *   installs nothing unless `(pointer: coarse)` matches the PRIMARY pointer, so
+ *   a touchscreen laptop driven by its trackpad is unaffected. A tap with no
+ *   travel never commits and never nudges the offset, which leaves the category
+ *   link under the finger free to navigate. Two fingers is a pinch, and is
+ *   handed straight back.
+ */
+function useSlideDeckTouch({
+  scrollerRef,
+  slideCount,
+  glideTo,
+  stopGlide,
+}: SlideDeckTouch): void {
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller || slideCount < 2) return;
+
+    let tracking = false;
+    let startY = 0;
+    let startX = 0;
+    let startOffset = 0;
+    let startIndex = 0;
+    /** Content travel so far: positive is towards the last slide. */
+    let travel = 0;
+    let axis: ReturnType<typeof swipeAxis> = "undecided";
+
+    const highestOffset = () => Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+
+    /**
+     * Settle the gesture. `commit` is the swipe question, already answered, so
+     * this only has to pick a legal index and hand it to the glide.
+     */
+    const settle = (commit: boolean) => {
+      if (!tracking) return;
+      tracking = false;
+      axis = "undecided";
+
+      // A tap that moved nothing is not a swipe and is not a re-seat either. It
+      // has to leave the deck byte-for-byte where it was, because the thing
+      // under the finger is a link and the shopper is about to follow it.
+      if (!commit && Math.abs(scroller.scrollTop - startOffset) < 0.5) return;
+
+      const lastIndex = slideCount - 1;
+      const target =
+        commit && travel !== 0
+          ? Math.min(Math.max(startIndex + Math.sign(travel), 0), lastIndex)
+          : startIndex;
+
+      glideTo(target);
+    };
+
+    const onTouchStart = (event: TouchEvent) => {
+      // Two fingers is a pinch. Hand the whole gesture back rather than tracking
+      // half of it.
+      if (event.touches.length !== 1) {
+        tracking = false;
+        return;
+      }
+      if (!primaryPointerIsCoarse()) return;
+
+      const height = scroller.clientHeight;
+      if (height <= 0) return;
+
+      // A finger landing on a glide is the shopper taking the deck back; the
+      // glide has to stand down before the first move, not after.
+      stopGlide();
+
+      startX = event.touches[0].clientX;
+      startY = event.touches[0].clientY;
+      startOffset = scroller.scrollTop;
+      // The slide the gesture is anchored to: the one it started on, which is
+      // the dot the shopper can currently see marked.
+      startIndex = coveredIndex(startOffset, height, slideCount);
+      travel = 0;
+      axis = "undecided";
+      tracking = true;
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (!tracking) return;
+      if (event.touches.length !== 1) {
+        tracking = false;
+        return;
+      }
+
+      const dx = event.touches[0].clientX - startX;
+      const dy = startY - event.touches[0].clientY;
+      axis = swipeAxis(dx, dy);
+      if (axis === "horizontal") {
+        tracking = false;
+        return;
+      }
+      // Still undecided — not enough travel to know which way this is going.
+      if (axis === "undecided") return;
+
+      // This container's scroll is ours now. Without this the compositor scrolls
+      // it as well and the two stack.
+      event.preventDefault();
+
+      travel = dy;
+      const height = scroller.clientHeight;
+      if (height <= 0) return;
+
+      scroller.scrollTop = Math.min(
+        Math.max(startOffset + dy, 0),
+        highestOffset(),
+      );
+    };
+
+    const onTouchEnd = () => {
+      if (!tracking) return;
+      const height = scroller.clientHeight;
+      settle(height > 0 && swipeCommits(travel, height));
+    };
+
+    // `touchcancel` is a lift the system took away — an incoming call, a
+    // system gesture. Same question as a lift, and it has to be asked, or the
+    // cover stays wherever the interrupt left it.
+    const onTouchCancel = onTouchEnd;
+
+    scroller.addEventListener("touchstart", onTouchStart, { passive: true });
+    // Deliberately NOT passive: preventDefault below is the whole point.
+    scroller.addEventListener("touchmove", onTouchMove, { passive: false });
+    scroller.addEventListener("touchend", onTouchEnd, { passive: true });
+    scroller.addEventListener("touchcancel", onTouchCancel, { passive: true });
+
+    return () => {
+      scroller.removeEventListener("touchstart", onTouchStart);
+      scroller.removeEventListener("touchmove", onTouchMove);
+      scroller.removeEventListener("touchend", onTouchEnd);
+      scroller.removeEventListener("touchcancel", onTouchCancel);
+    };
+  }, [glideTo, scrollerRef, slideCount, stopGlide]);
+}
+
+/**
+ * Whether the PRIMARY pointer is coarse, i.e. whether this is really a phone or
+ * tablet rather than a desktop browser that happens to have a touchscreen.
+ *
+ * `pointer`, not `any-pointer`: on a touchscreen laptop the mouse is the primary
+ * pointer, so a mouse drag has to stay travel and a wheel has to stay travel,
+ * and only a finger actually touching the screen should be a swipe.
+ */
+function primaryPointerIsCoarse(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: coarse)").matches
+  );
+}
+
 type SlideGlide = {
   /** Glide to a slide index, clamped to the slides that exist. */
   glideTo: (index: number) => void;
@@ -458,10 +726,17 @@ function useSlideGlide(
       const distance = Math.abs(target - from);
 
       if (distance < 1) {
-        // Already there. Nothing to animate and nothing to stand down.
+        // Already there, within the compositor's rounding. Nothing to animate,
+        // but the write still happens: `distance` can be the 0.3px a lift left
+        // behind after one-to-one tracking, and a glide that returns early
+        // without correcting it is how a deck that always lands on a slide ends
+        // up resting a fraction of a pixel off one. It is a sub-pixel move, so
+        // nothing is visible; it is just the difference between an offset that
+        // is a multiple of the slide height and one that nearly is.
+        scroller.scrollTop = target;
+        writtenRef.current = target;
         glidingRef.current = false;
         frameRef.current = null;
-        writtenRef.current = from;
         return;
       }
 

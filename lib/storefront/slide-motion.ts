@@ -74,3 +74,72 @@ export function easeOutSlide(t: number): number {
   const glide = 1 - inverse * inverse * inverse * inverse;
   return lift * LIFT_OFF_WEIGHT + glide * (1 - LIFT_OFF_WEIGHT);
 }
+
+/**
+ * How far a finger has to travel, as a fraction of a slide, before the gesture
+ * counts as a swipe that moves the deck.
+ *
+ * Without a threshold every touch is a swipe, and the two things that are not
+ * swipes both move the shopper somewhere they did not ask to go: a tap on a
+ * category slide advances the deck instead of following the link underneath it,
+ * and the ten pixels of drift a resting thumb produces nudges the cover off the
+ * slide it is on. Ten per cent is comfortably under the shortest throw that
+ * counts as intent — a quick flick of a fingertip clears 20% of a 844px slide
+ * in its first frame — while a tap and thumb drift clear neither.
+ */
+const SWIPE_COMMIT_FRACTION = 0.1;
+
+/**
+ * The same threshold with a floor, for short viewports where 10% of a slide is
+ * too small to be a deliberate movement. Below roughly this, a finger cannot
+ * cross the gap between two dots on the rail either.
+ */
+const SWIPE_COMMIT_MIN_PX = 40;
+
+/**
+ * How far a finger has to travel before the gesture is locked to one axis.
+ *
+ * The deck only wants vertical drags, and a diagonal drag on a full-bleed cover
+ * is usually somebody adjusting their grip. Committing on the first few pixels
+ * would take that away; waiting for a longer throw means the first centimetres
+ * of a real swipe go untracked and the cover starts late. Ten pixels is under a
+ * frame of drift on a moving hand and over a settled one.
+ */
+const SWIPE_AXIS_LOCK_PX = 10;
+
+/**
+ * The travel a finger must make to move the deck one slide, in pixels.
+ *
+ * Scaled to the slide rather than fixed, because the deck is always one viewport
+ * tall: the same 40px is a decisive flick on a phone in landscape and a nudge on
+ * a tall phone held upright. The floor keeps the threshold meaningful on short
+ * viewports.
+ */
+export function swipeCommitDistance(slideHeight: number): number {
+  return Math.max(SWIPE_COMMIT_MIN_PX, slideHeight * SWIPE_COMMIT_FRACTION);
+}
+
+/**
+ * The travel a finger must make before the deck claims the gesture.
+ *
+ * Exported as a predicate rather than a number so the component never holds a
+ * second copy of the threshold, and so the unit tests can assert the rule
+ * itself instead of a constant.
+ */
+export function swipeCommits(travelPx: number, slideHeight: number): boolean {
+  return Math.abs(travelPx) >= swipeCommitDistance(slideHeight);
+}
+
+/**
+ * Whether a drag has gone far enough, and far enough in one direction, for the
+ * deck to claim it.
+ *
+ * Beyond the commit distance this refuses anything that is not clearly vertical:
+ * the deck is a full-bleed cover stack with no horizontal travel of its own, so
+ * a sideways drag belongs to whatever else might want it.
+ */
+export function swipeAxis(dx: number, dy: number): "undecided" | "vertical" | "horizontal" {
+  const travel = Math.max(Math.abs(dx), Math.abs(dy));
+  if (travel < SWIPE_AXIS_LOCK_PX) return "undecided";
+  return Math.abs(dy) >= Math.abs(dx) ? "vertical" : "horizontal";
+}

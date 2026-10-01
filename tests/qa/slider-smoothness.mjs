@@ -26,8 +26,11 @@
  *   4. THE FOOTER IS THE LAST SLIDE and the wheel is never trapped at the end.
  *   5. DOTS AND KEYS still glide, because those are destinations rather than
  *      travel. The trace is compared against `easeOutSlide` itself.
- *   6. TOUCH IS TRAVEL TOO — a finger is not read as a request to finish the
- *      slide, so a parked fractional offset survives the lift untouched.
+ *   6. ON A PHONE, A FINGER IS A DESTINATION TOO. Every swipe in [7] and [8]
+ *      is a real touch gesture at four different speeds, in both directions,
+ *      from every slide in the deck, and every one of them has to move exactly
+ *      one slide and come to rest on it. This replaced the older rule that touch
+ *      was travel as well; the reason it could not stay is in [7].
  *
  * HARNESS NOTES (learned the hard way here; do not "simplify" these away)
  *   - A POSITIVE yDistance in Input.synthesizeScrollGesture scrolls the viewport
@@ -37,7 +40,15 @@
  *   - gestureSourceType "touch" is inert in this headless setup: it moves
  *     neither the slide stack nor the document, so a touch test written with it
  *     passes or fails for reasons that have nothing to do with the site. "default"
- *     is the source that actually drives the scroll, and it is what [8] uses.
+ *     is the source that actually drives the scroll, and it is what [8] used to
+ *     use.
+ *   - Dispatched touch events do not scroll this container natively in this
+ *     build — a 300px `Input.dispatchTouchEvent` drag fires zero `scroll` events
+ *     (measured). That is not a limitation of the suite any more: the deck now
+ *     drives its own scrolling from `touchmove`, so the gesture is measured
+ *     through the very path a device exercises, and it would be wrong to test
+ *     this any other way. `gestureSourceType: "default"` is still how the WHEEL
+ *     path is driven on desktop.
  *   - Scrolling is sampled per animation frame. The stack is read here and
  *     asserted on where it RESTS; frame timing is only asserted for paths the
  *     page animates itself (the glide), never for browser-composited scrolls,
@@ -845,6 +856,37 @@ results.record(
   );
   if (viaKey.stack !== viaKey.max) failed = true;
 
+  // The phone's touch handling is gated on a coarse primary pointer, and the
+  // gate is asserted rather than assumed: a `touch-action: none` that leaked
+  // onto desktop would take every wheel, trackpad and browser-native scroll away
+  // from a browser that has a mouse.
+  const desktopPointer = await page.eval(`
+    const s = document.querySelector(${JSON.stringify(SELECTOR)});
+    return {
+      touchAction: getComputedStyle(s).touchAction,
+      coarse: matchMedia("(pointer: coarse)").matches,
+      fine: matchMedia("(pointer: fine)").matches,
+    };
+  `);
+  results.record(
+    "desktop-pointer-is-left-alone",
+    "on a fine pointer the deck claims no gestures and claims no touch-action",
+    desktopPointer.touchAction === "auto" &&
+      desktopPointer.coarse === false &&
+      desktopPointer.fine === true,
+    {
+      note: `touch-action=${desktopPointer.touchAction}, pointer:coarse=${desktopPointer.coarse}, ` +
+        `pointer:fine=${desktopPointer.fine}`,
+      mismatch:
+        desktopPointer.touchAction !== "auto"
+          ? `touch-action is ${desktopPointer.touchAction} on a fine pointer — every desktop scroll is now the deck's`
+          : desktopPointer.coarse
+            ? "this viewport reports a coarse pointer and is not exercising the desktop path"
+            : undefined,
+    },
+  );
+  if (desktopPointer.touchAction !== "auto" || desktopPointer.coarse) failed = true;
+
   results.record(
     "desktop-clean",
     "no page errors on the desktop deck",
@@ -862,26 +904,335 @@ results.record(
   const pinfo = await phone.eval(START_SAMPLE);
   const pslide = pinfo.clientHeight;
 
-  /* ── [7] A FINGER IS TRAVEL TOO ──
+/* ── [7] A FINGER IS A DESTINATION: ONE SWIPE, ONE SLIDE ──
    *
-   * The old deck read a lift as "finish the slide" and animated the offset on to
-   * the nearest boundary. This one does not, and that is the strongest statement
-   // available: park the deck partway through a cover, put a finger on it, lift
-   * the finger, and the offset has not moved. There is no rule to apply on lift,
-   * because there was never a gesture being interpreted — only scrolling.
+   * WHY THIS IS NOT [7]'S OLD RULE ANY MORE
    *
-   * The parked offset is deliberately fractional. On a whole number of slides
-   * there is nowhere for a settle to show up, so a pass here would prove nothing.
+   * The deck used to leave a finger entirely to the browser, on the reasoning
+   * that a finger is travel and travel should be the browser's business. On a
+   * desktop that reasoning holds and still does. On a phone it does not, and the
+   * reason is that the deck is UNSNAPPED and has EIGHT viewport-tall slides:
    *
-   * A touchstart with no travel before the touchend is a TAP, and the slide under
-   * the finger is a link to /shop — which would navigate out from under the probe
-   * and make the deck look like it vanished. The click is shielded, and the path
-   * is asserted afterwards.
+   *   - a native fling is thrown as far as the compositor's fling curve carries
+   *     it, which over that much travel is several slides for one ordinary flick;
+   *   - and with no snap point there is nothing to re-seat the offset, so it rests
+   *     wherever the fling decayed to.
+   *
+   * Both were measured before anything was changed. A flick covering 0.8 of a
+   * slide came to rest at 675px of an 844px slide — 169px, a fifth of the way,
+   * into slide two and stuck there. The old build had no velocity calculation to
+   * over-sample and no momentum loop to sample too late: it had NO touch handling
+   * at all, and "no touch handling" looks exactly like the bug report.
+   *
+   * So below a coarse primary pointer the deck takes the gesture itself: the
+   * cover follows the finger one to one, and a lift resolves to exactly one
+   * slide from the slide the gesture started on. Every assertion here is about
+   * that resolution landing on a boundary, because the resolution is the part
+   * that was broken — the tracking was never the complaint.
    */
   await phone.eval(RESET);
   await phone.eval(SETTLE_IMAGES);
   await sleep(500);
-  const parkedAt = Math.round(pslide * 0.63);
+
+  /**
+   * A real finger: down, `distance` px of travel in `steps` moves spaced
+   * `stepMs` apart, up. A NEGATIVE distance is the finger travelling up the
+   * screen, which is a swipe towards the next slide — the same way round as the
+   * wheel in [0].
+   *
+   * `stepMs` is what makes this a SPEED matrix rather than a distance matrix.
+   * The same 300px is a 2.5s crawl or a 24ms flick depending only on the spacing,
+   * and a rule that could not hold across both of those was a rule keyed to one
+   * of them.
+   */
+  async function finger(page, { from = 620, distance, steps = 6, stepMs = 16, settle = 1800 }) {
+    await page.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [{ x: 195, y: from, id: 1 }],
+    });
+    for (let i = 1; i <= steps; i++) {
+      await page.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [{ x: 195, y: from + (distance * i) / steps, id: 1 }],
+      });
+      if (stepMs) await sleep(stepMs);
+    }
+    await page.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    if (settle) await sleep(settle);
+  }
+
+  const rest = () => phone.eval(`
+    const s = document.querySelector(${JSON.stringify(SELECTOR)});
+    return {
+      stack: Math.round(s.scrollTop),
+      exact: s.scrollTop,
+      max: s.scrollHeight - s.clientHeight,
+      page: Math.round(window.scrollY),
+      path: location.pathname,
+      snapType: getComputedStyle(s).scrollSnapType,
+      touchAction: getComputedStyle(s).touchAction,
+    };
+  `);
+
+  /** Park the deck on a slide boundary without animating, so a swipe starts known. */
+  const parkOn = async (index) => {
+    await phone.eval(`
+      const s = document.querySelector(${JSON.stringify(SELECTOR)});
+      s.scrollTo({ top: ${index} * s.clientHeight, behavior: "instant" });
+      return true;
+    `);
+    await sleep(300);
+  };
+
+  // Four speeds, spanning a deliberate drag to a violent flick to a throw longer
+  // than the whole deck. Reported in px/s.
+  const SPEEDS = [
+    { name: "slow", distance: -220, steps: 6, stepMs: 90 },
+    { name: "normal", distance: -300, steps: 6, stepMs: 16 },
+    { name: "fast", distance: -600, steps: 4, stepMs: 8 },
+    { name: "very fast", distance: -2600, steps: 2, stepMs: 4 },
+  ];
+  const speedOf = (s) => Math.round(Math.abs(s.distance) / ((s.steps * s.stepMs) / 1000));
+
+  const swipeReport = [];
+  const swipeFailures = [];
+
+  // Forward from several slides, not just the first: a rule that only holds from
+  // the top of the deck is not a rule.
+  for (const [index, expected] of [[0, 1], [1, 2], [2, 3]]) {
+    for (const spec of SPEEDS) {
+      await phone.eval(RESET);
+      await parkOn(index);
+
+      await finger(phone, spec);
+      const after = await rest();
+
+      if (after.path !== "/") {
+        throw new Error(
+          `a forward swipe at ${spec.name} speed navigated to ${after.path} instead of staying on the deck`,
+        );
+      }
+
+      const want = expected * pslide;
+      const ok = after.stack === want && Math.abs(after.exact - want) < 1;
+      swipeReport.push(
+        `forward from slide ${index} at ${spec.name} (${speedOf(spec)}px/s, ` +
+          `${Math.abs(spec.distance)}px of finger travel): rested at ${after.stack}px ` +
+          `= slide ${after.stack / pslide}${ok ? "" : `  <<< EXPECTED slide ${expected}`}`,
+      );
+      if (!ok) {
+        swipeFailures.push(
+          `forward from slide ${index} at ${spec.name} (${speedOf(spec)}px/s): rested at ` +
+            `${after.stack}px (slide ${after.stack / pslide}), expected ${want}px (slide ${expected})`,
+        );
+        failed = true;
+      }
+    }
+  }
+
+  // And backwards, from each slide, at each speed. A bound that only works in one
+  // direction is not a bound.
+  for (const [index, expected] of [[3, 2], [2, 1], [1, 0]]) {
+    for (const spec of SPEEDS) {
+      await phone.eval(RESET);
+      await parkOn(index);
+
+      await finger(phone, { ...spec, distance: Math.abs(spec.distance) });
+      const after = await rest();
+
+      if (after.path !== "/") {
+        throw new Error(`a backward swipe at ${spec.name} speed navigated to ${after.path}`);
+      }
+
+      const want = expected * pslide;
+      const ok = after.stack === want && Math.abs(after.exact - want) < 1;
+      swipeReport.push(
+        `back from slide ${index} at ${spec.name} (${speedOf(spec)}px/s, ` +
+          `${Math.abs(spec.distance)}px of finger travel): rested at ${after.stack}px ` +
+          `= slide ${after.stack / pslide}${ok ? "" : `  <<< EXPECTED slide ${expected}`}`,
+      );
+      if (!ok) {
+        swipeFailures.push(
+          `back from slide ${index} at ${spec.name} (${speedOf(spec)}px/s): rested at ` +
+            `${after.stack}px (slide ${after.stack / pslide}), expected ${want}px (slide ${expected})`,
+        );
+        failed = true;
+      }
+    }
+  }
+
+  console.log(
+    `\n  Swipe matrix (slide = ${pslide}px, commit distance = ${Math.max(40, pslide * 0.1).toFixed(0)}px):`,
+  );
+  for (const line of swipeReport) console.log(`    ${line}`);
+
+  results.record(
+    "one-swipe-is-one-slide-at-every-speed-and-in-both-directions",
+    "every swipe at four speeds, forwards and backwards, moves exactly one slide",
+    swipeFailures.length === 0,
+    {
+      note: `${swipeReport.length} swipes, every one landing exactly on a slide boundary`,
+      mismatch: swipeFailures.join("; "),
+    },
+  );
+
+  /* ── [7b] The deck takes the gesture, so the compositor cannot add to it ──
+   *
+   * This is the other half of the bug, and the half that is easy to get subtly
+   * wrong. If the deck tracks the finger AND the browser is still free to scroll
+   * this container, one flick drives three things at once — the deck's own
+   * tracking, a native scroll, and a fling — and they add up. So on a coarse
+   * pointer the deck has to claim the `touchmove`. `touchstart` and `touchend`
+   * stay untouched: there is nothing to suppress there, and a compatibility click
+   * on the category link under the finger has to survive so a tap is still a tap.
+   */
+  await phone.eval(RESET);
+  await sleep(400);
+  await phone.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ x: 195, y: 620, id: 1 }],
+  });
+  await phone.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{ x: 195, y: 420, id: 1 }],
+  });
+  await sleep(120);
+  await phone.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await sleep(1600);
+  const claimed = await phone.eval(`
+    const s = document.querySelector(${JSON.stringify(SELECTOR)});
+    const seen = {};
+    // A real drag, not a stationary finger: the axis is only locked once the
+    // gesture has travelled, and before that the deck must NOT preventDefault —
+    // claiming a touchmove it has not yet decided about would take horizontal
+    // panning away from whatever else might want it.
+    const y = { touchstart: 620, touchmove: 420 };
+    for (const type of ["touchstart", "touchmove", "touchend"]) {
+      const e = new TouchEvent(type, { bubbles: true, cancelable: true });
+      Object.defineProperty(e, "touches", {
+        value: type === "touchend" ? [] : [{ clientX: 195, clientY: y[type] }],
+      });
+      s.dispatchEvent(e);
+      seen[type] = e.defaultPrevented;
+    }
+
+    // Three pixels of travel, under the axis lock. The deck has not decided
+    // which way this gesture is going, so it must leave it alone — a thumb
+    // resting on a cover produces this constantly, and claiming it would break
+    // horizontal panning on the first frame of every touch.
+    let seenUndecided = null;
+    const undecidedStart = new TouchEvent("touchstart", { bubbles: true, cancelable: true });
+    Object.defineProperty(undecidedStart, "touches", { value: [{ clientX: 195, clientY: 620 }] });
+    s.dispatchEvent(undecidedStart);
+    const undecidedMove = new TouchEvent("touchmove", { bubbles: true, cancelable: true });
+    Object.defineProperty(undecidedMove, "touches", { value: [{ clientX: 195, clientY: 617 }] });
+    s.dispatchEvent(undecidedMove);
+    seenUndecided = undecidedMove.defaultPrevented;
+    s.dispatchEvent(new TouchEvent("touchend", { bubbles: true, cancelable: true }));
+    return { seen, undecided: seenUndecided, stack: Math.round(s.scrollTop) };
+  `);
+
+  results.record(
+    "the-deck-claims-the-drag-so-the-compositor-cannot-add-to-it",
+    "a real drag's touchmove is the deck's own; touchstart/touchend and an undecided gesture are left alone",
+    claimed.seen.touchmove === true &&
+      claimed.seen.touchstart === false &&
+      claimed.seen.touchend === false &&
+      claimed.undecided === false,
+    {
+      note: `${Object.entries(claimed.seen).map(([k, v]) => `${k}=${v}`).join(", ")}; ` +
+        `3px of travel prevented=${claimed.undecided}; rest=${claimed.stack}px`,
+      mismatch:
+        claimed.seen.touchmove !== true
+          ? "a 200px drag's touchmove was not preventDefault'd — the compositor is still scrolling this container as well"
+          : claimed.undecided === true
+            ? "a 3px nudge was preventDefault'd — the deck is claiming gestures before it knows their direction"
+            : Object.entries(claimed.seen).find(([type, blocked]) => type !== "touchmove" && blocked)
+              ? `${Object.entries(claimed.seen).find(([type, blocked]) => type !== "touchmove" && blocked)[0]} was preventDefault'd`
+              : undefined,
+    },
+  );
+  if (
+    claimed.seen.touchmove !== true ||
+    claimed.undecided === true ||
+    claimed.seen.touchstart ||
+    claimed.seen.touchend
+  ) {
+    failed = true;
+  }
+
+  // The cover follows the finger while it is down, which is the tactile half of
+  // "feels like a dot click" — a dot click with a real drag in between.
+  await phone.eval(RESET);
+  await sleep(400);
+  await phone.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ x: 195, y: 700, id: 1 }],
+  });
+  await phone.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{ x: 195, y: 500, id: 1 }],
+  });
+  await sleep(150);
+  const underFinger = await phone.eval(`
+    const s = document.querySelector(${JSON.stringify(SELECTOR)});
+    return { stack: Math.round(s.scrollTop) };
+  `);
+  await phone.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await sleep(1600);
+  const afterDrag = await rest();
+
+  results.record(
+    "the-cover-tracks-the-finger-one-to-one-while-it-is-down",
+    "200px of finger travel moves the cover 200px, mid-gesture, before any lift",
+    underFinger.stack === 200,
+    {
+      note: `under the finger: ${underFinger.stack}px; after the lift: ${afterDrag.stack}px (slide 1)`,
+      mismatch:
+        underFinger.stack === 200
+          ? undefined
+          : `the finger had moved 200px and the cover had moved ${underFinger.stack}px — it is not tracking 1:1`,
+    },
+  );
+  if (underFinger.stack !== 200) failed = true;
+
+  results.record(
+    "phone-deck-has-no-snap",
+    "the browser is given no snap point — the deck lands on a slide by deciding to, not by being re-seated",
+    afterDrag.snapType === "none",
+    {
+      note: `scroll-snap-type=${afterDrag.snapType}`,
+      mismatch:
+        afterDrag.snapType === "none"
+          ? undefined
+          : `scroll-snap-type is ${afterDrag.snapType} — the compositor can still re-seat the deck`,
+    },
+  );
+  if (afterDrag.snapType !== "none") failed = true;
+
+  results.record(
+    "the-phone-deck-takes-the-gesture-away-from-the-compositor",
+    "touch-action is none under a coarse pointer, so the deck's tracking is the only thing scrolling",
+    afterDrag.touchAction === "none",
+    {
+      note: `touch-action=${afterDrag.touchAction}`,
+      mismatch:
+        afterDrag.touchAction === "none"
+          ? undefined
+          : `touch-action is ${afterDrag.touchAction} — the deck's own tracking and a native scroll would both run`,
+    },
+  );
+  if (afterDrag.touchAction !== "none") failed = true;
+
+  /* ── [7c] A tap is not a swipe, and neither is a shift ──
+   *
+   * A tap has to be a tap: the slide under the finger is a link to /shop, and a
+   * deck that moved on a tap would take the shopper to another slide and then
+   * navigate them out of the deck they were reading. The click is shielded so a
+   * probe tap cannot navigate on its own, and the path is asserted afterwards.
+   */
+  await phone.eval(RESET);
+  await sleep(400);
   await phone.eval(`
     window.__probeShield = (e) => { e.preventDefault(); e.stopPropagation(); };
     document.addEventListener("click", window.__probeShield, { capture: true });
@@ -891,126 +1242,55 @@ results.record(
     type: "touchStart",
     touchPoints: [{ x: 195, y: 520, id: 1 }],
   });
+  await sleep(120);
+  await phone.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await sleep(1600);
+  const tapped = await rest();
   await phone.eval(`
-    const s = document.querySelector(${JSON.stringify(SELECTOR)});
-    s.scrollTop = ${parkedAt};
-    return s.scrollTop;
-  `);
-  await phone.eval(START_SAMPLE);
-  await phone.send("Input.dispatchTouchEvent", {
-    type: "touchEnd",
-    touchPoints: [],
-  });
-  await sleep(2000);
-  const lifted = await phone.eval(`
-    const s = document.querySelector(${JSON.stringify(SELECTOR)});
-    // Synthetic events, so defaultPrevented can be read on the events the page's
-    // own handlers saw.
-    const seen = {};
-    for (const type of ["touchstart", "touchmove", "touchend"]) {
-      const e = new TouchEvent(type, { bubbles: true, cancelable: true });
-      s.dispatchEvent(e);
-      seen[type] = e.defaultPrevented;
-    }
-    const probe = {
-      rest: Math.round(s.scrollTop),
-      snapType: getComputedStyle(s).scrollSnapType,
-      prevented: seen,
-      path: location.pathname,
-    };
     document.removeEventListener("click", window.__probeShield, { capture: true });
-    return probe;
+    return true;
   `);
-  const liftTrace = analyse(await phone.eval(READ_SAMPLE), parkedAt, pslide);
-
-  if (lifted.path !== "/") {
-    throw new Error(
-      `the touch probe navigated to ${lifted.path} instead of measuring the lift`,
-    );
-  }
 
   results.record(
-    "lift-does-not-finish-the-slide",
-    "a finger parked partway through a cover leaves it exactly there",
-    Math.abs(lifted.rest - parkedAt) <= 2,
+    "a-tap-with-no-travel-does-not-move-the-deck",
+    "a tap neither swipes nor nudges the cover, so the link under the finger still works",
+    tapped.stack === 0 && tapped.path === "/",
     {
-      note: `parked at ${parkedAt}px of ${pslide}px; ${note(liftTrace)}; rested at ${lifted.rest}px`,
+      note: `stack=${tapped.stack}px path=${tapped.path}`,
       mismatch:
-        Math.abs(lifted.rest - parkedAt) > 2
-          ? `parked at ${parkedAt}px, rested at ${lifted.rest}px — something is still animating on lift`
-          : undefined,
-    },
-  );
-  if (Math.abs(lifted.rest - parkedAt) > 2) failed = true;
-
-  results.record(
-    "touch-is-never-prevented",
-    "the page takes no touch event for itself, in any phase",
-    lifted.prevented.touchstart === false &&
-      lifted.prevented.touchmove === false &&
-      lifted.prevented.touchend === false,
-    {
-      note: Object.entries(lifted.prevented)
-        .map(([type, blocked]) => `${type}=${blocked}`)
-        .join(", "),
-      mismatch:
-        Object.entries(lifted.prevented).find(([, blocked]) => blocked === true)
-          ? `${Object.entries(lifted.prevented).find(([, blocked]) => blocked === true)[0]} was preventDefault'd`
-          : undefined,
-    },
-  );
-  if (Object.values(lifted.prevented).some(Boolean)) failed = true;
-
-  results.record(
-    "phone-deck-has-no-snap",
-    "the browser has no snap point to re-seat the deck on",
-    lifted.snapType === "none",
-    {
-      note: `scroll-snap-type=${lifted.snapType}`,
-      mismatch:
-        lifted.snapType === "none"
-          ? undefined
-          : `scroll-snap-type is ${lifted.snapType} — the compositor can still re-seat the deck`,
-    },
-  );
-  if (lifted.snapType !== "none") failed = true;
-
-  // [8] A swipe is a scroll, so it travels the distance it was thrown and does
-  // not have to end on a slide boundary either.
-  await phone.eval(RESET);
-  await sleep(500);
-  await phone.send("Input.synthesizeScrollGesture", {
-    x: 195,
-    y: 520,
-    xDistance: 0,
-    yDistance: -Math.round(pslide * 0.8),
-    gestureSourceType: "default",
-    speed: 2000,
-    preventFling: false,
-  });
-  await sleep(2200);
-  const swiped = await phone.eval(`
-    const s = document.querySelector(${JSON.stringify(SELECTOR)});
-    return { stack: Math.round(s.scrollTop), page: Math.round(window.scrollY) };
-  `);
-  results.record(
-    "phone-swipe-is-a-scroll",
-    "a swipe advances the deck without having to land on a slide boundary",
-    swiped.stack > pslide * 0.2 && offBoundary(swiped.stack, pslide) > ON_BOUNDARY_PX,
-    {
-      note: `stack=${swiped.stack} (${(swiped.stack / pslide).toFixed(2)} slides of ${pslide}px) ` +
-        `page=${swiped.page}, ${offBoundary(swiped.stack, pslide).toFixed(0)}px off the nearest boundary`,
-      mismatch:
-        swiped.stack <= pslide * 0.2
-          ? "the swipe did not advance the deck"
-          : offBoundary(swiped.stack, pslide) <= ON_BOUNDARY_PX
-            ? `rested at ${swiped.stack}px — on a slide boundary, so something is still snapping`
+        tapped.stack !== 0
+          ? `a tap moved the deck to ${tapped.stack}px (slide ${tapped.stack / pslide})`
+          : tapped.path !== "/"
+            ? `the tap navigated to ${tapped.path}`
             : undefined,
     },
   );
-  if (swiped.stack <= pslide * 0.2 || offBoundary(swiped.stack, pslide) <= ON_BOUNDARY_PX) {
-    failed = true;
-  }
+  if (tapped.stack !== 0 || tapped.path !== "/") failed = true;
+
+  // And a gesture too short to be a swipe snaps back to where it started rather
+  // than being left stranded between two slides — the other half of the report:
+  // a shift must not park the cover off a boundary.
+  await phone.eval(RESET);
+  await sleep(400);
+  const commit = Math.max(40, pslide * 0.1);
+  const nudge = Math.max(2, Math.round(commit) - 30);
+  await finger(phone, { distance: -nudge, steps: 3, stepMs: 16 });
+  const nudged = await rest();
+
+  results.record(
+    "a-shift-too-short-to-be-a-swipe-lands-back-on-the-slide",
+    `a ${nudge}px drag snaps back rather than parking the cover off a boundary`,
+    nudged.stack === 0,
+    {
+      note: `${nudge}px of finger travel -> ${nudged.stack}px (commit distance is ${commit.toFixed(0)}px)`,
+      mismatch:
+        nudged.stack === 0
+          ? undefined
+          : `a ${nudge}px drag left the cover at ${nudged.stack}px, ` +
+            `${offBoundary(nudged.stack, pslide).toFixed(0)}px off the slide boundary`,
+    },
+  );
+  if (nudged.stack !== 0) failed = true;
 
   // [9] No horizontal overflow, and the dots stay on screen.
   const phoneLayout = await phone.eval(`
@@ -1059,6 +1339,5 @@ results.record(
 } finally {
   await chrome.close();
 }
-
 const summary = results.summary("Homepage category slide stack");
 process.exit(failed || summary.fail > 0 ? 1 : 0);
