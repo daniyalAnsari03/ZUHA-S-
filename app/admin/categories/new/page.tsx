@@ -13,6 +13,7 @@ export default async function NewCategoryPage() {
           slug: "",
           description: "",
           imageUrl: "",
+          mobileImageUrl: "",
           isActive: true,
           sortOrder: 0,
         }}

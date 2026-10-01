@@ -5,21 +5,48 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   : "";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // Server Actions reject any request body over 1 MB by default and answer
+      // with a 500 before the action body runs. That silently broke every
+      // image upload: the admin upload action advertises and enforces a 5 MB
+      // cap, but anything from 1 MB up could never reach it — the client only
+      // saw the generic "Upload failed." because the picker catches the
+      // rejection. This affects product, category, hero, media-library and
+      // AI-chat uploads alike; all of them go through uploadImageAction.
+      //
+      // 6 MB, not 5 MB: the limit measures the whole multipart body, so a file
+      // at exactly the action's 5 MB cap would still be rejected once the
+      // boundary and envelope are added. The action's own MAX_FILE_SIZE check
+      // remains the real limit and still returns the friendly error message.
+      bodySizeLimit: "6mb",
+    },
+  },
   images: {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     // Only these quality steps may be requested by `next/image`. Product
     // photography is optimised per surface instead of using the 75 default:
-    // 50 for card and category thumbnails, 55 for the full-bleed hero, 60 for
-    // the product detail image. On a 412px phone at 1.75 DPR the smaller
-    // candidate widths below keep a card image on the 384/512 step rather than
-    // the 828 step, which is where most of the storefront image weight used to
-    // come from.
-    qualities: [50, 55, 60, 75],
-    // Candidate widths are what `next/image` may pick from. The 828/1200/1920
-    // steps are kept for the hero and full-bleed sections; smaller steps let
-    // grid cards, thumbnails and category tiles stop at a 384/512 candidate.
-    deviceSizes: [384, 512, 640, 828, 1080, 1200, 1920],
+    // 50 for card and category thumbnails, 60 for the product detail image, 75
+    // wherever nothing claims a lower step, and 90 for the full-bleed
+    // homepage slides.
+    //
+    // 90 on the full-bleed slides is not a preference. Those images are shown
+    // edge to edge on a 27-inch display as often as on a phone, and at q55 a
+    // photograph that survives the resize visibly loses its weave and its fine
+    // embroidery stitching at that size. It is the step that undid the
+    // pixelation the upload-side compression used to cause.
+    qualities: [50, 55, 60, 75, 90],
+    // Candidate widths are what `next/image` may pick from. The 828/1200 steps
+    // are kept for full-bleed sections; smaller steps let grid cards,
+    // thumbnails and category tiles stop at a 384/512 candidate.
+    //
+    // 1920 used to be the ceiling, which was itself a cause of the pixelation:
+    // a 1440px viewport at 2x DPR needs 2880px and was being handed a 1920px
+    // candidate to upscale. 2560 and 3200 close that gap for large and
+    // high-density screens; the small steps are untouched, so a phone at 1.75
+    // DPR still lands on the 828 candidate and grid cards still stop at 384.
+    deviceSizes: [384, 512, 640, 828, 1080, 1200, 1920, 2560, 3200],
     imageSizes: [64, 96, 128, 192, 256, 384, 512],
     remotePatterns: supabaseHost
       ? [

@@ -177,7 +177,7 @@ h6 {
    span-width, so the loop is seamless and runs entirely on the compositor. */
 .announcement-ticker {
   width: max-content;
-  animation: announcement-scroll 35s linear infinite;
+  animation: announcement-scroll 20s linear infinite;
   will-change: transform;
 }
 

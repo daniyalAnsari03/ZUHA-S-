@@ -13,6 +13,7 @@ function rowToValues(row: {
   slug: string;
   description: string | null;
   image_url: string | null;
+  mobile_image_url: string | null;
   is_active: boolean;
   sort_order: number | null;
 }): CategoryFormValues {
@@ -21,6 +22,7 @@ function rowToValues(row: {
     slug: row.slug,
     description: row.description ?? "",
     imageUrl: row.image_url ?? "",
+    mobileImageUrl: row.mobile_image_url ?? "",
     isActive: row.is_active,
     sortOrder: row.sort_order ?? 0,
   };

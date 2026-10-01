@@ -21,6 +21,7 @@ export type CategoryFormValues = {
   slug: string;
   description: string;
   imageUrl: string;
+  mobileImageUrl: string;
   isActive: boolean;
   sortOrder: number | "";
 };
@@ -36,6 +37,7 @@ const EMPTY_VALUES: CategoryFormValues = {
   slug: "",
   description: "",
   imageUrl: "",
+  mobileImageUrl: "",
   isActive: true,
   sortOrder: 0,
 };
@@ -84,13 +86,20 @@ export function CategoryForm({ defaultValues, categoryId }: CategoryFormProps) {
             hint="Lower numbers appear first."
           />
         </div>
-        <div className="mt-5">
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <ImagePicker
             name="imageUrl"
             value={values.imageUrl}
             folder="categories"
-            label="Category Image"
-            hint="Select or upload a category image."
+            label="Desktop Image"
+            hint="Shown on the homepage slide from 768px up (tablet + desktop). Portrait crops best on phones without a mobile image."
+          />
+          <ImagePicker
+            name="mobileImageUrl"
+            value={values.mobileImageUrl}
+            folder="categories"
+            label="Mobile Image (optional)"
+            hint="Shown on the homepage slide below 768px. Leave empty to reuse the desktop image."
           />
         </div>
         <div className="mt-5">

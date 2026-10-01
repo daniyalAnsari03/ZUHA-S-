@@ -39,6 +39,8 @@ export type Category = {
   name: string;
   description: string;
   image: string;
+  /** Optional mobile-only slide image; falls back to `image` when empty. */
+  mobileImage: string;
   active: boolean;
   order: number;
 };

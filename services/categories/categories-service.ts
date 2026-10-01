@@ -123,6 +123,7 @@ export async function createCategory(
       slug: parsed.slug,
       description: parsed.description,
       image_url: parsed.imageUrl,
+      mobile_image_url: parsed.mobileImageUrl,
       is_active: parsed.isActive,
       sort_order: parsed.sortOrder,
     })
@@ -158,6 +159,7 @@ export async function updateCategory(
       slug: parsed.slug,
       description: parsed.description,
       image_url: parsed.imageUrl,
+      mobile_image_url: parsed.mobileImageUrl,
       is_active: parsed.isActive,
       sort_order: parsed.sortOrder,
     })

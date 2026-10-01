@@ -129,6 +129,7 @@ const FALLBACK_CATEGORIES: Category[] = [
     name: "Jamawar",
     description: "Hand-woven jamawar in the Kashmir tradition.",
     image: `${IMG}/category-jamawar.svg`,
+    mobileImage: "",
     active: true,
     order: 1,
   },
@@ -138,6 +139,7 @@ const FALLBACK_CATEGORIES: Category[] = [
     name: "Embroidery",
     description: "Fine threadwork finished by hand.",
     image: `${IMG}/category-embroidery.svg`,
+    mobileImage: "",
     active: true,
     order: 2,
   },
@@ -147,6 +149,7 @@ const FALLBACK_CATEGORIES: Category[] = [
     name: "Cut-Dana Embroidery",
     description: "Sequinned cut-dana with a quiet lustre.",
     image: `${IMG}/category-cut-dana.svg`,
+    mobileImage: "",
     active: true,
     order: 3,
   },
@@ -156,6 +159,7 @@ const FALLBACK_CATEGORIES: Category[] = [
     name: "Plain",
     description: "Clean cuts that let the fabric speak.",
     image: `${IMG}/category-plain.svg`,
+    mobileImage: "",
     active: true,
     order: 4,
   },
@@ -165,6 +169,7 @@ const FALLBACK_CATEGORIES: Category[] = [
     name: "Unstitched",
     description: "Signature unstitched three-piece collections.",
     image: `${IMG}/category-unstitched.svg`,
+    mobileImage: "",
     active: true,
     order: 5,
   },
@@ -174,6 +179,7 @@ const FALLBACK_CATEGORIES: Category[] = [
     name: "Lawn",
     description: "Featherlight lawn made for warmer days.",
     image: `${IMG}/category-lawn.svg`,
+    mobileImage: "",
     active: true,
     order: 6,
   },
@@ -511,6 +517,7 @@ function dbCategoryToStorefront(row: {
   name: string;
   description: string | null;
   image_url: string | null;
+  mobile_image_url: string | null;
   is_active: boolean;
   sort_order: number;
 }): Category {
@@ -520,6 +527,7 @@ function dbCategoryToStorefront(row: {
     name: row.name,
     description: row.description ?? "",
     image: row.image_url ?? "",
+    mobileImage: row.mobile_image_url ?? "",
     active: row.is_active,
     order: row.sort_order,
   };

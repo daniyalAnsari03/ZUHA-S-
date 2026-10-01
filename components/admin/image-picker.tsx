@@ -104,8 +104,12 @@ export function ImagePicker({
         } else {
           setError(result.error);
         }
-      } catch {
-        setError("Upload failed.");
+      } catch (uploadError) {
+        setError(
+          uploadError instanceof Error && uploadError.message
+            ? uploadError.message
+            : "Upload failed.",
+        );
       } finally {
         setUploading(false);
       }

@@ -256,6 +256,7 @@ export async function createCategoryAction(
         slug: field(formData, "slug"),
         description: field(formData, "description"),
         imageUrl: field(formData, "imageUrl"),
+        mobileImageUrl: field(formData, "mobileImageUrl"),
         isActive: checkField(formData, "isActive"),
         sortOrder: numberField(formData, "sortOrder"),
       },
@@ -282,6 +283,7 @@ export async function updateCategoryAction(
       slug: field(formData, "slug"),
       description: field(formData, "description"),
       imageUrl: field(formData, "imageUrl"),
+      mobileImageUrl: field(formData, "mobileImageUrl"),
       isActive: checkField(formData, "isActive"),
       sortOrder: numberField(formData, "sortOrder"),
     });
@@ -342,9 +344,18 @@ const ALLOWED_IMAGE_TYPES = [
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // Image optimization settings
-const MAX_WIDTH = 1920;
-const MAX_HEIGHT = 1920;
-const WEBP_QUALITY = 80;
+//
+// These images are shown full-bleed, edge to edge, on the homepage slides. A
+// 1920px cap is the reason those slides looked pixelated: on a 2560px or 3840px
+// display the browser upscales a 1920px candidate, and the candidate had itself
+// already been thrown away from a 4032px phone photo and re-encoded. Sharp
+// therefore keeps the longest side at 3200px, which covers a 4K panel at 1x
+// with room to spare, and re-encodes at 90 rather than 80 so the step down is
+// not the thing your eye catches. Measured on the project's own photography in
+// tests/qa/image-compression-compare.mjs.
+const MAX_WIDTH = 3200;
+const MAX_HEIGHT = 3200;
+const WEBP_QUALITY = 90;
 
 export type UploadImageResult =
   { ok: true; path: string; publicUrl: string } | { ok: false; error: string };

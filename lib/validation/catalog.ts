@@ -35,6 +35,7 @@ export const categoryInputSchema = z.object({
   slug: slugSchema,
   description: optionalShortText,
   imageUrl: optionalShortText,
+  mobileImageUrl: optionalShortText,
   isActive: z.boolean().default(true),
   sortOrder: z.number().int().min(0).default(0),
 });
